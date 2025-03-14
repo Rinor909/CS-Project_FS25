@@ -277,3 +277,6 @@ st.write("FCS Streamlit Tutorial • Designed with ❤️ for Bachelor Students 
 def lafonction(tamere):
     x = tamere*5
     return(x)
+
+st.title("This isit")
+st.write("Small text")
