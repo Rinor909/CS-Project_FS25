@@ -274,3 +274,6 @@ Happy Learning!
 # Footer
 st.write("---")
 st.write("FCS Streamlit Tutorial • Designed with ❤️ for Bachelor Students in Business Administration  TEST COMMIT AND PUSH 14.03.2025")
+def lafonction(tamere):
+    x = tamere*5
+    return(x)
