@@ -42,10 +42,13 @@ def load_data():
     selected_columns = ["Airline", "Distance", "Fare", "Departure City", "Arrival City"]
     df = df[selected_columns]
 
-    # Convert categorical columns
-    categorical_columns = ["Airline", "Departure City", "Arrival City"]
+    # Encode categorical columns for ML but keep original names for dropdowns
+    label_encoders = {}
+    categorical_columns = ["Airline"]
     for col in categorical_columns:
-        df[col] = df[col].astype("category").cat.codes
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col])
+        label_encoders[col] = le  # Store encoder for later use
 
     # Convert numeric columns correctly
     numeric_cols = ["Distance", "Fare"]
@@ -54,9 +57,9 @@ def load_data():
 
     df.dropna(inplace=True)  # Remove invalid rows
 
-    return df
+    return df, label_encoders
 
-df = load_data()  # Load the dataset once
+df, label_encoders = load_data()  # Load dataset with label encoders
 
 if df is not None:
     # Train a simple Linear Regression model
@@ -71,13 +74,21 @@ if df is not None:
     st.title("✈️ Flight Ticket Price Predictor")
 
     # User input fields
-    airline = st.selectbox("Select Airline", df["Airline"].unique())
+    airline = st.selectbox("Select Airline", label_encoders["Airline"].classes_)  # Show original airline names
+    airline_encoded = label_encoders["Airline"].transform([airline])[0]  # Convert to encoded value
+
     distance = st.number_input("Flight Distance (Miles)", min_value=100, max_value=5000)
-    departure_city = st.selectbox("Departure City", df["Departure City"].unique())
-    arrival_city = st.selectbox("Arrival City", df["Arrival City"].unique())
+
+    # Keep city names visible in dropdowns
+    departure_city_name = st.selectbox("Departure City", df["Departure City"].unique())
+    arrival_city_name = st.selectbox("Arrival City", df["Arrival City"].unique())
+
+    # Convert selected cities to their internal values for ML model
+    departure_city = df[df["Departure City"] == departure_city_name]["Departure City"].values[0]
+    arrival_city = df[df["Arrival City"] == arrival_city_name]["Arrival City"].values[0]
 
     # Predict button
     if st.button("Predict Ticket Price"):
-        input_data = np.array([[airline, distance, departure_city, arrival_city]])
+        input_data = np.array([[airline_encoded, distance, departure_city, arrival_city]])
         predicted_price = model.predict(input_data)
         st.success(f"🛫 Predicted Ticket Price: **${predicted_price[0]:.2f}**")
