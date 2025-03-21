@@ -4,3 +4,5 @@ numpy
 panda
 seaborn
 scikit-learn
+folium
+streamlit-folium
