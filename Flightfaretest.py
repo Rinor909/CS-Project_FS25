@@ -5,38 +5,61 @@ import seaborn as sns
 # Load dataset from Kaggle
 df = pd.read_csv(
     '/kaggle/input/us-airline-flight-routes-and-fares-1993-2024/US Airline Flight Routes and Fares 1993-2024.csv',
-    low_memory=False
+    low_memory=False  # Prevents memory warnings
 )
+
+# Display the first few rows
+print(df.head())
+
+# Show dataset info
+print(df.info())
+
+# Show summary statistics
+print(df.describe())
+
+# Show column names
+print(df.columns)
+
+# Show missing values
+missing_values = df.isnull().sum()
+print("Missing values in each column:\n", missing_values[missing_values > 0])
+
+# Drop rows with missing values
+df.dropna(inplace=True)
+
+# Verify missing values are gone
+print("Missing values after cleaning:\n", df.isnull().sum())
 
 from sklearn.preprocessing import LabelEncoder
 
-# Convert "Duration" from '6h 15m' to minutes
+# Convert 'Duration' from '6h 15m' to total minutes
 def convert_duration(duration):
-    h, m = map(int, duration.replace("h", "").replace("m", "").split())
-    return h * 60 + m
+    try:
+        h, m = map(int, duration.replace("h", "").replace("m", "").split())
+        return h * 60 + m  # Convert to total minutes
+    except:
+        return None  # Handle invalid values
 
 df["Duration"] = df["Duration"].apply(convert_duration)
+df.dropna(subset=["Duration"], inplace=True)  # Remove invalid rows
 
 # Encode categorical columns
-le = LabelEncoder()
-df["Airline"] = le.fit_transform(df["Airline"])
-df["Class"] = le.fit_transform(df["Class"])
-df["Departure Time"] = le.fit_transform(df["Departure Time"])
+label_encoders = {}
+for column in ["Airline", "Departure Time", "Class"]:
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+    label_encoders[column] = le  # Store encoders for later use
 
-# Drop unnecessary columns
-df = df.drop(columns=["Date"])
-
-print(df.head())  # Check cleaned data
-
+print(df.head())  # Check the cleaned data
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
-# Define X (independent variables) and y (target variable)
+# Define X (features) and y (target)
 X = df[["Airline", "Distance", "Departure Time", "Duration", "Class"]]
 y = df["Fare"]
 
-# Split dataset into training & testing sets
+# Split data into training & testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Train the model
@@ -44,6 +67,6 @@ model = LinearRegression()
 model.fit(X_train, y_train)
 
 # Test prediction
-sample_input = [[2, 1500, 1, 360, 0]]  # Example: Airline 2, 1500 miles, Morning flight, 6-hour duration, Economy class
+sample_input = [[2, 1500, 1, 360, 0]]  # Example: Airline 2, 1500 miles, Morning, 6-hour duration, Economy class
 predicted_price = model.predict(sample_input)
 print(f"Predicted Flight Price: ${predicted_price[0]:.2f}")
