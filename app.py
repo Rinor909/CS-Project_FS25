@@ -98,7 +98,7 @@ def main():
     # Display app title and description
     st.title("✈️ Flight Ticket Price Predictor")
     st.markdown("""
-    This app predicts flight ticket prices based on airline, distance, and route information.
+    This app predicts flight ticket prices based on airline and route information.
     Select your preferences below to get a price estimate.
     """)
     
@@ -108,65 +108,85 @@ def main():
     with col1:
         # Airline selection
         airline = st.selectbox("Select Airline", options=airlines)
-        
-        # Distance input
-        distance = st.number_input(
-            "Flight Distance (Miles)", 
-            min_value=int(df["Distance"].min()), 
-            max_value=int(df["Distance"].max()),
-            value=int(df["Distance"].mean())
-        )
+        # Departure city selection
+        departure_city = st.selectbox("Departure City", options=departure_cities)
     
     with col2:
-        # City selections
-        departure_city = st.selectbox("Departure City", options=departure_cities)
+        # Arrival city selection
         arrival_city = st.selectbox("Arrival City", options=arrival_cities, 
-                                   index=min(1, len(arrival_cities)-1))  # Default to second city if available
+                                  index=min(1, len(arrival_cities)-1))  # Default to second city if available
     
     # Predict button in its own row
     if st.button("Predict Ticket Price", type="primary"):
         try:
-            # Convert selections to encoded values
-            airline_encoded = label_encoders["Airline"].transform([airline])[0]
-            departure_city_encoded = label_encoders["Departure City"].transform([departure_city])[0]
-            arrival_city_encoded = label_encoders["Arrival City"].transform([arrival_city])[0]
+            # Filter data for the selected route
+            route_data = df[
+                (df["Airline"] == airline) & 
+                (df["Departure City"] == departure_city) & 
+                (df["Arrival City"] == arrival_city)
+            ]
             
-            # Create and train model
-            X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
-            y = df["Fare"]
-            
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            model = LinearRegression()
-            model.fit(X_train, y_train)
-            
-            # Make prediction
-            input_data = np.array([[airline_encoded, distance, departure_city_encoded, arrival_city_encoded]])
-            predicted_price = model.predict(input_data)
-            
-            # Display prediction
-            st.success(f"🛫 Predicted Ticket Price: **${predicted_price[0]:.2f}**")
+            if len(route_data) > 0:
+                # If we have exact route data, use the average fare
+                avg_fare = route_data["Fare"].mean()
+                distance = route_data["Distance"].mean()
+                st.success(f"🛫 Estimated Ticket Price: **${avg_fare:.2f}**")
+                st.info(f"Based on {len(route_data)} existing flights for this exact route.")
+            else:
+                # Otherwise use model to predict
+                # Convert selections to encoded values
+                airline_encoded = label_encoders["Airline"].transform([airline])[0]
+                departure_city_encoded = label_encoders["Departure City"].transform([departure_city])[0]
+                arrival_city_encoded = label_encoders["Arrival City"].transform([arrival_city])[0]
+                
+                # Calculate approximate distance based on similar routes
+                similar_departures = df[df["Departure City"] == departure_city]
+                similar_arrivals = df[df["Arrival City"] == arrival_city]
+                
+                if not similar_departures.empty and not similar_arrivals.empty:
+                    avg_distance = (similar_departures["Distance"].mean() + similar_arrivals["Distance"].mean()) / 2
+                else:
+                    avg_distance = df["Distance"].mean()
+                
+                # Create and train model
+                X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
+                y = df["Fare"]
+                
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                model = LinearRegression()
+                model.fit(X_train, y_train)
+                
+                # Make prediction
+                input_data = np.array([[airline_encoded, avg_distance, departure_city_encoded, arrival_city_encoded]])
+                predicted_price = model.predict(input_data)
+                
+                # Display prediction
+                st.success(f"🛫 Predicted Ticket Price: **${predicted_price[0]:.2f}**")
+                st.info(f"This is a predicted price as we don't have data for this exact route.")
             
             # Display route summary
-            st.info(f"Route: {departure_city} → {arrival_city} ({distance} miles) with {airline}")
-            
-            # Display model performance
-            test_score = model.score(X_test, y_test)
-            st.metric("Model Accuracy (R²)", f"{test_score:.2f}")
+            if 'distance' in locals():
+                st.info(f"Route: {departure_city} → {arrival_city} ({distance:.0f} miles) with {airline}")
+            else:
+                st.info(f"Route: {departure_city} → {arrival_city} with {airline}")
             
             # Find similar routes for comparison
             st.subheader("Similar Routes")
             similar_routes = df[
                 (df["Airline"] == airline) & 
-                (df["Distance"].between(distance*0.8, distance*1.2))
+                ((df["Departure City"] == departure_city) | (df["Arrival City"] == arrival_city))
             ][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
             
             if not similar_routes.empty:
                 st.dataframe(similar_routes)
             else:
-                st.write("No similar routes found in the dataset.")
+                similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
+                st.write("No direct matches found. Here are some routes by the same airline:")
+                st.dataframe(similar_routes)
                 
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
+            st.exception(e)
 
 if __name__ == "__main__":
     main()
