@@ -10,9 +10,94 @@ import folium
 from streamlit_folium import folium_static
 import json
 import random
+from math import radians, cos, sin, asin, sqrt
 
-# Page configuration
-st.set_page_config(page_title="Flight Price Predictor", layout="wide")
+# Page configuration with improved theme
+st.set_page_config(
+    page_title="Flight Price Predictor",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Custom CSS with improved styling
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1E88E5;
+        margin-bottom: 1rem;
+    }
+    .sub-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-top: 1.5rem;
+    }
+    .route-info {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .price-display {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1E88E5;
+    }
+    .airline-logo {
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        background-color: #1E88E5;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .flight-details {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #1E88E5;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stButton>button {
+        background-color: #1E88E5;
+        color: white;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        border: none;
+        width: 100%;
+    }
+    .stButton>button:hover {
+        background-color: #1565C0;
+    }
+    .similar-routes-table {
+        margin-top: 1rem;
+    }
+    .info-text {
+        color: #555;
+        font-size: 0.9rem;
+    }
+    /* Improve the select boxes */
+    div[data-baseweb="select"] > div {
+        border-radius: 5px;
+    }
+    /* Card-like container for sections */
+    .card-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Function to suppress print statements
 import sys
@@ -71,7 +156,6 @@ def get_city_coordinates():
             "St. Louis": [38.6270, -90.1994],
             "Orlando": [28.5383, -81.3792],
             "Charlotte": [35.2271, -80.8431],
-            # Add specific cities that appear in the interface
             "Nantucket": [41.2835, -70.0995],
             "Tampa": [27.9506, -82.4572],
         }
@@ -98,11 +182,8 @@ def get_city_coordinates():
 # Load city coordinates
 city_coords = get_city_coordinates()
 
-# Generate coordinates for cities not in our database
+# Get coordinates for cities not in our database
 def get_coordinates_for_city(city_name):
-    # Log original city name for debugging
-    original_city = city_name
-    
     # Extract the base city name (before commas or parentheses)
     base_city = city_name.split(',')[0].split('(')[0].strip()
     
@@ -134,66 +215,90 @@ def get_coordinates_for_city(city_name):
     with open(city_coords_file, 'w') as f:
         json.dump(city_coords, f)
     
-    # Debug info
-    print(f"Generated random coordinates for {original_city}: [{lat}, {lng}]")
-    
     return [lat, lng]
 
-# Create a flight route map
+# Calculate distance between coordinates
+def haversine_distance(lat1, lon1, lat2, lon2):
+    # Convert latitude and longitude from degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    # Haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    # Radius of Earth in miles
+    r = 3956
+    return c * r
+
+# Create a visually enhanced flight route map
 def create_flight_map(departure_city, arrival_city):
     # Get coordinates
     dep_coords = get_coordinates_for_city(departure_city)
     arr_coords = get_coordinates_for_city(arrival_city)
     
-    # Debug log for coordinates
-    print(f"Departure: {departure_city} => {dep_coords}")
-    print(f"Arrival: {arrival_city} => {arr_coords}")
-    
     # Create map centered between departure and arrival
     center_lat = (dep_coords[0] + arr_coords[0]) / 2
     center_lng = (dep_coords[1] + arr_coords[1]) / 2
     
-    m = folium.Map(location=[center_lat, center_lng], zoom_start=4)
+    m = folium.Map(location=[center_lat, center_lng], zoom_start=4, tiles="CartoDB positron")
     
-    # Add markers for departure and arrival
+    # Calculate distance
+    distance = haversine_distance(dep_coords[0], dep_coords[1], arr_coords[0], arr_coords[1])
+    
+    # Add departure marker
     folium.Marker(
         dep_coords, 
-        popup=departure_city, 
+        popup=f"<b>{departure_city}</b>",
+        tooltip=departure_city,
         icon=folium.Icon(color="green", icon="plane-departure", prefix="fa")
     ).add_to(m)
     
+    # Add arrival marker
     folium.Marker(
         arr_coords, 
-        popup=arrival_city, 
+        popup=f"<b>{arrival_city}</b>",
+        tooltip=arrival_city,
         icon=folium.Icon(color="red", icon="plane-arrival", prefix="fa")
     ).add_to(m)
     
-    # Add a line connecting the two cities
+    # Calculate intermediate points for a curved line
+    num_points = 20
+    points = []
+    for i in range(num_points + 1):
+        t = i / num_points
+        # Linear interpolation for lat/lng
+        lat = dep_coords[0] * (1 - t) + arr_coords[0] * t
+        lng = dep_coords[1] * (1 - t) + arr_coords[1] * t
+        
+        # Add curve using quadratic interpolation
+        # Maximum height at midpoint
+        curve_height = distance / 30
+        curve_factor = 4 * t * (1 - t)  # Quadratic curve peaking at t=0.5
+        lat += curve_factor * curve_height / 111.32  # Convert degrees to approximate miles (1 deg ≈ 111.32 km ≈ 69.2 miles)
+        
+        points.append([lat, lng])
+    
+    # Add curved flight path with gradient
     folium.PolyLine(
-        locations=[dep_coords, arr_coords],
-        color="blue",
-        weight=3,
-        opacity=0.7,
-        dash_array="5",
-    ).add_to(m)
-    
-    # Add a curved line to represent the flight path
-    # Calculate an intermediate point that's above the straight line for the curve
-    mid_lat = (dep_coords[0] + arr_coords[0]) / 2
-    mid_lng = (dep_coords[1] + arr_coords[1]) / 2
-    
-    # Push the midpoint slightly north to create a curved appearance
-    mid_lat_offset = mid_lat + (abs(dep_coords[1] - arr_coords[1]) / 10)
-    
-    # Create the curved line
-    folium.PolyLine(
-        locations=[dep_coords, [mid_lat_offset, mid_lng], arr_coords],
-        color="red",
+        points,
+        color="#1E88E5",
         weight=4,
         opacity=0.8,
+        tooltip=f"Distance: {distance:.0f} miles"
     ).add_to(m)
     
-    return m
+    # Add a plane icon at the middle of the path
+    mid_point = points[len(points)//2]
+    folium.Marker(
+        mid_point,
+        icon=folium.DivIcon(
+            icon_size=(20, 20),
+            icon_anchor=(10, 10),
+            html='<div style="font-size: 20px; color: #1E88E5;"><i class="fa fa-plane" aria-hidden="true"></i></div>',
+        )
+    ).add_to(m)
+    
+    return m, distance
 
 # Load and preprocess data
 @st.cache_data
@@ -203,11 +308,11 @@ def load_data():
         
         # Correct mapping based on available columns
         column_mapping = {
-            "carrier_lg": "Airline",     # Airline column
-            "nsmiles": "Distance",       # Distance in miles
-            "fare": "Fare",              # Flight fare
-            "city1": "Departure City",   # Departure location
-            "city2": "Arrival City"      # Arrival location
+            "carrier_lg": "Airline",     
+            "nsmiles": "Distance",       
+            "fare": "Fare",              
+            "city1": "Departure City",   
+            "city2": "Arrival City"      
         }
         
         # Check if expected columns exist
@@ -227,17 +332,15 @@ def load_data():
         df["Fare"] = pd.to_numeric(df["Fare"], errors="coerce")
         
         # Handle missing values
-        before_count = len(df)
         df.dropna(inplace=True)
-        after_count = len(df)
         
         # Create encoders dictionary
         label_encoders = {}
         
         # Store unique values for city selections before encoding
-        departure_cities = df["Departure City"].unique().tolist()
-        arrival_cities = df["Arrival City"].unique().tolist()
-        airlines = df["Airline"].unique().tolist()
+        departure_cities = sorted(df["Departure City"].unique().tolist())
+        arrival_cities = sorted(df["Arrival City"].unique().tolist())
+        airlines = sorted(df["Airline"].unique().tolist())
         
         # Encode categorical columns
         categorical_columns = ["Airline", "Departure City", "Arrival City"]
@@ -252,38 +355,9 @@ def load_data():
         print(f"Error loading data: {str(e)}")
         return None, None, None, None, None
 
-# Add some custom CSS
-st.markdown("""
-<style>
-    .route-info {
-        background-color: #f0f2f6;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    .price-display {
-        font-size: 28px;
-        font-weight: bold;
-        color: #1E88E5;
-    }
-    .airline-logo {
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        background-color: #1E88E5;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-weight: bold;
-        margin-right: 10px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # Main app function
 def main():
-    # Load data (while suppressing print statements)
+    # Load data
     df, label_encoders, departure_cities, arrival_cities, airlines = load_data()
     
     # Restore stdout for debugging
@@ -293,43 +367,55 @@ def main():
         st.error("Failed to load dataset. Please check the file path and format.")
         st.stop()
     
-    # Display app title and description
-    st.title("✈️ Flight Ticket Price Predictor")
+    # App header with improved styling
+    st.markdown('<div class="main-header">✈️ Flight Ticket Price Predictor</div>', unsafe_allow_html=True)
     st.markdown("""
+    <div class="info-text">
     This app predicts flight ticket prices based on airline and route information.
     Select your preferences below to get a price estimate and view the route on a map.
-    """)
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Input section with card container
+    st.markdown('<div class="card-container">', unsafe_allow_html=True)
     
     # Create columns for input fields
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # Airline selection
-        airline = st.selectbox("Select Airline", options=airlines)
+        # Airline selection with improved label
+        st.markdown("**Airline**")
+        airline = st.selectbox("", options=airlines, label_visibility="collapsed")
     
     with col2:
-        # Departure city selection
-        departure_city = st.selectbox("Departure City", options=departure_cities)
+        # Departure city selection with improved label
+        st.markdown("**Departure City**")
+        departure_city = st.selectbox("", options=departure_cities, label_visibility="collapsed")
     
     with col3:
-        # Arrival city selection
-        arrival_city = st.selectbox("Arrival City", options=arrival_cities, 
-                                  index=min(1, len(arrival_cities)-1))  # Default to second city if available
+        # Arrival city selection with improved label
+        st.markdown("**Arrival City**")
+        arrival_city = st.selectbox("", 
+                                   options=arrival_cities, 
+                                   index=min(1, len(arrival_cities)-1),
+                                   label_visibility="collapsed")
     
     # Predict button in its own row
-    if st.button("Predict Ticket Price & Show Route", type="primary"):
+    predict_btn = st.button("Predict Ticket Price & Show Route", type="primary")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    if predict_btn:
         try:
             # Create columns for results display
             map_col, info_col = st.columns([3, 2])
             
             with map_col:
-                st.subheader("Flight Route")
-                # Enable print statements for debugging
-                sys.stdout = original_stdout
+                st.markdown('<div class="sub-header">Flight Route Map</div>', unsafe_allow_html=True)
                 
                 # Create and display map
-                flight_map = create_flight_map(departure_city, arrival_city)
-                folium_static(flight_map, width=600, height=400)
+                flight_map, calculated_distance = create_flight_map(departure_city, arrival_city)
+                folium_static(flight_map, width=700, height=450)
             
             with info_col:
                 # Filter data for the selected route
@@ -339,61 +425,27 @@ def main():
                     (df["Arrival City"] == arrival_city)
                 ]
                 
-                st.markdown("<div class='route-info'>", unsafe_allow_html=True)
-                st.markdown(f"<div class='airline-logo'>{airline[0]}</div> <b>{airline}</b>", unsafe_allow_html=True)
-                st.markdown(f"<h3>{departure_city} → {arrival_city}</h3>", unsafe_allow_html=True)
+                # Display route information in an enhanced card
+                st.markdown('<div class="route-info">', unsafe_allow_html=True)
+                st.markdown(f'<div class="airline-logo">{airline[0]}</div> <b>{airline}</b>', unsafe_allow_html=True)
+                st.markdown(f'<h3>{departure_city} → {arrival_city}</h3>', unsafe_allow_html=True)
                 
                 if len(route_data) > 0:
                     # If we have exact route data, use the average fare
                     avg_fare = route_data["Fare"].mean()
                     distance = route_data["Distance"].mean()
                     
-                    st.markdown(f"<div class='price-display'>${avg_fare:.2f}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<p>Based on {len(route_data)} existing flights</p>", unsafe_allow_html=True)
-                    st.markdown(f"<p>Distance: {distance:.0f} miles</p>", unsafe_allow_html=True)
+                    st.markdown(f'<div class="price-display">${avg_fare:.2f}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<p>Based on {len(route_data)} existing flights</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p>Distance: {distance:.0f} miles</p>', unsafe_allow_html=True)
                 else:
-                    # Otherwise use model to predict
-                    # Convert selections to encoded values
+                    # Use model to predict price for new routes
                     airline_encoded = label_encoders["Airline"].transform([airline])[0]
                     departure_city_encoded = label_encoders["Departure City"].transform([departure_city])[0]
                     arrival_city_encoded = label_encoders["Arrival City"].transform([arrival_city])[0]
                     
-                    # Calculate approximate distance based on similar routes
-                    similar_departures = df[df["Departure City"] == departure_city]
-                    similar_arrivals = df[df["Arrival City"] == arrival_city]
-                    
-                    if not similar_departures.empty and not similar_arrivals.empty:
-                        avg_distance = (similar_departures["Distance"].mean() + similar_arrivals["Distance"].mean()) / 2
-                    else:
-                        avg_distance = df["Distance"].mean()
-                    
-                    # Calculate direct distance based on coordinates
-                    dep_coords = get_coordinates_for_city(departure_city)
-                    arr_coords = get_coordinates_for_city(arrival_city)
-                    
-                    # Helper function to calculate distance between coordinates
-                    def haversine_distance(lat1, lon1, lat2, lon2):
-                        from math import radians, cos, sin, asin, sqrt
-                        # Convert latitude and longitude from degrees to radians
-                        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-                        # Haversine formula
-                        dlon = lon2 - lon1
-                        dlat = lat2 - lat1
-                        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                        c = 2 * asin(sqrt(a))
-                        # Radius of Earth in miles
-                        r = 3956
-                        return c * r
-                    
-                    # Calculate direct distance
-                    direct_distance = haversine_distance(
-                        dep_coords[0], dep_coords[1], 
-                        arr_coords[0], arr_coords[1]
-                    )
-                    
-                    # Use the calculated distance if available
-                    if direct_distance > 0:
-                        avg_distance = direct_distance
+                    # Use calculated distance from map function
+                    avg_distance = calculated_distance
                     
                     # Create and train model
                     X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
@@ -406,42 +458,61 @@ def main():
                     # Make prediction
                     input_data = np.array([[airline_encoded, avg_distance, departure_city_encoded, arrival_city_encoded]])
                     predicted_price = model.predict(input_data)
+                    predicted_price = max(50, min(predicted_price[0], 1500))  # Reasonable bounds
                     
                     # Display prediction
-                    st.markdown(f"<div class='price-display'>${predicted_price[0]:.2f}</div>", unsafe_allow_html=True)
-                    st.markdown("<p>Predicted price (new route)</p>", unsafe_allow_html=True)
-                    st.markdown(f"<p>Estimated distance: {avg_distance:.0f} miles</p>", unsafe_allow_html=True)
+                    st.markdown(f'<div class="price-display">${predicted_price:.2f}</div>', unsafe_allow_html=True)
+                    st.markdown('<p>Predicted price (new route)</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p>Estimated distance: {avg_distance:.0f} miles</p>', unsafe_allow_html=True)
                 
-                st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
                 
-                # Show flight details
-                st.subheader("Flight Details")
+                # Show flight details with improved styling
+                st.markdown('<div class="sub-header">Flight Details</div>', unsafe_allow_html=True)
+                st.markdown('<div class="flight-details">', unsafe_allow_html=True)
                 st.markdown(f"""
                 * **Airline**: {airline}
                 * **Route**: {departure_city} to {arrival_city}
                 * **Distance**: {distance if 'distance' in locals() else avg_distance:.0f} miles
-                * **Price**: {'$' + str(round(avg_fare, 2)) if 'avg_fare' in locals() else '$' + str(round(predicted_price[0], 2))}
+                * **Price**: {'$' + f"{avg_fare:.2f}" if 'avg_fare' in locals() else '$' + f"{predicted_price:.2f}"}
+                * **Flight time**: ~{((distance if 'distance' in locals() else avg_distance) / 500):.1f} hours
                 """)
+                st.markdown('</div>', unsafe_allow_html=True)
             
             # Find similar routes for comparison
-            st.subheader("Similar Routes")
+            st.markdown('<div class="sub-header">Similar Routes You Might Like</div>', unsafe_allow_html=True)
+            
+            # Get similar routes by same airline or to/from same cities
             similar_routes = df[
                 (df["Airline"] == airline) & 
                 ((df["Departure City"] == departure_city) | (df["Arrival City"] == arrival_city))
             ][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
             
+            similar_routes = similar_routes.rename(columns={"Fare": "Average Fare ($)"})
+            
             if not similar_routes.empty:
-                st.dataframe(similar_routes)
+                st.markdown('<div class="similar-routes-table">', unsafe_allow_html=True)
+                st.dataframe(similar_routes, use_container_width=True, 
+                            column_config={"Average Fare ($)": st.column_config.NumberColumn(format="$%.2f")})
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
-                st.write("No direct matches found. Here are some routes by the same airline:")
-                st.dataframe(similar_routes)
+                similar_routes = similar_routes.rename(columns={"Fare": "Average Fare ($)"})
+                st.markdown('<p class="info-text">No direct matches found. Here are some routes by the same airline:</p>', unsafe_allow_html=True)
+                st.markdown('<div class="similar-routes-table">', unsafe_allow_html=True)
+                st.dataframe(similar_routes, use_container_width=True,
+                            column_config={"Average Fare ($)": st.column_config.NumberColumn(format="$%.2f")})
+                st.markdown('</div>', unsafe_allow_html=True)
                 
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
-            # Print the full exception traceback for debugging
-            import traceback
-            st.write(traceback.format_exc())
+
+    # Footer with attribution
+    st.markdown("""
+    <div style="text-align: center; margin-top: 40px; padding: 10px; color: #888;">
+    Flight Price Predictor v2.0 | Built with Streamlit
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
