@@ -6,8 +6,7 @@ import requests
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-import folium
-from streamlit_folium import folium_static
+import pydeck as pdk
 import json
 from math import radians, cos, sin, asin, sqrt
 
@@ -139,8 +138,8 @@ def get_city_coordinates():
 # Load city coordinates
 city_coords = get_city_coordinates()
 
-# Improved coordinates lookup function
-def get_coordinates_for_city(city_name):
+# Get coordinates for city
+def get_coordinates_for_city(city_name, city_coords=city_coords):
     # Extract the base city name
     if '/' in city_name:
         # Handle special case for "Dallas/Fort Worth"
@@ -216,17 +215,109 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     r = 3956
     return c * r
 
-# Improved flight route map
-def create_flight_map(departure_city, arrival_city):
+# Function to create points along an arc path
+def create_arc_path(start_coords, end_coords, steps=20):
+    points = []
+    # Linear interpolation with altitude variation
+    for i in range(steps + 1):
+        t = i / steps
+        # Linear interpolation for lat/lng
+        lat = start_coords[0] + t * (end_coords[0] - start_coords[0])
+        lng = start_coords[1] + t * (end_coords[1] - start_coords[1])
+        
+        # Parabolic interpolation for altitude (highest in the middle)
+        altitude = 0
+        if i > 0 and i < steps:
+            # Create a parabola peaking in the middle
+            normalized_t = (t - 0.5) * 2  # -1 to 1
+            altitude = 100000 * (1 - normalized_t**2)  # Higher in the middle
+        
+        points.append({"position": [lng, lat, altitude], "t": t})
+    
+    return points
+
+# 3D flight route visualization with PyDeck
+def create_3d_flight_map(departure_city, arrival_city):
     # Get coordinates
     dep_coords = get_coordinates_for_city(departure_city)
     arr_coords = get_coordinates_for_city(arrival_city)
+    
+    # Create a DataFrame with the flight path
+    # We'll create multiple points along the path for the arc
+    path_points = create_arc_path(dep_coords, arr_coords)
+    
+    # Create arc layer for the flight path
+    arc_layer = pdk.Layer(
+        "ArcLayer",
+        data=[{
+            "source": dep_coords,
+            "target": arr_coords,
+            "source_name": departure_city,
+            "target_name": arrival_city
+        }],
+        get_source_position=["source[1]", "source[0]"],  # [lng, lat]
+        get_target_position=["target[1]", "target[0]"],  # [lng, lat]
+        get_width=5,
+        get_height=0.5,
+        get_tilt=15,
+        get_source_color=[0, 255, 0, 200],  # Green for departure
+        get_target_color=[255, 0, 0, 200],  # Red for arrival
+        pickable=True,
+    )
+    
+    # Create scatter plot for departure and arrival cities
+    scatter_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=[
+            {"position": [dep_coords[1], dep_coords[0]], "name": departure_city, "size": 10000, "color": [0, 255, 0]},
+            {"position": [arr_coords[1], arr_coords[0]], "name": arrival_city, "size": 10000, "color": [255, 0, 0]}
+        ],
+        get_position="position",
+        get_radius="size",
+        get_fill_color="color",
+        pickable=True,
+    )
+    
+    # Create a column layer to show elevation at the cities
+    column_layer = pdk.Layer(
+        "ColumnLayer",
+        data=[
+            {"position": [dep_coords[1], dep_coords[0]], "name": departure_city, "elevation": 40000, "color": [0, 255, 0, 180]},
+            {"position": [arr_coords[1], arr_coords[0]], "name": arrival_city, "elevation": 40000, "color": [255, 0, 0, 180]}
+        ],
+        get_position="position",
+        get_elevation="elevation",
+        get_fill_color="color",
+        radius=10000,
+        pickable=True,
+        auto_highlight=True,
+    )
+    
+    # Create a set of smaller points to represent other airports (optional)
+    # This adds more context to the map
+    other_airports = []
+    for city, coords in city_coords.items():
+        if city not in [departure_city, arrival_city]:
+            other_airports.append({
+                "position": [coords[1], coords[0]], 
+                "name": city, 
+                "color": [100, 100, 100, 120]
+            })
+    
+    other_airports_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=other_airports,
+        get_position="position",
+        get_radius=5000,
+        get_fill_color="color",
+        pickable=True,
+    )
     
     # Calculate center and zoom level
     center_lat = (dep_coords[0] + arr_coords[0]) / 2
     center_lng = (dep_coords[1] + arr_coords[1]) / 2
     
-    # Calculate distance to determine zoom
+    # Adjust zoom based on distance
     distance = haversine_distance(dep_coords[0], dep_coords[1], arr_coords[0], arr_coords[1])
     zoom_level = 4
     if distance < 200:
@@ -238,69 +329,33 @@ def create_flight_map(departure_city, arrival_city):
     elif distance > 2000:
         zoom_level = 3
     
-    # Create base map
-    m = folium.Map(location=[center_lat, center_lng], zoom_start=zoom_level, 
-                  tiles="CartoDB positron")
+    # Create the 3D view
+    view_state = pdk.ViewState(
+        latitude=center_lat,
+        longitude=center_lng,
+        zoom=zoom_level,
+        pitch=45,  # Tilted view for 3D effect
+        bearing=0
+    )
     
-    # Add markers with custom icons
-    folium.Marker(
-        dep_coords, 
-        popup=departure_city, 
-        tooltip=departure_city,
-        icon=folium.Icon(color="green", icon="plane", prefix="fa")
-    ).add_to(m)
+    # Create tooltip for interactive elements
+    tooltip = {
+        "html": "<b>{name}</b>",
+        "style": {
+            "backgroundColor": "steelblue",
+            "color": "white"
+        }
+    }
     
-    folium.Marker(
-        arr_coords, 
-        popup=arrival_city,
-        tooltip=arrival_city,
-        icon=folium.Icon(color="red", icon="plane", prefix="fa")
-    ).add_to(m)
+    # Combine all layers
+    r = pdk.Deck(
+        layers=[arc_layer, column_layer, scatter_layer, other_airports_layer],
+        initial_view_state=view_state,
+        tooltip=tooltip,
+        map_style="mapbox://styles/mapbox/dark-v10"  # Dark theme for better 3D visualization
+    )
     
-    # Add a curved flight path
-    # Calculate an intermediate point that's above the straight line
-    mid_lat = (dep_coords[0] + arr_coords[0]) / 2
-    mid_lng = (dep_coords[1] + arr_coords[1]) / 2
-    
-    # Push the midpoint up to create a curved arc
-    # Adjust the curve based on the distance
-    curve_factor = min(0.15, distance / 15000)
-    lat_offset = (arr_coords[1] - dep_coords[1]) * curve_factor
-    mid_lat += lat_offset
-    
-    # Create curved line with more points for smoother curve
-    quarter_lat = (dep_coords[0] + mid_lat) / 2
-    quarter_lng = (dep_coords[1] + mid_lng) / 2
-    three_quarter_lat = (mid_lat + arr_coords[0]) / 2
-    three_quarter_lng = (mid_lng + arr_coords[1]) / 2
-    
-    # Create the curved flight path
-    folium.PolyLine(
-        locations=[
-            dep_coords, 
-            [quarter_lat, quarter_lng], 
-            [mid_lat, mid_lng], 
-            [three_quarter_lat, three_quarter_lng], 
-            arr_coords
-        ],
-        color="blue",
-        weight=3,
-        opacity=0.8,
-        dash_array="5",
-    ).add_to(m)
-    
-    # Add flight direction arrow
-    folium.plugins.AntPath(
-        locations=[dep_coords, arr_coords],
-        color="red",
-        weight=2,
-        opacity=0.6,
-        delay=1000,
-        dash_array=[10, 20],
-        pulse_color="red"
-    ).add_to(m)
-    
-    return m
+    return r
 
 # Load and preprocess data
 @st.cache_data
@@ -439,22 +494,15 @@ def main():
             map_col, info_col = st.columns([3, 2])
             
             with map_col:
-                st.subheader("Flight Route")
+                st.subheader("Flight Route (3D View)")
                 # Enable print statements for debugging
                 sys.stdout = original_stdout
                 
-                # Create and display map
-                flight_map = create_flight_map(departure_city, arrival_city)
+                # Create and display 3D map with PyDeck
+                flight_map = create_3d_flight_map(departure_city, arrival_city)
+                st.pydeck_chart(flight_map)
                 
-                # Try to use folium-plugin for a richer map, fallback to standard if not available
-                try:
-                    from folium import plugins
-                    # Add fullscreen button
-                    plugins.Fullscreen().add_to(flight_map)
-                except ImportError:
-                    pass
-                
-                folium_static(flight_map, width=600, height=400)
+                st.caption("Tip: Click and drag to rotate the view. Scroll to zoom in/out.")
             
             with info_col:
                 # Filter data for the selected route
