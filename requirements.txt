@@ -2,3 +2,5 @@ streamlit
 matplotlib
 numpy
 panda
+seaborn
+scikit-learn
