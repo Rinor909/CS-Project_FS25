@@ -6,13 +6,11 @@ import seaborn as sns
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
 
-# Load dataset from Kaggle
 df = kagglehub.load_dataset(
     KaggleDatasetAdapter.PANDAS,
     "bhavikjikadara/us-airline-flight-routes-and-fares-1993-2024"
 )
 
-# Display the first few rows
 print(df.head())
 
 # Show missing values
