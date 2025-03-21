@@ -14,6 +14,18 @@ import random
 # Page configuration
 st.set_page_config(page_title="Flight Price Predictor", layout="wide")
 
+# Function to suppress print statements
+import sys
+import io
+
+# Redirect stdout to suppress print statements
+class DummyFile(io.StringIO):
+    def write(self, x):
+        pass
+
+original_stdout = sys.stdout
+sys.stdout = DummyFile()
+
 # Google Drive file ID (Extracted from shared link)
 file_id = "11NgU1kWQIAzBhEbG3L6XsLRqm1T2dn4I"
 output = "US_Airline_Flight_Routes_and_Fares.csv"
@@ -29,7 +41,6 @@ if not os.path.exists(output):
         st.success("✅ File downloaded successfully!")
 
 # Create sample city coordinates data if not exists
-# In a real app, you would use a proper geocoding API or precise coordinates
 @st.cache_data
 def get_city_coordinates():
     if not os.path.exists(city_coords_file):
@@ -84,8 +95,6 @@ def get_coordinates_for_city(city_name):
             return coords
     
     # If no match, generate random coordinates within continental US
-    # This is just for visualization purposes
-    # In a real app, you would use a geocoding service
     lat = random.uniform(25, 49)  # Continental US latitude range
     lng = random.uniform(-125, -65)  # Continental US longitude range
     
@@ -146,17 +155,6 @@ def create_flight_map(departure_city, arrival_city):
         opacity=0.8,
     ).add_to(m)
     
-    # Add flight path as a small airplane icon
-    folium.plugins.AntPath(
-        locations=[dep_coords, [mid_lat_offset, mid_lng], arr_coords],
-        dash_array=[10, 20],
-        delay=1000,
-        color="blue",
-        pulse_color="#3882FA",
-        paused=False,
-        weight=3,
-    ).add_to(m)
-    
     return m
 
 # Load and preprocess data
@@ -164,9 +162,6 @@ def create_flight_map(departure_city, arrival_city):
 def load_data():
     try:
         df = pd.read_csv(output)
-        
-        # Log the columns for debugging
-        st.write("📌 Original columns in dataset:", df.columns.tolist())
         
         # Correct mapping based on available columns
         column_mapping = {
@@ -180,8 +175,7 @@ def load_data():
         # Check if expected columns exist
         missing_columns = [col for col in column_mapping.keys() if col not in df.columns]
         if missing_columns:
-            st.error(f"🚨 Missing columns in dataset: {missing_columns}")
-            st.stop()
+            return None, None, None, None, None
             
         # Rename columns
         df = df.rename(columns=column_mapping)
@@ -198,8 +192,6 @@ def load_data():
         before_count = len(df)
         df.dropna(inplace=True)
         after_count = len(df)
-        if before_count > after_count:
-            st.info(f"ℹ️ Removed {before_count - after_count} rows with missing values")
         
         # Create encoders dictionary
         label_encoders = {}
@@ -219,8 +211,6 @@ def load_data():
         return df, label_encoders, departure_cities, arrival_cities, airlines
     
     except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        st.exception(e)
         return None, None, None, None, None
 
 # Add some custom CSS
@@ -254,8 +244,11 @@ st.markdown("""
 
 # Main app function
 def main():
-    # Load data
+    # Load data (while suppressing print statements)
     df, label_encoders, departure_cities, arrival_cities, airlines = load_data()
+    
+    # Restore stdout for any future legitimate uses
+    sys.stdout = original_stdout
     
     if df is None:
         st.error("Failed to load dataset. Please check the file path and format.")
@@ -375,7 +368,6 @@ def main():
                 
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
-            st.exception(e)
 
 if __name__ == "__main__":
     main()
