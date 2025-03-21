@@ -11,51 +11,59 @@ from sklearn.linear_model import LinearRegression
 file_id = "11NgU1kWQIAzBhEbG3L6XsLRqm1T2dn4I"
 output = "US_Airline_Flight_Routes_and_Fares.csv"
 
-# Download dataset from Google Drive (Handles cases where gdown is missing)
+# Download dataset from Google Drive (Using requests instead of gdown)
 if not os.path.exists(output):
-    try:
-        import gdown
-        gdown.download(f"https://drive.google.com/uc?id={file_id}", output, quiet=False)
-    except ModuleNotFoundError:
-        st.warning("⚠️ gdown not installed, using requests instead...")
-        download_url = f"https://drive.google.com/uc?id={file_id}"
-        response = requests.get(download_url)
-        with open(output, "wb") as file:
-            file.write(response.content)
-        st.success("✅ File downloaded successfully!")
+    st.warning("⚠️ Downloading dataset from Google Drive...")
+    download_url = f"https://drive.google.com/uc?id={file_id}"
+    response = requests.get(download_url)
+    with open(output, "wb") as file:
+        file.write(response.content)
+    st.success("✅ File downloaded successfully!")
 
 # Load dataset
 @st.cache_data  # Cache to prevent reloading on every interaction
 def load_data():
-    df = pd.read_csv(output)  # Load the downloaded CSV
+    df = pd.read_csv(output, dtype=str)  # Load everything as string first
 
-    # Ensure the required columns exist before encoding
+    # Print available columns for debugging
+    st.write("📌 Columns in dataset:", df.columns.tolist())
+
+    # Ensure all expected columns exist
+    expected_columns = ["Airline", "Distance", "Departure Time", "Duration", "Class", "Fare"]
+    missing_columns = [col for col in expected_columns if col not in df.columns]
+    if missing_columns:
+        st.error(f"🚨 Missing columns: {missing_columns}. Please check the dataset format.")
+        return None
+
+    # Convert categorical columns
     categorical_columns = ["Airline", "Departure Time", "Class"]
     for col in categorical_columns:
-        if col in df.columns:
-            df[col] = df[col].astype("category").cat.codes
+        df[col] = df[col].astype("category").cat.codes
 
-    # Convert 'Duration' to total minutes
+    # Convert 'Duration' from '6h 15m' to total minutes
     def convert_duration(duration):
         try:
-            h, m = map(int, duration.replace("h", "").replace("m", "").split())
-            return h * 60 + m  # Convert to total minutes
+            parts = duration.split(" ")
+            hours = int(parts[0].replace("h", ""))
+            minutes = int(parts[1].replace("m", "")) if len(parts) > 1 else 0
+            return hours * 60 + minutes
         except:
             return None  # Handle invalid values
 
-    if "Duration" in df.columns:
-        df["Duration"] = df["Duration"].apply(convert_duration)
-        df.dropna(inplace=True)  # Remove invalid rows
+    df["Duration"] = df["Duration"].apply(convert_duration)
+
+    # Convert numeric columns correctly
+    numeric_cols = ["Distance", "Duration", "Fare"]
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce")  # Convert, replace errors with NaN
+
+    df.dropna(inplace=True)  # Remove invalid rows
 
     return df
 
 df = load_data()  # Load the dataset once
 
-# Ensure required columns exist before training
-required_columns = ["Airline", "Distance", "Departure Time", "Duration", "Class", "Fare"]
-if not all(col in df.columns for col in required_columns):
-    st.error("🚨 Missing required columns in dataset. Please check the data format.")
-else:
+if df is not None:
     # Train a simple Linear Regression model
     X = df[["Airline", "Distance", "Departure Time", "Duration", "Class"]]
     y = df["Fare"]
