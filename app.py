@@ -71,6 +71,9 @@ def get_city_coordinates():
             "St. Louis": [38.6270, -90.1994],
             "Orlando": [28.5383, -81.3792],
             "Charlotte": [35.2271, -80.8431],
+            # Add specific cities that appear in the interface
+            "Nantucket": [41.2835, -70.0995],
+            "Tampa": [27.9506, -82.4572],
         }
         
         with open(city_coords_file, 'w') as f:
@@ -78,20 +81,48 @@ def get_city_coordinates():
         return city_coords
     else:
         with open(city_coords_file, 'r') as f:
-            return json.load(f)
+            city_data = json.load(f)
+            
+            # Ensure critical cities are in the coordinates list
+            if "Nantucket" not in city_data:
+                city_data["Nantucket"] = [41.2835, -70.0995]
+            if "Tampa" not in city_data:
+                city_data["Tampa"] = [27.9506, -82.4572]
+                
+            # Save updated coordinates
+            with open(city_coords_file, 'w') as f:
+                json.dump(city_data, f)
+                
+            return city_data
 
 # Load city coordinates
 city_coords = get_city_coordinates()
 
 # Generate coordinates for cities not in our database
 def get_coordinates_for_city(city_name):
-    # If we have coordinates for this city, return them
+    # Log original city name for debugging
+    original_city = city_name
+    
+    # Extract the base city name (before commas or parentheses)
+    base_city = city_name.split(',')[0].split('(')[0].strip()
+    
+    # Check for direct match
     if city_name in city_coords:
         return city_coords[city_name]
     
-    # Check if it's a partial match (e.g., "San Francisco" in "San Francisco Int'l")
+    # Check for match with just the base city name
+    if base_city in city_coords:
+        return city_coords[base_city]
+    
+    # Check for specific known cities
+    if "Nantucket" in city_name:
+        return city_coords["Nantucket"]
+    elif "Tampa" in city_name:
+        return city_coords["Tampa"]
+    
+    # Check for partial matches
     for known_city, coords in city_coords.items():
-        if known_city in city_name or city_name in known_city:
+        if base_city in known_city or known_city in base_city:
             return coords
     
     # If no match, generate random coordinates within continental US
@@ -103,6 +134,9 @@ def get_coordinates_for_city(city_name):
     with open(city_coords_file, 'w') as f:
         json.dump(city_coords, f)
     
+    # Debug info
+    print(f"Generated random coordinates for {original_city}: [{lat}, {lng}]")
+    
     return [lat, lng]
 
 # Create a flight route map
@@ -110,6 +144,10 @@ def create_flight_map(departure_city, arrival_city):
     # Get coordinates
     dep_coords = get_coordinates_for_city(departure_city)
     arr_coords = get_coordinates_for_city(arrival_city)
+    
+    # Debug log for coordinates
+    print(f"Departure: {departure_city} => {dep_coords}")
+    print(f"Arrival: {arrival_city} => {arr_coords}")
     
     # Create map centered between departure and arrival
     center_lat = (dep_coords[0] + arr_coords[0]) / 2
@@ -211,6 +249,7 @@ def load_data():
         return df, label_encoders, departure_cities, arrival_cities, airlines
     
     except Exception as e:
+        print(f"Error loading data: {str(e)}")
         return None, None, None, None, None
 
 # Add some custom CSS
@@ -247,7 +286,7 @@ def main():
     # Load data (while suppressing print statements)
     df, label_encoders, departure_cities, arrival_cities, airlines = load_data()
     
-    # Restore stdout for any future legitimate uses
+    # Restore stdout for debugging
     sys.stdout = original_stdout
     
     if df is None:
@@ -285,6 +324,10 @@ def main():
             
             with map_col:
                 st.subheader("Flight Route")
+                # Enable print statements for debugging
+                sys.stdout = original_stdout
+                
+                # Create and display map
                 flight_map = create_flight_map(departure_city, arrival_city)
                 folium_static(flight_map, width=600, height=400)
             
@@ -323,6 +366,34 @@ def main():
                         avg_distance = (similar_departures["Distance"].mean() + similar_arrivals["Distance"].mean()) / 2
                     else:
                         avg_distance = df["Distance"].mean()
+                    
+                    # Calculate direct distance based on coordinates
+                    dep_coords = get_coordinates_for_city(departure_city)
+                    arr_coords = get_coordinates_for_city(arrival_city)
+                    
+                    # Helper function to calculate distance between coordinates
+                    def haversine_distance(lat1, lon1, lat2, lon2):
+                        from math import radians, cos, sin, asin, sqrt
+                        # Convert latitude and longitude from degrees to radians
+                        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+                        # Haversine formula
+                        dlon = lon2 - lon1
+                        dlat = lat2 - lat1
+                        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                        c = 2 * asin(sqrt(a))
+                        # Radius of Earth in miles
+                        r = 3956
+                        return c * r
+                    
+                    # Calculate direct distance
+                    direct_distance = haversine_distance(
+                        dep_coords[0], dep_coords[1], 
+                        arr_coords[0], arr_coords[1]
+                    )
+                    
+                    # Use the calculated distance if available
+                    if direct_distance > 0:
+                        avg_distance = direct_distance
                     
                     # Create and train model
                     X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
@@ -368,6 +439,9 @@ def main():
                 
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
+            # Print the full exception traceback for debugging
+            import traceback
+            st.write(traceback.format_exc())
 
 if __name__ == "__main__":
     main()
