@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 import folium
 from streamlit_folium import folium_static
 import json
-import random
+from math import radians, cos, sin, asin, sqrt
 
 # Page configuration
 st.set_page_config(page_title="Flight Price Predictor", layout="wide")
@@ -40,11 +40,11 @@ if not os.path.exists(output):
             file.write(response.content)
         st.success("✅ File downloaded successfully!")
 
-# Create sample city coordinates data if not exists
+# Improved city coordinates data
 @st.cache_data
 def get_city_coordinates():
     if not os.path.exists(city_coords_file):
-        # Sample coordinates for major US cities
+        # Expanded coordinates for US cities (including more cities in various states)
         city_coords = {
             "New York": [40.7128, -74.0060],
             "Los Angeles": [34.0522, -118.2437],
@@ -71,9 +71,43 @@ def get_city_coordinates():
             "St. Louis": [38.6270, -90.1994],
             "Orlando": [28.5383, -81.3792],
             "Charlotte": [35.2271, -80.8431],
-            # Add specific cities that appear in the interface
             "Nantucket": [41.2835, -70.0995],
             "Tampa": [27.9506, -82.4572],
+            "Austin": [30.2672, -97.7431],
+            "Columbus": [39.9612, -82.9988],
+            "Fort Worth": [32.7555, -97.3308],
+            "Dallas/Fort Worth": [32.8998, -97.0403],
+            "Indianapolis": [39.7684, -86.1581],
+            "Jacksonville": [30.3322, -81.6557],
+            "San Jose": [37.3382, -121.8863],
+            "Memphis": [35.1495, -90.0490],
+            "Louisville": [38.2527, -85.7585],
+            "Milwaukee": [43.0389, -87.9065],
+            "Kansas City": [39.0997, -94.5786],
+            "Albuquerque": [35.0844, -106.6504],
+            "Tucson": [32.2226, -110.9747],
+            "Fresno": [36.7378, -119.7871],
+            "Sacramento": [38.5816, -121.4944],
+            "Long Beach": [33.7701, -118.1937],
+            "Colorado Springs": [38.8339, -104.8214],
+            "Raleigh": [35.7796, -78.6382],
+            "Omaha": [41.2565, -95.9345],
+            "Oakland": [37.8044, -122.2711],
+            "Tulsa": [36.1540, -95.9928],
+            "Cleveland": [41.4993, -81.6944],
+            "Wichita": [37.6872, -97.3301],
+            "Arlington": [32.7357, -97.1081],
+            "New Orleans": [29.9511, -90.0715],
+            "Honolulu": [21.3069, -157.8583],
+            "Anchorage": [61.2181, -149.9003],
+            "Salt Lake City": [40.7608, -111.8910],
+            "Cincinnati": [39.1031, -84.5120],
+            "Pittsburgh": [40.4406, -79.9959],
+            "Greensboro": [36.0726, -79.7920],
+            "St. Paul": [44.9537, -93.0900],
+            "Buffalo": [42.8864, -78.8784],
+            "Lexington": [38.0406, -84.5037],
+            "Newark": [40.7357, -74.1724],
         }
         
         with open(city_coords_file, 'w') as f:
@@ -83,11 +117,18 @@ def get_city_coordinates():
         with open(city_coords_file, 'r') as f:
             city_data = json.load(f)
             
-            # Ensure critical cities are in the coordinates list
-            if "Nantucket" not in city_data:
-                city_data["Nantucket"] = [41.2835, -70.0995]
-            if "Tampa" not in city_data:
-                city_data["Tampa"] = [27.9506, -82.4572]
+            # Add important cities that might be missing
+            missing_cities = {
+                "Colorado Springs": [38.8339, -104.8214],
+                "Dallas/Fort Worth": [32.8998, -97.0403],
+                "Fort Worth": [32.7555, -97.3308],
+                "Nantucket": [41.2835, -70.0995],
+                "Tampa": [27.9506, -82.4572]
+            }
+            
+            for city, coords in missing_cities.items():
+                if city not in city_data:
+                    city_data[city] = coords
                 
             # Save updated coordinates
             with open(city_coords_file, 'w') as f:
@@ -98,99 +139,165 @@ def get_city_coordinates():
 # Load city coordinates
 city_coords = get_city_coordinates()
 
-# Generate coordinates for cities not in our database
+# Improved coordinates lookup function
 def get_coordinates_for_city(city_name):
-    # Log original city name for debugging
-    original_city = city_name
+    # Extract the base city name
+    if '/' in city_name:
+        # Handle special case for "Dallas/Fort Worth"
+        if "Dallas/Fort Worth" in city_name:
+            return city_coords.get("Dallas/Fort Worth", [32.8998, -97.0403])
+        
+        parts = city_name.split('/')
+        for part in parts:
+            clean_part = part.strip().split(',')[0].split('(')[0].strip()
+            if clean_part in city_coords:
+                return city_coords[clean_part]
     
-    # Extract the base city name (before commas or parentheses)
+    # Remove state abbreviations and other extras
     base_city = city_name.split(',')[0].split('(')[0].strip()
     
-    # Check for direct match
+    # Direct match with full name
     if city_name in city_coords:
         return city_coords[city_name]
     
-    # Check for match with just the base city name
+    # Match with base name
     if base_city in city_coords:
         return city_coords[base_city]
     
-    # Check for specific known cities
-    if "Nantucket" in city_name:
-        return city_coords["Nantucket"]
-    elif "Tampa" in city_name:
-        return city_coords["Tampa"]
+    # Handle special cases
+    if "Worth" in city_name and "Dallas" in city_name:
+        return city_coords.get("Dallas/Fort Worth", [32.8998, -97.0403])
+    if "Fort Worth" in city_name:
+        return city_coords.get("Fort Worth", [32.7555, -97.3308])
+    if "Dallas" in city_name:
+        return city_coords.get("Dallas", [32.7767, -96.7970])
+    if "Colorado Springs" in city_name:
+        return city_coords.get("Colorado Springs", [38.8339, -104.8214])
     
-    # Check for partial matches
+    # Partial matching (city is contained in known city or vice versa)
     for known_city, coords in city_coords.items():
         if base_city in known_city or known_city in base_city:
             return coords
     
-    # If no match, generate random coordinates within continental US
-    lat = random.uniform(25, 49)  # Continental US latitude range
-    lng = random.uniform(-125, -65)  # Continental US longitude range
+    # Use coordinates for a city in the same state if possible
+    state_abbr = None
+    if ',' in city_name and len(city_name.split(',')) > 1:
+        state_part = city_name.split(',')[1].strip()
+        if len(state_part) == 2:  # State abbreviation like TX, CA, etc.
+            state_abbr = state_part
+            
+            # Find a city in the same state
+            for known_city in city_coords:
+                if ',' in known_city and known_city.split(',')[1].strip() == state_abbr:
+                    return city_coords[known_city]
+    
+    # If we get here, we need to generate coordinates
+    # Instead of random coordinates, use approximate US geographic center
+    lat = 39.8283  # Approximate latitude for center of US
+    lng = -98.5795  # Approximate longitude for center of US
     
     # Save for future use
     city_coords[city_name] = [lat, lng]
     with open(city_coords_file, 'w') as f:
         json.dump(city_coords, f)
     
-    # Debug info
-    print(f"Generated random coordinates for {original_city}: [{lat}, {lng}]")
-    
     return [lat, lng]
 
-# Create a flight route map
+# Haversine distance calculator
+def haversine_distance(lat1, lon1, lat2, lon2):
+    # Convert latitude and longitude from degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    # Haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    # Radius of Earth in miles
+    r = 3956
+    return c * r
+
+# Improved flight route map
 def create_flight_map(departure_city, arrival_city):
     # Get coordinates
     dep_coords = get_coordinates_for_city(departure_city)
     arr_coords = get_coordinates_for_city(arrival_city)
     
-    # Debug log for coordinates
-    print(f"Departure: {departure_city} => {dep_coords}")
-    print(f"Arrival: {arrival_city} => {arr_coords}")
-    
-    # Create map centered between departure and arrival
+    # Calculate center and zoom level
     center_lat = (dep_coords[0] + arr_coords[0]) / 2
     center_lng = (dep_coords[1] + arr_coords[1]) / 2
     
-    m = folium.Map(location=[center_lat, center_lng], zoom_start=4)
+    # Calculate distance to determine zoom
+    distance = haversine_distance(dep_coords[0], dep_coords[1], arr_coords[0], arr_coords[1])
+    zoom_level = 4
+    if distance < 200:
+        zoom_level = 7
+    elif distance < 500:
+        zoom_level = 6
+    elif distance < 1000:
+        zoom_level = 5
+    elif distance > 2000:
+        zoom_level = 3
     
-    # Add markers for departure and arrival
+    # Create base map
+    m = folium.Map(location=[center_lat, center_lng], zoom_start=zoom_level, 
+                  tiles="CartoDB positron")
+    
+    # Add markers with custom icons
     folium.Marker(
         dep_coords, 
         popup=departure_city, 
-        icon=folium.Icon(color="green", icon="plane-departure", prefix="fa")
+        tooltip=departure_city,
+        icon=folium.Icon(color="green", icon="plane", prefix="fa")
     ).add_to(m)
     
     folium.Marker(
         arr_coords, 
-        popup=arrival_city, 
-        icon=folium.Icon(color="red", icon="plane-arrival", prefix="fa")
+        popup=arrival_city,
+        tooltip=arrival_city,
+        icon=folium.Icon(color="red", icon="plane", prefix="fa")
     ).add_to(m)
     
-    # Add a line connecting the two cities
-    folium.PolyLine(
-        locations=[dep_coords, arr_coords],
-        color="blue",
-        weight=3,
-        opacity=0.7,
-        dash_array="5",
-    ).add_to(m)
-    
-    # Add a curved line to represent the flight path
-    # Calculate an intermediate point that's above the straight line for the curve
+    # Add a curved flight path
+    # Calculate an intermediate point that's above the straight line
     mid_lat = (dep_coords[0] + arr_coords[0]) / 2
     mid_lng = (dep_coords[1] + arr_coords[1]) / 2
     
-    # Push the midpoint slightly north to create a curved appearance
-    mid_lat_offset = mid_lat + (abs(dep_coords[1] - arr_coords[1]) / 10)
+    # Push the midpoint up to create a curved arc
+    # Adjust the curve based on the distance
+    curve_factor = min(0.15, distance / 15000)
+    lat_offset = (arr_coords[1] - dep_coords[1]) * curve_factor
+    mid_lat += lat_offset
     
-    # Create the curved line
+    # Create curved line with more points for smoother curve
+    quarter_lat = (dep_coords[0] + mid_lat) / 2
+    quarter_lng = (dep_coords[1] + mid_lng) / 2
+    three_quarter_lat = (mid_lat + arr_coords[0]) / 2
+    three_quarter_lng = (mid_lng + arr_coords[1]) / 2
+    
+    # Create the curved flight path
     folium.PolyLine(
-        locations=[dep_coords, [mid_lat_offset, mid_lng], arr_coords],
-        color="red",
-        weight=4,
+        locations=[
+            dep_coords, 
+            [quarter_lat, quarter_lng], 
+            [mid_lat, mid_lng], 
+            [three_quarter_lat, three_quarter_lng], 
+            arr_coords
+        ],
+        color="blue",
+        weight=3,
         opacity=0.8,
+        dash_array="5",
+    ).add_to(m)
+    
+    # Add flight direction arrow
+    folium.plugins.AntPath(
+        locations=[dep_coords, arr_coords],
+        color="red",
+        weight=2,
+        opacity=0.6,
+        delay=1000,
+        dash_array=[10, 20],
+        pulse_color="red"
     ).add_to(m)
     
     return m
@@ -227,9 +334,7 @@ def load_data():
         df["Fare"] = pd.to_numeric(df["Fare"], errors="coerce")
         
         # Handle missing values
-        before_count = len(df)
         df.dropna(inplace=True)
-        after_count = len(df)
         
         # Create encoders dictionary
         label_encoders = {}
@@ -277,6 +382,17 @@ st.markdown("""
         color: white;
         font-weight: bold;
         margin-right: 10px;
+    }
+    .stButton>button {
+        background-color: #1E88E5;
+        color: white;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        border: none;
+    }
+    .stButton>button:hover {
+        background-color: #1565C0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -329,6 +445,15 @@ def main():
                 
                 # Create and display map
                 flight_map = create_flight_map(departure_city, arrival_city)
+                
+                # Try to use folium-plugin for a richer map, fallback to standard if not available
+                try:
+                    from folium import plugins
+                    # Add fullscreen button
+                    plugins.Fullscreen().add_to(flight_map)
+                except ImportError:
+                    pass
+                
                 folium_static(flight_map, width=600, height=400)
             
             with info_col:
@@ -358,32 +483,9 @@ def main():
                     departure_city_encoded = label_encoders["Departure City"].transform([departure_city])[0]
                     arrival_city_encoded = label_encoders["Arrival City"].transform([arrival_city])[0]
                     
-                    # Calculate approximate distance based on similar routes
-                    similar_departures = df[df["Departure City"] == departure_city]
-                    similar_arrivals = df[df["Arrival City"] == arrival_city]
-                    
-                    if not similar_departures.empty and not similar_arrivals.empty:
-                        avg_distance = (similar_departures["Distance"].mean() + similar_arrivals["Distance"].mean()) / 2
-                    else:
-                        avg_distance = df["Distance"].mean()
-                    
                     # Calculate direct distance based on coordinates
                     dep_coords = get_coordinates_for_city(departure_city)
                     arr_coords = get_coordinates_for_city(arrival_city)
-                    
-                    # Helper function to calculate distance between coordinates
-                    def haversine_distance(lat1, lon1, lat2, lon2):
-                        from math import radians, cos, sin, asin, sqrt
-                        # Convert latitude and longitude from degrees to radians
-                        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-                        # Haversine formula
-                        dlon = lon2 - lon1
-                        dlat = lat2 - lat1
-                        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                        c = 2 * asin(sqrt(a))
-                        # Radius of Earth in miles
-                        r = 3956
-                        return c * r
                     
                     # Calculate direct distance
                     direct_distance = haversine_distance(
@@ -391,9 +493,8 @@ def main():
                         arr_coords[0], arr_coords[1]
                     )
                     
-                    # Use the calculated distance if available
-                    if direct_distance > 0:
-                        avg_distance = direct_distance
+                    # Use the calculated distance
+                    avg_distance = direct_distance if direct_distance > 0 else df["Distance"].mean()
                     
                     # Create and train model
                     X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
@@ -407,10 +508,16 @@ def main():
                     input_data = np.array([[airline_encoded, avg_distance, departure_city_encoded, arrival_city_encoded]])
                     predicted_price = model.predict(input_data)
                     
+                    # Ensure the predicted price is positive
+                    predicted_price = max(predicted_price[0], 50.0)  # Minimum fare of $50
+                    
                     # Display prediction
-                    st.markdown(f"<div class='price-display'>${predicted_price[0]:.2f}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='price-display'>${predicted_price:.2f}</div>", unsafe_allow_html=True)
                     st.markdown("<p>Predicted price (new route)</p>", unsafe_allow_html=True)
                     st.markdown(f"<p>Estimated distance: {avg_distance:.0f} miles</p>", unsafe_allow_html=True)
+                    
+                    # Store for later use
+                    distance = avg_distance
                 
                 st.markdown("</div>", unsafe_allow_html=True)
                 
@@ -419,8 +526,8 @@ def main():
                 st.markdown(f"""
                 * **Airline**: {airline}
                 * **Route**: {departure_city} to {arrival_city}
-                * **Distance**: {distance if 'distance' in locals() else avg_distance:.0f} miles
-                * **Price**: {'$' + str(round(avg_fare, 2)) if 'avg_fare' in locals() else '$' + str(round(predicted_price[0], 2))}
+                * **Distance**: {distance:.0f} miles
+                * **Price**: {'$' + f"{avg_fare:.2f}" if 'avg_fare' in locals() else '$' + f"{predicted_price:.2f}"}
                 """)
             
             # Find similar routes for comparison
