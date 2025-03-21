@@ -2,23 +2,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Install dependencies (only run once)
+import kagglehub
+from kagglehub import KaggleDatasetAdapter
+
 # Load dataset from Kaggle
-df = pd.read_csv(
-    '/kaggle/input/us-airline-flight-routes-and-fares-1993-2024/US Airline Flight Routes and Fares 1993-2024.csv',
-    low_memory=False  # Prevents memory warnings
+df = kagglehub.load_dataset(
+    KaggleDatasetAdapter.PANDAS,
+    "bhavikjikadara/us-airline-flight-routes-and-fares-1993-2024"
 )
 
 # Display the first few rows
 print(df.head())
-
-# Show dataset info
-print(df.info())
-
-# Show summary statistics
-print(df.describe())
-
-# Show column names
-print(df.columns)
 
 # Show missing values
 missing_values = df.isnull().sum()
