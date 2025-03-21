@@ -26,39 +26,29 @@ else:
 df = pd.read_csv(output)  # Load the dataset
 
 # Print available columns for debugging
-print("📌 Columns in dataset:", df.columns.tolist())
+print("📌 Original columns in dataset:", df.columns.tolist())
 
-# Ensure all expected columns exist
-expected_columns = ["Airline", "Distance", "Departure Time", "Duration", "Class", "Fare"]
-missing_columns = [col for col in expected_columns if col not in df.columns]
+# Map the column names to be consistent with the Streamlit app
+column_mapping = {
+    "carrier_lg": "Airline",     # Airline column
+    "nsmiles": "Distance",       # Distance in miles
+    "fare": "Fare",              # Flight fare
+    "city1": "Departure City",   # Departure location
+    "city2": "Arrival City"      # Arrival location
+}
+
+# Check if expected columns exist
+missing_columns = [col for col in column_mapping.keys() if col not in df.columns]
 if missing_columns:
     print(f"🚨 Missing columns: {missing_columns}. Please check the dataset format.")
     exit()
 
-# Convert 'Duration' from '6h 15m' to total minutes
-def convert_duration(duration):
-    if pd.isna(duration):
-        return None
-    try:
-        duration = str(duration)
-        if 'h' in duration and 'm' in duration:
-            parts = duration.split()
-            hours = int(parts[0].replace("h", ""))
-            minutes = int(parts[1].replace("m", ""))
-        elif 'h' in duration:
-            hours = int(duration.replace("h", ""))
-            minutes = 0
-        elif 'm' in duration:
-            hours = 0
-            minutes = int(duration.replace("m", ""))
-        else:
-            return None
-        return hours * 60 + minutes
-    except Exception as e:
-        print(f"Error converting duration '{duration}': {e}")
-        return None
+# Rename columns
+df = df.rename(columns=column_mapping)
 
-df["Duration"] = df["Duration"].apply(convert_duration)
+# Select only relevant columns (same as in Streamlit app)
+selected_columns = ["Airline", "Distance", "Fare", "Departure City", "Arrival City"]
+df = df[selected_columns]
 
 # Convert numeric columns correctly
 df["Distance"] = pd.to_numeric(df["Distance"], errors="coerce")
@@ -66,15 +56,27 @@ df["Fare"] = pd.to_numeric(df["Fare"], errors="coerce")
 
 # Handle missing values
 print("Missing values before cleaning:\n", df.isnull().sum())
+before_count = len(df)
 df.dropna(inplace=True)  # Remove rows with missing values
+after_count = len(df)
 print("Missing values after cleaning:\n", df.isnull().sum())
+print(f"Removed {before_count - after_count} rows with missing values")
+
+# Store unique values for city selections (matching Streamlit app)
+departure_cities = df["Departure City"].unique().tolist()
+arrival_cities = df["Arrival City"].unique().tolist()
+airlines = df["Airline"].unique().tolist()
+
+print(f"Number of airlines: {len(airlines)}")
+print(f"Number of departure cities: {len(departure_cities)}")
+print(f"Number of arrival cities: {len(arrival_cities)}")
 
 # Now apply encoding to categorical columns
 label_encoders = {}
-categorical_columns = ["Airline", "Departure Time", "Class"]
+categorical_columns = ["Airline", "Departure City", "Arrival City"]
 for column in categorical_columns:
     le = LabelEncoder()
-    df[column] = le.fit_transform(df[column].astype(str))
+    df[f"{column}_encoded"] = le.fit_transform(df[column].astype(str))
     label_encoders[column] = le  # Store encoders for later use
 
 # Display the encoded data
@@ -85,8 +87,8 @@ print(df.head())
 print("\nBasic statistics:")
 print(df.describe())
 
-# Define X (features) and y (target)
-X = df[["Airline", "Distance", "Departure Time", "Duration", "Class"]]
+# Define X (features) and y (target) using the same format as Streamlit app
+X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
 y = df["Fare"]
 
 # Split data into training & testing sets
@@ -110,51 +112,106 @@ coefficients = pd.DataFrame({
 print("\nFeature coefficients:")
 print(coefficients.sort_values(by='Coefficient', ascending=False))
 
-# Test prediction with a sample input
-# Note: You would need to use the same encoding as during training
-sample_airline = 2  # Example airline code
-sample_distance = 1500
-sample_departure = 1  # Example departure time code
-sample_duration = 360  # 6 hours in minutes
-sample_class = 0  # Example class code
+# Test prediction with a sample input using actual data
+# Find a popular route to use as an example
+popular_routes = df.groupby(["Departure City", "Arrival City"]).size().reset_index(name='count')
+popular_routes = popular_routes.sort_values('count', ascending=False).head(5)
+print("\nPopular routes:")
+print(popular_routes)
 
-sample_input = [[sample_airline, sample_distance, sample_departure, sample_duration, sample_class]]
-predicted_price = model.predict(sample_input)
-print(f"\nPredicted Flight Price: ${predicted_price[0]:.2f}")
+if not popular_routes.empty:
+    # Use the most popular route for prediction example
+    sample_departure = popular_routes.iloc[0]["Departure City"]
+    sample_arrival = popular_routes.iloc[0]["Arrival City"]
+    
+    # Get a common airline for this route
+    common_airline = df[
+        (df["Departure City"] == sample_departure) & 
+        (df["Arrival City"] == sample_arrival)
+    ]["Airline"].value_counts().idxmax()
+    
+    # Get average distance for this route
+    avg_distance = df[
+        (df["Departure City"] == sample_departure) & 
+        (df["Arrival City"] == sample_arrival)
+    ]["Distance"].mean()
+    
+    # Encode values
+    airline_encoded = label_encoders["Airline"].transform([common_airline])[0]
+    departure_encoded = label_encoders["Departure City"].transform([sample_departure])[0]
+    arrival_encoded = label_encoders["Arrival City"].transform([sample_arrival])[0]
+    
+    # Make prediction
+    sample_input = [[airline_encoded, avg_distance, departure_encoded, arrival_encoded]]
+    predicted_price = model.predict(sample_input)
+    
+    print(f"\nSample route prediction:")
+    print(f"Airline: {common_airline}")
+    print(f"Route: {sample_departure} to {sample_arrival}")
+    print(f"Distance: {avg_distance:.2f} miles")
+    print(f"Predicted Price: ${predicted_price[0]:.2f}")
+    
+    # Get actual average price for comparison
+    actual_avg = df[
+        (df["Airline"] == common_airline) & 
+        (df["Departure City"] == sample_departure) & 
+        (df["Arrival City"] == sample_arrival)
+    ]["Fare"].mean()
+    
+    print(f"Actual Average Price: ${actual_avg:.2f}")
+    print(f"Prediction Difference: ${abs(predicted_price[0] - actual_avg):.2f} ({abs(predicted_price[0] - actual_avg)/actual_avg*100:.2f}%)")
 
 # Create a visualization of feature relationships
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(15, 10))
 
 # Plot relationship between distance and fare
 plt.subplot(2, 2, 1)
-plt.scatter(df['Distance'], df['Fare'], alpha=0.5)
+plt.scatter(df['Distance'], df['Fare'], alpha=0.3)
 plt.title('Distance vs Fare')
 plt.xlabel('Distance (miles)')
 plt.ylabel('Fare ($)')
 
-# Plot relationship between duration and fare
+# Plot average fare by distance bins
 plt.subplot(2, 2, 2)
-plt.scatter(df['Duration'], df['Fare'], alpha=0.5)
-plt.title('Duration vs Fare')
-plt.xlabel('Duration (minutes)')
-plt.ylabel('Fare ($)')
-
-# Plot average fare by airline
-plt.subplot(2, 2, 3)
-avg_fare_by_airline = df.groupby('Airline')['Fare'].mean().sort_values(ascending=False)
-avg_fare_by_airline.plot(kind='bar')
-plt.title('Average Fare by Airline')
-plt.xlabel('Airline Code')
+df['Distance_bin'] = pd.cut(df['Distance'], bins=10)
+distance_vs_fare = df.groupby('Distance_bin')['Fare'].mean().reset_index()
+plt.bar(distance_vs_fare.index, distance_vs_fare['Fare'])
+plt.xticks(rotation=45)
+plt.title('Average Fare by Distance Range')
+plt.xlabel('Distance Range')
 plt.ylabel('Average Fare ($)')
 
-# Plot average fare by class
+# Plot average fare by top 10 airlines
+plt.subplot(2, 2, 3)
+top_airlines = df.groupby('Airline')['Fare'].mean().nlargest(10).sort_values(ascending=False)
+top_airlines.plot(kind='bar')
+plt.title('Average Fare by Top 10 Airlines')
+plt.xlabel('Airline')
+plt.ylabel('Average Fare ($)')
+plt.xticks(rotation=45)
+
+# Plot top 10 most expensive routes
 plt.subplot(2, 2, 4)
-avg_fare_by_class = df.groupby('Class')['Fare'].mean().sort_values(ascending=False)
-avg_fare_by_class.plot(kind='bar')
-plt.title('Average Fare by Class')
-plt.xlabel('Class Code')
+route_fares = df.groupby(['Departure City', 'Arrival City'])['Fare'].mean().nlargest(10).reset_index()
+route_labels = [f"{d[:3]}-{a[:3]}" for d, a in zip(route_fares['Departure City'], route_fares['Arrival City'])]
+plt.bar(range(len(route_labels)), route_fares['Fare'])
+plt.xticks(range(len(route_labels)), route_labels, rotation=45)
+plt.title('Top 10 Most Expensive Routes')
+plt.xlabel('Route')
 plt.ylabel('Average Fare ($)')
 
 plt.tight_layout()
 plt.savefig('flight_price_analysis.png')
 plt.show()
+
+# Save the model and encoders for the Streamlit app to use
+import pickle
+with open('flight_price_model.pkl', 'wb') as f:
+    pickle.dump({
+        'model': model,
+        'encoders': label_encoders,
+        'departure_cities': departure_cities,
+        'arrival_cities': arrival_cities,
+        'airlines': airlines
+    }, f)
+print("\n✅ Model and encoders saved for Streamlit app to use")
