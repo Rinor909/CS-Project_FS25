@@ -21,41 +21,39 @@ if not os.path.exists(output):
     st.success("✅ File downloaded successfully!")
 
 # Load dataset
-@st.cache_data  # Cache to prevent reloading on every interaction
+@st.cache_data
 def load_data():
     df = pd.read_csv(output, dtype=str)  # Load everything as string first
 
     # Print available columns for debugging
     st.write("📌 Columns in dataset:", df.columns.tolist())
 
-    # Ensure all expected columns exist
-    expected_columns = ["Airline", "Distance", "Departure Time", "Duration", "Class", "Fare"]
+    # Rename columns to match expected format
+    column_mapping = {
+        "carrier_lg": "Airline",
+        "nsmiles": "Distance",
+        "fare": "Fare",
+        "city1": "Departure City",
+        "city2": "Arrival City"
+    }
+    df = df.rename(columns=column_mapping)
+
+    # Check if renamed columns exist
+    expected_columns = ["Airline", "Distance", "Fare"]
     missing_columns = [col for col in expected_columns if col not in df.columns]
     if missing_columns:
-        st.error(f"🚨 Missing columns: {missing_columns}. Please check the dataset format.")
+        st.error(f"🚨 Missing renamed columns: {missing_columns}. Please check the dataset format.")
         return None
 
     # Convert categorical columns
-    categorical_columns = ["Airline", "Departure Time", "Class"]
+    categorical_columns = ["Airline"]
     for col in categorical_columns:
         df[col] = df[col].astype("category").cat.codes
 
-    # Convert 'Duration' from '6h 15m' to total minutes
-    def convert_duration(duration):
-        try:
-            parts = duration.split(" ")
-            hours = int(parts[0].replace("h", ""))
-            minutes = int(parts[1].replace("m", "")) if len(parts) > 1 else 0
-            return hours * 60 + minutes
-        except:
-            return None  # Handle invalid values
-
-    df["Duration"] = df["Duration"].apply(convert_duration)
-
-    # Convert numeric columns correctly
-    numeric_cols = ["Distance", "Duration", "Fare"]
+    # Convert numeric columns
+    numeric_cols = ["Distance", "Fare"]
     for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors="coerce")  # Convert, replace errors with NaN
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df.dropna(inplace=True)  # Remove invalid rows
 
