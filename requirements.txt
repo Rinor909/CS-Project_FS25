@@ -6,3 +6,5 @@ seaborn
 scikit-learn
 folium
 streamlit-folium
+pydeck
+requests
