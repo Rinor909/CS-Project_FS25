@@ -3,14 +3,22 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Install dependencies (only run once)
-import kagglehub
-from kagglehub import KaggleDatasetAdapter
+import gdown
+import pandas as pd
 
-df = kagglehub.load_dataset(
-    KaggleDatasetAdapter.PANDAS,
-    "bhavikjikadara/us-airline-flight-routes-and-fares-1993-2024"
-)
+# Google Drive file ID
+file_id = "11NgU1kWQIAzBhEbG3L6XsLRqm1T2dn4I"
 
+# File name to save as
+output = "US_Airline_Flight_Routes_and_Fares.csv"
+
+# Download the file from Google Drive
+gdown.download(f"https://drive.google.com/uc?id={file_id}", output, quiet=False)
+
+# Load dataset into pandas
+df = pd.read_csv(output)
+
+# Display first few rows
 print(df.head())
 
 # Show missing values
