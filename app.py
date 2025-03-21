@@ -1,13 +1,24 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import gdown
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# Google Drive file ID (Extracted from shared link)
+file_id = "11NgU1kWQIAzBhEbG3L6XsLRqm1T2dn4I"
+output = "US_Airline_Flight_Routes_and_Fares.csv"
+
+# Download dataset from Google Drive
+gdown.download(f"https://drive.google.com/uc?id={file_id}", output, quiet=False)
 
 # Load dataset
 @st.cache_data  # Cache to prevent reloading on every interaction
 def load_data():
-    df = pd.read_csv('/kaggle/input/us-airline-flight-routes-and-fares-1993-2024/US Airline Flight Routes and Fares 1993-2024.csv', low_memory=False)
+    df = pd.read_csv(output)  # Load the downloaded CSV
 
-    # Preprocess data
+    # Encode categorical columns
     df["Airline"] = df["Airline"].astype("category").cat.codes
     df["Departure Time"] = df["Departure Time"].astype("category").cat.codes
     df["Class"] = df["Class"].astype("category").cat.codes
@@ -27,13 +38,24 @@ def load_data():
 
 df = load_data()  # Load the dataset once
 
+# Train a simple Linear Regression model
+X = df[["Airline", "Distance", "Departure Time", "Duration", "Class"]]
+y = df["Fare"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Streamlit UI
 st.title("✈️ Flight Ticket Price Predictor")
 
-# Airline selection
+# User input fields
 airline = st.selectbox("Select Airline", df["Airline"].unique())
 distance = st.number_input("Flight Distance (Miles)", min_value=100, max_value=5000)
 departure_time = st.selectbox("Departure Time", df["Departure Time"].unique())
 duration_hours = st.number_input("Flight Duration (Hours)", min_value=1, max_value=15)
+duration_minutes = duration_hours * 60
+flight_class = st.selectbox("Select Class", df["Class"].unique())
 
 # Predict button
 if st.button("Predict Ticket Price"):
