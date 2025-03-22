@@ -626,5 +626,5 @@ def main():
                     import traceback
                     st.write(traceback.format_exc())
 
-if __name__ == "__main__":
-main()
+    if __name__ == "__main__":
+    main()
