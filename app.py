@@ -163,44 +163,12 @@ def get_coordinates_for_city(city_name, city_coords=city_coords):
     if base_city in city_coords:
         return city_coords[base_city]
     
-    # Handle special cases
-    if "Worth" in city_name and "Dallas" in city_name:
-        return city_coords.get("Dallas/Fort Worth", [32.8998, -97.0403])
-    if "Fort Worth" in city_name:
-        return city_coords.get("Fort Worth", [32.7555, -97.3308])
-    if "Dallas" in city_name:
-        return city_coords.get("Dallas", [32.7767, -96.7970])
-    if "Colorado Springs" in city_name:
-        return city_coords.get("Colorado Springs", [38.8339, -104.8214])
-    
-    # Partial matching (city is contained in known city or vice versa)
-    for known_city, coords in city_coords.items():
-        if base_city in known_city or known_city in base_city:
-            return coords
-    
-    # Use coordinates for a city in the same state if possible
-    state_abbr = None
-    if ',' in city_name and len(city_name.split(',')) > 1:
-        state_part = city_name.split(',')[1].strip()
-        if len(state_part) == 2:  # State abbreviation like TX, CA, etc.
-            state_abbr = state_part
-            
-            # Find a city in the same state
-            for known_city in city_coords:
-                if ',' in known_city and known_city.split(',')[1].strip() == state_abbr:
-                    return city_coords[known_city]
-    
-    # If we get here, we need to generate coordinates
-    # Instead of random coordinates, use approximate US geographic center
-    lat = 39.8283  # Approximate latitude for center of US
-    lng = -98.5795  # Approximate longitude for center of US
-    
-    # Save for future use
-    city_coords[city_name] = [lat, lng]
-    with open(city_coords_file, 'w') as f:
-        json.dump(city_coords, f)
-    
-    return [lat, lng]
+    # If no match found, return None so we can filter it out
+    return None
+
+# Function to check if a city exists in coordinates
+def city_has_coordinates(city_name):
+    return get_coordinates_for_city(city_name) is not None
 
 # Haversine distance calculator
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -391,13 +359,28 @@ def load_data():
         # Handle missing values
         df.dropna(inplace=True)
         
+        # Find the 5 biggest airlines based on frequency
+        top_airlines = df["Airline"].value_counts().head(5).index.tolist()
+        
+        # Filter to only include the top 5 airlines
+        df = df[df["Airline"].isin(top_airlines)]
+        
+        # Filter cities to only those with known coordinates
+        valid_cities = []
+        for city in set(df["Departure City"].unique()).union(set(df["Arrival City"].unique())):
+            if city_has_coordinates(city):
+                valid_cities.append(city)
+        
+        # Filter to only include routes where both cities have coordinates
+        df = df[df["Departure City"].isin(valid_cities) & df["Arrival City"].isin(valid_cities)]
+        
         # Create encoders dictionary
         label_encoders = {}
         
         # Store unique values for city selections before encoding
         departure_cities = df["Departure City"].unique().tolist()
         arrival_cities = df["Arrival City"].unique().tolist()
-        airlines = df["Airline"].unique().tolist()
+        airlines = top_airlines  # Use the top 5 airlines we identified
         
         # Encode categorical columns
         categorical_columns = ["Airline", "Departure City", "Arrival City"]
@@ -475,17 +458,31 @@ def main():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # Airline selection
+        # Airline selection - now restricted to top 5
         airline = st.selectbox("Select Airline", options=airlines)
+    
+    # Get valid departure cities for this airline (cities with known coordinates)
+    valid_departure_cities = df[df["Airline"] == airline]["Departure City"].unique().tolist()
     
     with col2:
         # Departure city selection
-        departure_city = st.selectbox("Departure City", options=departure_cities)
+        departure_city = st.selectbox("Departure City", options=valid_departure_cities)
+    
+    # Get valid arrival cities for this airline and departure city (cities with known coordinates)
+    valid_arrival_cities = df[(df["Airline"] == airline) & 
+                             (df["Departure City"] == departure_city)]["Arrival City"].unique().tolist()
+    
+    # If no valid arrival cities, use all arrival cities for this airline
+    if not valid_arrival_cities:
+        valid_arrival_cities = df[df["Airline"] == airline]["Arrival City"].unique().tolist()
     
     with col3:
-        # Arrival city selection
-        arrival_city = st.selectbox("Arrival City", options=arrival_cities, 
-                                  index=min(1, len(arrival_cities)-1))  # Default to second city if available
+        # Arrival city selection - use only valid arrival cities
+        arrival_city = st.selectbox(
+            "Arrival City", 
+            options=valid_arrival_cities,
+            index=min(0, len(valid_arrival_cities)-1)
+        )
     
     # Predict button in its own row
     if st.button("Predict Ticket Price & Show Route", type="primary"):
