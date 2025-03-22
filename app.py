@@ -566,40 +566,37 @@ def main():
                     # Store for later use
                     distance = avg_distance
                 
-                st.markdown("</div>", unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
                 
-                # Show flight details
-                st.subheader("Flight Details")
-                st.markdown(f"""
-                * **Airline**: {airline}
-                * **Route**: {departure_city} to {arrival_city}
-                * **Distance**: {distance:.0f} miles
-                * **Price**: {'$' + f"{avg_fare:.2f}" if 'avg_fare' in locals() else '$' + f"{predicted_price:.2f}"}
-                """)
+                     # Show flight details
+                    st.subheader("Flight Details")
+                    st.markdown(f"""
+                    * **Airline**: {airline}
+                    * **Route**: {departure_city} to {arrival_city}
+                    * **Distance**: {distance:.0f} miles
+                    * **Price**: {'$' + f"{avg_fare:.2f}" if 'avg_fare' in locals() else '$' + f"{predicted_price:.2f}"}
+                    """)
             
-            # Find similar routes for comparison
-            st.subheader("Similar Routes")
-            similar_routes = df[
-                (df["Airline"] == airline) & 
-                ((df["Departure City"] == departure_city) | (df["Arrival City"] == arrival_city))
-            ][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
+                    # Find similar routes for comparison
+                    st.subheader("Similar Routes")
+                    similar_routes = df[
+                        (df["Airline"] == airline) & 
+                        ((df["Departure City"] == departure_city) | (df["Arrival City"] == arrival_city))
+                        ][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
             
-            if not similar_routes.empty:
-                st.dataframe(similar_routes)
-            else:
-                similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
-                st.write("No direct matches found. Here are some routes by the same airline:")
-                st.dataframe(similar_routes)
-            if st.button("Predict Ticket Price & Show Route", type="primary"):
-                try:
-                # Your existing code for map_col and info_col...
+                    if not similar_routes.empty:
+                        st.dataframe(similar_routes)
+                    else:
+                        similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
+                        st.write("No direct matches found. Here are some routes by the same airline:")
+                        st.dataframe(similar_routes)
+                    if st.button("Predict Ticket Price & Show Route", type="primary"):
+                        # After your existing visualizations, add a new section for advanced analytics
+                        st.markdown("---")
+                        st.header("🔍 Advanced Flight Analytics")
         
-                    # After your existing visualizations, add a new section for advanced analytics
-                    st.markdown("---")
-                    st.header("🔍 Advanced Flight Analytics")
-        
-                    # Create tabs for different visualization types
-                    analytics_tab1, analytics_tab2 = st.tabs(["Price History & Insights", "Data Visualizations"])
+                        # Create tabs for different visualization types
+                        analytics_tab1, analytics_tab2 = st.tabs(["Price History & Insights", "Data Visualizations"])
         
                     with analytics_tab1:
                         col1, col2 = st.columns(2)
@@ -620,11 +617,11 @@ def main():
                     # Show all the additional data visualizations
                         show_additional_visualizations(df, airline, departure_city, arrival_city, get_coordinates_for_city)
         
-                except Exception as e:
-                    st.error(f"Error during prediction: {str(e)}")
-                    # Print the full exception traceback for debugging
-                    import traceback
-                    st.write(traceback.format_exc())
+        except Exception as e:
+            st.error(f"Error during prediction: {str(e)}")
+            # Print the full exception traceback for debugging
+            import traceback
+            st.write(traceback.format_exc())
 
     if __name__ == "__main__":
-    main()
+        main()
