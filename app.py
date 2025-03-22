@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 import pydeck as pdk
 import json
+import plotly.express as px
+import plotly.graph_objects as go
 from math import radians, cos, sin, asin, sqrt
 
 # Page configuration
@@ -45,94 +47,56 @@ def get_city_coordinates():
     if not os.path.exists(city_coords_file):
         # Expanded coordinates for US cities (including more cities in various states)
         city_coords = {
-            "New York": [40.7128, -74.0060],
-            "Los Angeles": [34.0522, -118.2437],
-            "Chicago": [41.8781, -87.6298],
-            "Houston": [29.7604, -95.3698],
-            "Phoenix": [33.4484, -112.0740],
-            "Philadelphia": [39.9526, -75.1652],
-            "San Antonio": [29.4241, -98.4936],
-            "San Diego": [32.7157, -117.1611],
-            "Dallas": [32.7767, -96.7970],
-            "San Francisco": [37.7749, -122.4194],
-            "Seattle": [47.6062, -122.3321],
-            "Denver": [39.7392, -104.9903],
-            "Boston": [42.3601, -71.0589],
-            "Atlanta": [33.7490, -84.3880],
-            "Miami": [25.7617, -80.1918],
-            "Detroit": [42.3314, -83.0458],
-            "Minneapolis": [44.9778, -93.2650],
-            "Portland": [45.5051, -122.6750],
-            "Las Vegas": [36.1699, -115.1398],
-            "Nashville": [36.1627, -86.7816],
-            "Baltimore": [39.2904, -76.6122],
-            "Washington": [38.9072, -77.0369],
-            "St. Louis": [38.6270, -90.1994],
-            "Orlando": [28.5383, -81.3792],
-            "Charlotte": [35.2271, -80.8431],
-            "Nantucket": [41.2835, -70.0995],
-            "Tampa": [27.9506, -82.4572],
-            "Austin": [30.2672, -97.7431],
-            "Columbus": [39.9612, -82.9988],
-            "Fort Worth": [32.7555, -97.3308],
-            "Dallas/Fort Worth": [32.8998, -97.0403],
-            "Indianapolis": [39.7684, -86.1581],
-            "Jacksonville": [30.3322, -81.6557],
-            "San Jose": [37.3382, -121.8863],
-            "Memphis": [35.1495, -90.0490],
-            "Louisville": [38.2527, -85.7585],
-            "Milwaukee": [43.0389, -87.9065],
-            "Kansas City": [39.0997, -94.5786],
-            "Albuquerque": [35.0844, -106.6504],
-            "Tucson": [32.2226, -110.9747],
-            "Fresno": [36.7378, -119.7871],
-            "Sacramento": [38.5816, -121.4944],
-            "Long Beach": [33.7701, -118.1937],
-            "Colorado Springs": [38.8339, -104.8214],
-            "Raleigh": [35.7796, -78.6382],
-            "Omaha": [41.2565, -95.9345],
-            "Oakland": [37.8044, -122.2711],
-            "Tulsa": [36.1540, -95.9928],
-            "Cleveland": [41.4993, -81.6944],
-            "Wichita": [37.6872, -97.3301],
-            "Arlington": [32.7357, -97.1081],
-            "New Orleans": [29.9511, -90.0715],
-            "Honolulu": [21.3069, -157.8583],
-            "Anchorage": [61.2181, -149.9003],
-            "Salt Lake City": [40.7608, -111.8910],
-            "Cincinnati": [39.1031, -84.5120],
-            "Pittsburgh": [40.4406, -79.9959],
-            "Greensboro": [36.0726, -79.7920],
-            "St. Paul": [44.9537, -93.0900],
-            "Buffalo": [42.8864, -78.8784],
-            "Lexington": [38.0406, -84.5037],
-            "Newark": [40.7357, -74.1724],
+            "New York": [40.7128, -74.0060], "Los Angeles": [34.0522, -118.2437],
+            "Chicago": [41.8781, -87.6298], "Houston": [29.7604, -95.3698],
+            "Phoenix": [33.4484, -112.0740], "Philadelphia": [39.9526, -75.1652],
+            "San Antonio": [29.4241, -98.4936], "San Diego": [32.7157, -117.1611],
+            "Dallas": [32.7767, -96.7970], "San Francisco": [37.7749, -122.4194],
+            "Seattle": [47.6062, -122.3321], "Denver": [39.7392, -104.9903],
+            "Boston": [42.3601, -71.0589], "Atlanta": [33.7490, -84.3880],
+            "Miami": [25.7617, -80.1918], "Detroit": [42.3314, -83.0458],
+            "Minneapolis": [44.9778, -93.2650], "Portland": [45.5051, -122.6750],
+            "Las Vegas": [36.1699, -115.1398], "Nashville": [36.1627, -86.7816],
+            "Baltimore": [39.2904, -76.6122], "Washington": [38.9072, -77.0369],
+            "St. Louis": [38.6270, -90.1994], "Orlando": [28.5383, -81.3792],
+            "Charlotte": [35.2271, -80.8431], "Nantucket": [41.2835, -70.0995],
+            "Tampa": [27.9506, -82.4572], "Austin": [30.2672, -97.7431],
+            "Columbus": [39.9612, -82.9988], "Fort Worth": [32.7555, -97.3308],
+            "Dallas/Fort Worth": [32.8998, -97.0403], "Indianapolis": [39.7684, -86.1581],
+            "Jacksonville": [30.3322, -81.6557], "San Jose": [37.3382, -121.8863],
+            "Memphis": [35.1495, -90.0490], "Louisville": [38.2527, -85.7585],
+            "Milwaukee": [43.0389, -87.9065], "Kansas City": [39.0997, -94.5786],
+            "Albuquerque": [35.0844, -106.6504], "Tucson": [32.2226, -110.9747],
+            "Fresno": [36.7378, -119.7871], "Sacramento": [38.5816, -121.4944],
+            "Long Beach": [33.7701, -118.1937], "Colorado Springs": [38.8339, -104.8214],
+            "Raleigh": [35.7796, -78.6382], "Omaha": [41.2565, -95.9345],
+            "Oakland": [37.8044, -122.2711], "Tulsa": [36.1540, -95.9928],
+            "Cleveland": [41.4993, -81.6944], "Wichita": [37.6872, -97.3301],
+            "Arlington": [32.7357, -97.1081], "New Orleans": [29.9511, -90.0715],
+            "Honolulu": [21.3069, -157.8583], "Anchorage": [61.2181, -149.9003],
+            "Salt Lake City": [40.7608, -111.8910], "Cincinnati": [39.1031, -84.5120],
+            "Pittsburgh": [40.4406, -79.9959], "Greensboro": [36.0726, -79.7920],
+            "St. Paul": [44.9537, -93.0900], "Buffalo": [42.8864, -78.8784],
+            "Lexington": [38.0406, -84.5037], "Newark": [40.7357, -74.1724],
         }
-        
         with open(city_coords_file, 'w') as f:
             json.dump(city_coords, f)
         return city_coords
     else:
         with open(city_coords_file, 'r') as f:
             city_data = json.load(f)
-            
             # Add important cities that might be missing
             missing_cities = {
-                "Colorado Springs": [38.8339, -104.8214],
-                "Dallas/Fort Worth": [32.8998, -97.0403],
-                "Fort Worth": [32.7555, -97.3308],
-                "Nantucket": [41.2835, -70.0995],
+                "Colorado Springs": [38.8339, -104.8214], "Dallas/Fort Worth": [32.8998, -97.0403],
+                "Fort Worth": [32.7555, -97.3308], "Nantucket": [41.2835, -70.0995],
                 "Tampa": [27.9506, -82.4572]
             }
-            
             for city, coords in missing_cities.items():
                 if city not in city_data:
                     city_data[city] = coords
-                
             # Save updated coordinates
             with open(city_coords_file, 'w') as f:
                 json.dump(city_data, f)
-                
             return city_data
 
 # Load city coordinates
@@ -183,36 +147,11 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     r = 3956
     return c * r
 
-# Function to create points along an arc path
-def create_arc_path(start_coords, end_coords, steps=20):
-    points = []
-    # Linear interpolation with altitude variation
-    for i in range(steps + 1):
-        t = i / steps
-        # Linear interpolation for lat/lng
-        lat = start_coords[0] + t * (end_coords[0] - start_coords[0])
-        lng = start_coords[1] + t * (end_coords[1] - start_coords[1])
-        
-        # Parabolic interpolation for altitude (highest in the middle)
-        altitude = 0
-        if i > 0 and i < steps:
-            # Create a parabola peaking in the middle
-            normalized_t = (t - 0.5) * 2  # -1 to 1
-            altitude = 100000 * (1 - normalized_t**2)  # Higher in the middle
-        
-        points.append({"position": [lng, lat, altitude], "t": t})
-    
-    return points
-
 # 3D flight route visualization with PyDeck
 def create_3d_flight_map(departure_city, arrival_city):
     # Get coordinates
     dep_coords = get_coordinates_for_city(departure_city)
     arr_coords = get_coordinates_for_city(arrival_city)
-    
-    # Create a DataFrame with the flight path
-    # We'll create multiple points along the path for the arc
-    path_points = create_arc_path(dep_coords, arr_coords)
     
     # Create arc layer for the flight path
     arc_layer = pdk.Layer(
@@ -261,8 +200,7 @@ def create_3d_flight_map(departure_city, arrival_city):
         auto_highlight=True,
     )
     
-    # Create a set of smaller points to represent other airports (optional)
-    # This adds more context to the map
+    # Create a set of smaller points to represent other airports
     other_airports = []
     for city, coords in city_coords.items():
         if city not in [departure_city, arrival_city]:
@@ -395,6 +333,98 @@ def load_data():
         print(f"Error loading data: {str(e)}")
         return None, None, None, None, None
 
+# Visualization functions from flight_visualizations.py
+def create_price_trends_visualization(df, airline=None, departure_city=None, arrival_city=None):
+    """Create a scatter plot with trend line showing price vs distance"""
+    if airline:
+        filtered_df = df[df["Airline"] == airline]
+    else:
+        filtered_df = df
+        
+    fig = px.scatter(filtered_df, x="Distance", y="Fare", color="Airline",
+                    hover_data=["Departure City", "Arrival City"],
+                    trendline="ols", title="Flight Prices vs. Distance")
+    
+    # If a specific route is selected, highlight it
+    if airline and departure_city and arrival_city:
+        selected_route = df[(df["Airline"] == airline) & 
+                          (df["Departure City"] == departure_city) & 
+                          (df["Arrival City"] == arrival_city)]
+        
+        if not selected_route.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=selected_route["Distance"],
+                    y=selected_route["Fare"],
+                    mode="markers",
+                    marker=dict(size=15, color="red", symbol="star"),
+                    name="Selected Route"
+                )
+            )
+    
+    fig.update_layout(
+        xaxis_title="Distance (miles)",
+        yaxis_title="Fare ($)",
+        legend_title="Airline",
+        height=400
+    )
+    
+    return fig
+
+def create_airline_market_share(df):
+    """Create a pie chart showing airline market share"""
+    airline_share = df["Airline"].value_counts().reset_index()
+    airline_share.columns = ["Airline", "Flight Count"]
+    
+    fig = px.pie(
+        airline_share, 
+        values="Flight Count", 
+        names="Airline",
+        title="Airline Market Share",
+        hole=0.4
+    )
+    
+    return fig
+
+def create_price_per_mile_chart(df):
+    """Create boxplot of price per mile by airline"""
+    # Calculate price per mile
+    df_analysis = df.copy()
+    df_analysis["Price_Per_Mile"] = df_analysis["Fare"] / df_analysis["Distance"]
+    
+    # Filter out outliers for better visualization
+    q1 = df_analysis["Price_Per_Mile"].quantile(0.05)
+    q3 = df_analysis["Price_Per_Mile"].quantile(0.95)
+    df_filtered = df_analysis[(df_analysis["Price_Per_Mile"] >= q1) & 
+                              (df_analysis["Price_Per_Mile"] <= q3)]
+    
+    # Boxplot of price per mile by airline
+    fig = px.box(df_filtered, x="Airline", y="Price_Per_Mile", 
+                color="Airline", points="all",
+                title="Price Efficiency by Airline ($ per mile)")
+    
+    fig.update_layout(height=400)
+    return fig
+
+def create_top_routes_chart(df):
+    """Create a bar chart of the most popular routes"""
+    route_counts = df.groupby(["Departure City", "Arrival City"]).size().reset_index(name="Flight Count")
+    top_routes = route_counts.sort_values("Flight Count", ascending=False).head(10)
+    top_routes["Route"] = top_routes["Departure City"] + " → " + top_routes["Arrival City"]
+    
+    fig = px.bar(
+        top_routes, 
+        y="Route", 
+        x="Flight Count", 
+        orientation="h",
+        title="Top 10 Most Popular Routes",
+        color="Flight Count",
+        color_continuous_scale="Blues"
+    )
+    
+    fig.update_layout(height=400)
+    return fig
+
 # Add some custom CSS
 st.markdown("""
 <style>
@@ -487,111 +517,146 @@ def main():
     # Predict button in its own row
     if st.button("Predict Ticket Price & Show Route", type="primary"):
         try:
-            # Create columns for results display
-            map_col, info_col = st.columns([3, 2])
+            # Create tabs for different sections
+            tabs = st.tabs(["Route Map & Price", "Price Trends", "Price Analysis", "Popular Routes"])
             
-            with map_col:
-                st.subheader("Flight Route (3D View)")
-                # Enable print statements for debugging
-                sys.stdout = original_stdout
+            with tabs[0]:
+                # Create columns for results display
+                map_col, info_col = st.columns([3, 2])
                 
-                # Create and display 3D map with PyDeck
-                flight_map = create_3d_flight_map(departure_city, arrival_city)
-                st.pydeck_chart(flight_map)
+                with map_col:
+                    st.subheader("Flight Route (3D View)")
+                    
+                    # Create and display 3D map with PyDeck
+                    flight_map = create_3d_flight_map(departure_city, arrival_city)
+                    st.pydeck_chart(flight_map)
+                    
+                    st.caption("Tip: Click and drag to rotate the view. Scroll to zoom in/out.")
                 
-                st.caption("Tip: Click and drag to rotate the view. Scroll to zoom in/out.")
+                with info_col:
+                    # Filter data for the selected route
+                    route_data = df[
+                        (df["Airline"] == airline) & 
+                        (df["Departure City"] == departure_city) & 
+                        (df["Arrival City"] == arrival_city)
+                    ]
+                    
+                    st.markdown("<div class='route-info'>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='airline-logo'>{airline[0]}</div> <b>{airline}</b>", unsafe_allow_html=True)
+                    st.markdown(f"<h3>{departure_city} → {arrival_city}</h3>", unsafe_allow_html=True)
+                    
+                    if len(route_data) > 0:
+                        # If we have exact route data, use the average fare
+                        avg_fare = route_data["Fare"].mean()
+                        distance = route_data["Distance"].mean()
+                        
+                        st.markdown(f"<div class='price-display'>${avg_fare:.2f}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<p>Based on {len(route_data)} existing flights</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p>Distance: {distance:.0f} miles</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p>Price per mile: ${avg_fare/distance:.2f}</p>", unsafe_allow_html=True)
+                    else:
+                        # Otherwise use model to predict
+                        # Convert selections to encoded values
+                        airline_encoded = label_encoders["Airline"].transform([airline])[0]
+                        departure_city_encoded = label_encoders["Departure City"].transform([departure_city])[0]
+                        arrival_city_encoded = label_encoders["Arrival City"].transform([arrival_city])[0]
+                        
+                        # Calculate direct distance based on coordinates
+                        dep_coords = get_coordinates_for_city(departure_city)
+                        arr_coords = get_coordinates_for_city(arrival_city)
+                        
+                        # Calculate direct distance
+                        direct_distance = haversine_distance(
+                            dep_coords[0], dep_coords[1], 
+                            arr_coords[0], arr_coords[1]
+                        )
+                        
+                        # Use the calculated distance
+                        avg_distance = direct_distance if direct_distance > 0 else df["Distance"].mean()
+                        
+                        # Create and train model
+                        X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
+                        y = df["Fare"]
+                        
+                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                        model = LinearRegression()
+                        model.fit(X_train, y_train)
+                        
+                        # Make prediction
+                        input_data = np.array([[airline_encoded, avg_distance, departure_city_encoded, arrival_city_encoded]])
+                        predicted_price = model.predict(input_data)
+                        
+                        # Ensure the predicted price is positive
+                        predicted_price = max(predicted_price[0], 50.0)  # Minimum fare of $50
+                        
+                        # Display prediction
+                        st.markdown(f"<div class='price-display'>${predicted_price:.2f}</div>", unsafe_allow_html=True)
+                        st.markdown("<p>Predicted price (new route)</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p>Estimated distance: {avg_distance:.0f} miles</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p>Price per mile: ${predicted_price/avg_distance:.2f}</p>", unsafe_allow_html=True)
+                        
+                        # Store for later use
+                        distance = avg_distance
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
+                    
+                    # Find similar routes for comparison
+                    st.subheader("Similar Routes")
+                    similar_routes = df[
+                        (df["Airline"] == airline) & 
+                        ((df["Departure City"] == departure_city) | (df["Arrival City"] == arrival_city))
+                    ][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
+                    
+                    if not similar_routes.empty:
+                        st.dataframe(similar_routes, use_container_width=True)
+                    else:
+                        similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
+                        st.write("No direct matches found. Here are some routes by the same airline:")
+                        st.dataframe(similar_routes, use_container_width=True)
             
-            with info_col:
-                # Filter data for the selected route
-                route_data = df[
-                    (df["Airline"] == airline) & 
-                    (df["Departure City"] == departure_city) & 
-                    (df["Arrival City"] == arrival_city)
-                ]
+            with tabs[1]:
+                st.subheader("Price vs. Distance Trends")
+                price_trends_fig = create_price_trends_visualization(df, airline, departure_city, arrival_city)
+                st.plotly_chart(price_trends_fig, use_container_width=True)
                 
-                st.markdown("<div class='route-info'>", unsafe_allow_html=True)
-                st.markdown(f"<div class='airline-logo'>{airline[0]}</div> <b>{airline}</b>", unsafe_allow_html=True)
-                st.markdown(f"<h3>{departure_city} → {arrival_city}</h3>", unsafe_allow_html=True)
-                
-                if len(route_data) > 0:
-                    # If we have exact route data, use the average fare
-                    avg_fare = route_data["Fare"].mean()
-                    distance = route_data["Distance"].mean()
-                    
-                    st.markdown(f"<div class='price-display'>${avg_fare:.2f}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<p>Based on {len(route_data)} existing flights</p>", unsafe_allow_html=True)
-                    st.markdown(f"<p>Distance: {distance:.0f} miles</p>", unsafe_allow_html=True)
-                else:
-                    # Otherwise use model to predict
-                    # Convert selections to encoded values
-                    airline_encoded = label_encoders["Airline"].transform([airline])[0]
-                    departure_city_encoded = label_encoders["Departure City"].transform([departure_city])[0]
-                    arrival_city_encoded = label_encoders["Arrival City"].transform([arrival_city])[0]
-                    
-                    # Calculate direct distance based on coordinates
-                    dep_coords = get_coordinates_for_city(departure_city)
-                    arr_coords = get_coordinates_for_city(arrival_city)
-                    
-                    # Calculate direct distance
-                    direct_distance = haversine_distance(
-                        dep_coords[0], dep_coords[1], 
-                        arr_coords[0], arr_coords[1]
-                    )
-                    
-                    # Use the calculated distance
-                    avg_distance = direct_distance if direct_distance > 0 else df["Distance"].mean()
-                    
-                    # Create and train model
-                    X = df[["Airline_encoded", "Distance", "Departure City_encoded", "Arrival City_encoded"]]
-                    y = df["Fare"]
-                    
-                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-                    model = LinearRegression()
-                    model.fit(X_train, y_train)
-                    
-                    # Make prediction
-                    input_data = np.array([[airline_encoded, avg_distance, departure_city_encoded, arrival_city_encoded]])
-                    predicted_price = model.predict(input_data)
-                    
-                    # Ensure the predicted price is positive
-                    predicted_price = max(predicted_price[0], 50.0)  # Minimum fare of $50
-                    
-                    # Display prediction
-                    st.markdown(f"<div class='price-display'>${predicted_price:.2f}</div>", unsafe_allow_html=True)
-                    st.markdown("<p>Predicted price (new route)</p>", unsafe_allow_html=True)
-                    st.markdown(f"<p>Estimated distance: {avg_distance:.0f} miles</p>", unsafe_allow_html=True)
-                    
-                    # Store for later use
-                    distance = avg_distance
-                
-                st.markdown("</div>", unsafe_allow_html=True)
-                
-                # Show flight details
-                st.subheader("Flight Details")
-                st.markdown(f"""
-                * **Airline**: {airline}
-                * **Route**: {departure_city} to {arrival_city}
-                * **Distance**: {distance:.0f} miles
-                * **Price**: {'$' + f"{avg_fare:.2f}" if 'avg_fare' in locals() else '$' + f"{predicted_price:.2f}"}
+                st.write("""
+                This chart shows how flight prices relate to distance. Each point represents a flight, 
+                with your selected route highlighted (if available). The trend lines show the general 
+                pricing pattern for each airline.
                 """)
             
-            # Find similar routes for comparison
-            st.subheader("Similar Routes")
-            similar_routes = df[
-                (df["Airline"] == airline) & 
-                ((df["Departure City"] == departure_city) | (df["Arrival City"] == arrival_city))
-            ][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
+            with tabs[2]:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.subheader("Airline Market Share")
+                    market_share_fig = create_airline_market_share(df)
+                    st.plotly_chart(market_share_fig, use_container_width=True)
+                
+                with col2:
+                    st.subheader("Price Efficiency by Airline")
+                    price_efficiency_fig = create_price_per_mile_chart(df)
+                    st.plotly_chart(price_efficiency_fig, use_container_width=True)
+                
+                st.write("""
+                The market share chart shows which airlines operate the most flights in our dataset.
+                The price efficiency chart compares how much each airline charges per mile on average,
+                which helps identify which carriers offer better value.
+                """)
             
-            if not similar_routes.empty:
-                st.dataframe(similar_routes)
-            else:
-                similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
-                st.write("No direct matches found. Here are some routes by the same airline:")
-                st.dataframe(similar_routes)
+            with tabs[3]:
+                st.subheader("Most Popular Routes")
+                top_routes_fig = create_top_routes_chart(df)
+                st.plotly_chart(top_routes_fig, use_container_width=True)
+                
+                st.write("""
+                This chart shows the most frequently flown routes in our dataset. Popular routes
+                often have more competition and potentially better prices. Routes with fewer flights
+                might have higher fares due to limited options.
+                """)
                 
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
-            # Print the full exception traceback for debugging
             import traceback
             st.write(traceback.format_exc())
 
