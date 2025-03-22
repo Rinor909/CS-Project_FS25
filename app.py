@@ -9,6 +9,8 @@ from sklearn.linear_model import LinearRegression
 import pydeck as pdk
 import json
 from math import radians, cos, sin, asin, sqrt
+from flight_visualizations import show_additional_visualizations, create_price_history_chart, add_seasonal_pricing_insight, add_best_booking_time
+
 
 # Page configuration
 st.set_page_config(page_title="Flight Price Predictor", layout="wide")
@@ -588,12 +590,40 @@ def main():
                 similar_routes = df[df["Airline"] == airline][["Departure City", "Arrival City", "Distance", "Fare"]].head(5)
                 st.write("No direct matches found. Here are some routes by the same airline:")
                 st.dataframe(similar_routes)
-                
-        except Exception as e:
-            st.error(f"Error during prediction: {str(e)}")
-            # Print the full exception traceback for debugging
-            import traceback
-            st.write(traceback.format_exc())
-
+            if st.button("Predict Ticket Price & Show Route", type="primary"):
+    try:
+        # Your existing code for map_col and info_col...
+        
+        # After your existing visualizations, add a new section for advanced analytics
+        st.markdown("---")
+        st.header("🔍 Advanced Flight Analytics")
+        
+        # Create tabs for different visualization types
+        analytics_tab1, analytics_tab2 = st.tabs(["Price History & Insights", "Data Visualizations"])
+        
+        with analytics_tab1:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Add price history chart
+                price_history_fig = create_price_history_chart(df, airline, departure_city, arrival_city)
+                st.plotly_chart(price_history_fig, use_container_width=True)
+            
+            with col2:
+                # Add best booking time visualization
+                add_best_booking_time(df, airline, departure_city, arrival_city)
+            
+            # Add seasonal pricing insights
+            add_seasonal_pricing_insight(df)
+        
+        with analytics_tab2:
+            # Show all the additional data visualizations
+            show_additional_visualizations(df, airline, departure_city, arrival_city, get_coordinates_for_city)
+        
+    except Exception as e:
+        st.error(f"Error during prediction: {str(e)}")
+        # Print the full exception traceback for debugging
+        import traceback
+        st.write(traceback.format_exc())
 if __name__ == "__main__":
     main()
