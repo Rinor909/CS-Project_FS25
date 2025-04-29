@@ -292,3 +292,33 @@ def main():
         model, features, neighborhood_df, building_age_df, travel_time_df, neighborhood_coords, key_destinations = load_data()
         
         # Create sidebar with inputs
+        neighborhood, room_count, building_age, travel_times, calculate_button = create_sidebar()
+        
+        # Display prediction if calculate button is clicked
+        if calculate_button:
+            display_prediction(model, features, neighborhood, room_count, building_age, travel_times)
+        
+        # Display maps
+        display_maps(neighborhood_df, travel_time_df, neighborhood_coords, key_destinations, neighborhood, travel_times)
+        
+        # Display insights
+        display_insights(neighborhood_df, building_age_df)
+        
+        # Add footer with about section
+        st.markdown("---")
+        st.markdown("""
+        **About this app**:  
+        Developed as part of the Zurich Real Estate Price Prediction project.  
+        Data sources: Property Prices by Neighborhood (bau515od5155.csv), Property Prices by Building Age (bau515od5156.csv), and Google Maps API for travel times.
+        """)
+    
+    except FileNotFoundError as e:
+        st.error(f"Error: {e}. Make sure all required files are available.")
+        logger.error(f"File not found: {e}")
+    
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        logger.error(f"Error in main application: {e}")
+
+if __name__ == "__main__":
+    main()
