@@ -5,6 +5,7 @@ import os
 import pickle
 import json
 import plotly.express as px
+import subprocess
 from sklearn.ensemble import RandomForestRegressor
 
 # Set page config
@@ -18,21 +19,7 @@ st.set_page_config(
 os.makedirs("data/raw", exist_ok=True)
 os.makedirs("data/processed", exist_ok=True)
 os.makedirs("models", exist_ok=True)
-
-# Create maps.py if it doesn't exist
-if not os.path.exists("maps.py"):
-    with open("maps.py", "w") as f:
-        # You'd need to paste the maps.py content here
-        # For brevity, I'll just create a placeholder that will be replaced
-        f.write('# maps.py will be placed here')
-
-# Import the maps module (will be created if not exists)
-try:
-    from maps import display_map, predict_prices_for_all_neighborhoods
-    maps_available = True
-except ImportError:
-    maps_available = False
-    st.warning("Maps functionality not available. Please make sure maps.py is in the current directory.")
+os.makedirs("scripts", exist_ok=True)
 
 # Title
 st.title("🏡 Zurich Real Estate Price Prediction")
@@ -95,44 +82,99 @@ with st.expander("Upload Data Files"):
                 f.write(uploaded_file2.getbuffer())
             st.success("File uploaded successfully!")
 
-# Function to generate and save travel time data
-def generate_travel_times():
+# Function to generate synthetic travel time data
+def generate_synthetic_travel_times():
+    """Generate synthetic travel time data for different travel modes"""
+    print("Generating synthetic travel time data...")
+    
     # Sample neighborhoods
     neighborhoods = ["Altstadt", "Escher Wyss", "Gewerbeschule", "Hochschulen", "Höngg", "Oerlikon", 
-                     "Seebach", "Altstetten", "Albisrieden"]
+                     "Seebach", "Altstetten", "Albisrieden", "Sihlfeld", "Friesenberg", 
+                     "Leimbach", "Wollishofen", "Enge", "Wiedikon", "Hard", "Unterstrass", "Oberstrass"]
     
     # Sample destinations
     destinations = ["Hauptbahnhof", "ETH Zurich", "Zurich Airport", "Bahnhofstrasse"]
     
+    # Travel modes
+    travel_modes = ["transit", "walking", "driving", "bicycling"]
+    
     # Create sample travel time data
     travel_times = {}
+    
     for neighborhood in neighborhoods:
         travel_times[neighborhood] = {}
         
-        # Generate times based on rough geographic knowledge of Zurich
-        if neighborhood in ["Altstadt", "Hochschulen"]:
-            # Central neighborhoods
-            travel_times[neighborhood]["Hauptbahnhof"] = np.random.randint(5, 15)
-            travel_times[neighborhood]["ETH Zurich"] = np.random.randint(5, 15)
-            travel_times[neighborhood]["Zurich Airport"] = np.random.randint(25, 40)
-            travel_times[neighborhood]["Bahnhofstrasse"] = np.random.randint(5, 15)
-        elif neighborhood in ["Oerlikon", "Seebach"]:
-            # Northern neighborhoods (closer to airport)
-            travel_times[neighborhood]["Hauptbahnhof"] = np.random.randint(15, 25)
-            travel_times[neighborhood]["ETH Zurich"] = np.random.randint(15, 25)
-            travel_times[neighborhood]["Zurich Airport"] = np.random.randint(10, 20)
-            travel_times[neighborhood]["Bahnhofstrasse"] = np.random.randint(20, 30)
-        else:
-            # Other neighborhoods
-            travel_times[neighborhood]["Hauptbahnhof"] = np.random.randint(15, 30)
-            travel_times[neighborhood]["ETH Zurich"] = np.random.randint(20, 35)
-            travel_times[neighborhood]["Zurich Airport"] = np.random.randint(30, 50)
-            travel_times[neighborhood]["Bahnhofstrasse"] = np.random.randint(20, 40)
+        for mode in travel_modes:
+            travel_times[neighborhood][mode] = {}
+            
+            for destination in destinations:
+                # Generate times based on mode and rough geographic knowledge
+                if mode == "transit":
+                    if neighborhood in ["Altstadt", "Hochschulen", "Enge"]:
+                        # Central neighborhoods
+                        if destination in ["Hauptbahnhof", "ETH Zurich", "Bahnhofstrasse"]:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(5, 15)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(25, 40)
+                    elif neighborhood in ["Oerlikon", "Seebach"]:
+                        # Northern neighborhoods (closer to airport)
+                        if destination == "Zurich Airport":
+                            travel_times[neighborhood][mode][destination] = np.random.randint(10, 20)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(15, 30)
+                    else:
+                        # Other neighborhoods
+                        travel_times[neighborhood][mode][destination] = np.random.randint(15, 40)
+                
+                elif mode == "walking":
+                    # Walking is much slower
+                    if neighborhood in ["Altstadt", "Hochschulen", "Enge"]:
+                        if destination in ["Hauptbahnhof", "ETH Zurich", "Bahnhofstrasse"]:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(10, 25)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(120, 180)
+                    elif neighborhood in ["Oerlikon", "Seebach"]:
+                        if destination == "Zurich Airport":
+                            travel_times[neighborhood][mode][destination] = np.random.randint(60, 90)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(60, 120)
+                    else:
+                        travel_times[neighborhood][mode][destination] = np.random.randint(45, 180)
+                
+                elif mode == "bicycling":
+                    # Bicycling is faster than walking but slower than transit
+                    if neighborhood in ["Altstadt", "Hochschulen", "Enge"]:
+                        if destination in ["Hauptbahnhof", "ETH Zurich", "Bahnhofstrasse"]:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(5, 15)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(40, 60)
+                    elif neighborhood in ["Oerlikon", "Seebach"]:
+                        if destination == "Zurich Airport":
+                            travel_times[neighborhood][mode][destination] = np.random.randint(20, 35)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(25, 45)
+                    else:
+                        travel_times[neighborhood][mode][destination] = np.random.randint(20, 60)
+                
+                else:  # driving
+                    # Driving is usually faster
+                    if neighborhood in ["Altstadt", "Hochschulen", "Enge"]:
+                        if destination in ["Hauptbahnhof", "ETH Zurich", "Bahnhofstrasse"]:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(5, 15)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(20, 35)
+                    elif neighborhood in ["Oerlikon", "Seebach"]:
+                        if destination == "Zurich Airport":
+                            travel_times[neighborhood][mode][destination] = np.random.randint(8, 15)
+                        else:
+                            travel_times[neighborhood][mode][destination] = np.random.randint(15, 25)
+                    else:
+                        travel_times[neighborhood][mode][destination] = np.random.randint(10, 30)
     
     # Save travel time data
     os.makedirs("data/processed", exist_ok=True)
     with open("data/processed/travel_times.json", "w") as f:
-        json.dump(travel_times, f)
+        json.dump(travel_times, f, indent=2)
     
     return travel_times
 
@@ -144,7 +186,7 @@ def load_travel_time_data():
                 return json.load(f)
         else:
             st.warning("Travel time data not available: Creating sample travel time data...")
-            return generate_travel_times()
+            return generate_synthetic_travel_times()
     except Exception as e:
         st.error(f"Error loading travel time data: {e}")
         return None
@@ -186,7 +228,7 @@ def load_model():
         return None
 
 # Function to predict price
-def predict_price(neighborhood, room_count, building_age, max_travel_time):
+def predict_price(neighborhood, room_count, building_age, travel_time, travel_mode):
     # This is a placeholder function
     # In a real app, this would use the trained model
     base_price = 1000000  # Base price in CHF
@@ -233,18 +275,59 @@ def predict_price(neighborhood, room_count, building_age, max_travel_time):
     elif building_age == "after 2005":
         age_factor = 1.15
     
-    # Travel time adjustment
-    travel_factor = 1.0 - (max_travel_time / 100)
+    # Travel time adjustment (different weight based on mode)
+    travel_factor = 1.0
+    if travel_mode == "transit":
+        # Public transit is important for property value
+        travel_factor = 1.0 - (travel_time / 100)
+    elif travel_mode == "walking":
+        # Walking distance is very important
+        travel_factor = 1.0 - (travel_time / 80)
+    elif travel_mode == "bicycling":
+        # Biking is moderately important
+        travel_factor = 1.0 - (travel_time / 120)
+    elif travel_mode == "driving":
+        # Driving is less important in central Zurich
+        travel_factor = 1.0 - (travel_time / 150)
     
     # Calculate price
     price = base_price * neighborhood_factor * (1 + room_factor) * age_factor * travel_factor
     
     return price
 
+# Function to run the Google Maps API script
+def run_google_maps_api_script(api_key, travel_mode):
+    # Create the script directory if it doesn't exist
+    os.makedirs("scripts", exist_ok=True)
+    
+    # Check if the script exists
+    script_path = "scripts/generate_real_travel_times.py"
+    if not os.path.exists(script_path):
+        st.error(f"Script not found: {script_path}")
+        return False
+    
+    try:
+        # Run the script
+        result = subprocess.run(
+            ["python", script_path, "--api-key", api_key, "--mode", travel_mode],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            st.success(f"Successfully generated travel times for {travel_mode} mode")
+            return True
+        else:
+            st.error(f"Error running script: {result.stderr}")
+            return False
+    except Exception as e:
+        st.error(f"Error executing script: {e}")
+        return False
+
 # Generate files if they don't exist
 if not os.path.exists("data/processed/travel_times.json"):
-    travel_times = generate_travel_times()
-    st.success("Created travel times data!")
+    travel_times = generate_synthetic_travel_times()
+    st.success("Created synthetic travel times data!")
 else:
     travel_times = load_travel_time_data()
 
@@ -270,6 +353,40 @@ except ImportError:
     st.info("Please restart the app after installation completes.")
     maps_dependencies_installed = False
 
+# Google Maps API Setup
+with st.expander("Google Maps API Setup"):
+    st.write("""
+    ## Google Maps API Integration
+    
+    To get real travel times, you need a Google Maps API key with the Distance Matrix API enabled.
+    
+    1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+    2. Create a project and enable the Distance Matrix API
+    3. Create an API key and enter it below
+    4. Click "Generate Travel Times" to fetch real data
+    """)
+    
+    api_key = st.text_input("Enter your Google Maps API key", type="password")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        travel_mode_api = st.selectbox(
+            "Travel Mode for API",
+            ["transit", "walking", "driving", "bicycling"],
+            index=0
+        )
+    
+    with col2:
+        if st.button("Generate Travel Times"):
+            if api_key:
+                if run_google_maps_api_script(api_key, travel_mode_api):
+                    # Reload travel times after generation
+                    travel_times = load_travel_time_data()
+                    st.success(f"Travel times for {travel_mode_api} mode generated successfully!")
+            else:
+                st.error("Please enter a valid API key")
+
 # Check if data is loaded successfully
 if neighborhood_data is None or building_age_data is None:
     st.error("Error: Could not load the required data. Please upload the data files or place them in the correct location.")
@@ -290,11 +407,40 @@ else:
     building_ages = ["before 1919", "1919-1945", "1946-1970", "1971-1990", "1991-2005", "after 2005"]
     selected_building_age = st.sidebar.selectbox("Building Age", building_ages)
     
+    # Travel mode
+    travel_modes = ["transit", "walking", "driving", "bicycling"]
+    travel_mode_labels = {
+        "transit": "Public Transit",
+        "walking": "Walking",
+        "driving": "Driving",
+        "bicycling": "Bicycling"
+    }
+    
+    selected_travel_mode = st.sidebar.selectbox(
+        "Travel Mode",
+        travel_modes,
+        format_func=lambda x: travel_mode_labels[x]
+    )
+    
     # Travel time preference
-    max_travel_time = st.sidebar.slider("Maximum Travel Time (minutes)", 5, 60, 30)
+    max_travel_time = st.sidebar.slider("Maximum Travel Time (minutes)", 5, 180, 30)
+    
+    # Check if travel time data is available for the selected mode
+    has_travel_data = False
+    if travel_times and selected_neighborhood in travel_times:
+        if selected_travel_mode in travel_times[selected_neighborhood]:
+            has_travel_data = True
+        else:
+            st.warning(f"No real travel time data available for {travel_mode_labels[selected_travel_mode]} mode. Using synthetic data.")
     
     # Predict price
-    predicted_price = predict_price(selected_neighborhood, room_count, selected_building_age, max_travel_time)
+    predicted_price = predict_price(
+        selected_neighborhood, 
+        room_count, 
+        selected_building_age, 
+        max_travel_time,
+        selected_travel_mode
+    )
     
     # Display results
     st.header("Price Prediction")
@@ -303,109 +449,119 @@ else:
         st.metric("Estimated Price", f"CHF {predicted_price:,.2f}")
     
     # Display travel times
-    if travel_times and selected_neighborhood in travel_times:
+    if has_travel_data:
         st.header("Travel Times")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("Travel Times from Selected Neighborhood")
-            for destination, time in travel_times[selected_neighborhood].items():
+            st.subheader(f"Travel Times from {selected_neighborhood} ({travel_mode_labels[selected_travel_mode]})")
+            
+            for destination, time in travel_times[selected_neighborhood][selected_travel_mode].items():
                 st.write(f"{destination}: {time} minutes")
         
         with col2:
-            # Create sample travel time chart
-            destinations = list(travel_times[selected_neighborhood].keys())
-            times = list(travel_times[selected_neighborhood].values())
+            # Create travel time chart
+            destinations = list(travel_times[selected_neighborhood][selected_travel_mode].keys())
+            times = list(travel_times[selected_neighborhood][selected_travel_mode].values())
             
             fig = px.bar(
                 x=destinations,
                 y=times,
                 labels={"x": "Destination", "y": "Travel Time (minutes)"},
-                title=f"Travel Times from {selected_neighborhood}"
+                title=f"Travel Times from {selected_neighborhood} ({travel_mode_labels[selected_travel_mode]})"
             )
             st.plotly_chart(fig)
     
     # Display interactive price map
     st.header("Price Heatmap")
     
-    # Check if maps functionality is available
-    if maps_available and maps_dependencies_installed:
-        # Calculate prices for all neighborhoods
-        neighborhood_prices = predict_prices_for_all_neighborhoods(
-            predict_price, room_count, selected_building_age, max_travel_time
-        )
-        
-        # Display the interactive map
-        display_map(neighborhood_prices)
-    else:
-        st.info("Interactive map visualization would be shown here with real data.")
-        st.error("Map functionality is not available. Please make sure maps.py is in the current directory and dependencies are installed.")
-        
-        # Create a simple bar chart as fallback
+    # Define the function locally if maps module is not available
+    def predict_prices_for_all_neighborhoods(predict_func, room_count, building_age, travel_time, travel_mode):
         neighborhood_prices = {}
         for neighborhood in neighborhoods:
-            neighborhood_prices[neighborhood] = predict_price(neighborhood, room_count, selected_building_age, max_travel_time)
-        
-        df_prices = pd.DataFrame({
-            "Neighborhood": list(neighborhood_prices.keys()),
-            "Price (CHF)": list(neighborhood_prices.values())
-        })
-        
-        fig = px.bar(
-            df_prices,
-            x="Neighborhood",
-            y="Price (CHF)",
-            title=f"Price Comparison by Neighborhood ({room_count} rooms, {selected_building_age})"
-        )
-        st.plotly_chart(fig)
-
-# Show setup instructions
-with st.expander("App Setup Instructions"):
-    st.write("""
-    ## How to fix this app:
+            price = predict_func(neighborhood, room_count, building_age, travel_time, travel_mode)
+            neighborhood_prices[neighborhood] = price
+        return neighborhood_prices
     
-    1. **Data Files**: The app looks for these CSV files in the `data/raw` directory:
-       - `bau515od5155.csv` (Property Prices by Neighborhood)
-       - `bau515od5156.csv` (Property Prices by Building Age)
-       
-       You can either:
-       - Move them there manually
-       - Upload them using the file uploader above
-       - Let the app automatically move them if they're in the current directory
+    # Create the map visualization manually
+    neighborhood_prices = predict_prices_for_all_neighborhoods(
+        predict_price, room_count, selected_building_age, max_travel_time, selected_travel_mode
+    )
     
-    2. **Travel Time Data**: The app will automatically generate sample travel time data if not found
+    # Zurich neighborhood coordinates (approximate centers)
+    zurich_coordinates = {
+        "Altstadt": [47.3723, 8.5423],
+        "Escher Wyss": [47.3914, 8.5152],
+        "Gewerbeschule": [47.3845, 8.5293],
+        "Hochschulen": [47.3764, 8.5468],
+        "Höngg": [47.4036, 8.4894],
+        "Oerlikon": [47.4119, 8.5450],
+        "Seebach": [47.4231, 8.5392],
+        "Altstetten": [47.3889, 8.4833],
+        "Albisrieden": [47.3783, 8.4893],
+        "Sihlfeld": [47.3720, 8.5147],
+        "Friesenberg": [47.3663, 8.5030],
+        "Leimbach": [47.3407, 8.5124],
+        "Wollishofen": [47.3510, 8.5301],
+        "Enge": [47.3650, 8.5288],
+        "Wiedikon": [47.3666, 8.5182],
+        "Hard": [47.3845, 8.5090],
+        "Unterstrass": [47.3887, 8.5400],
+        "Oberstrass": [47.3860, 8.5487]
+    }
     
-    3. **Model**: The app will automatically create a simple model if not found
-    
-    4. **Maps**: For interactive maps, you need:
-       - `maps.py` file in the current directory
-       - `folium` and `streamlit-folium` packages installed
-       
-       The app will attempt to install the required packages if they're not available.
-    
-    All of these files will be generated on first run if not available. For a production app, you would
-    replace the sample data generation with actual API calls and model training.
-    """)
-
-# Display interactive price map
-    st.header("Price Heatmap")
-    
-    # Create a predict_prices_for_all_neighborhoods function if maps module is not available
-    if not 'maps' in locals() or not maps_available:
-        # Define the function locally if maps module is not available
-        def predict_prices_for_all_neighborhoods(predict_func, room_count, building_age, travel_time, travel_mode):
-            neighborhood_prices = {}
-            for neighborhood in neighborhoods:
-                price = predict_func(neighborhood, room_count, building_age, travel_time, travel_mode)
-                neighborhood_prices[neighborhood] = price
-            return neighborhood_prices
-        
-        # Create the map visualization manually
-        neighborhood_prices = predict_prices_for_all_neighborhoods(
-            predict_price, room_count, selected_building_age, max_travel_time, selected_travel_mode
-        )
-        
+    # Try to create interactive map
+    try:
+        if maps_dependencies_installed:
+            # Create data for plotly
+            map_data = []
+            for neighborhood, price in neighborhood_prices.items():
+                if neighborhood in zurich_coordinates:
+                    map_data.append({
+                        "Neighborhood": neighborhood,
+                        "Price": price,
+                        "lat": zurich_coordinates[neighborhood][0],
+                        "lon": zurich_coordinates[neighborhood][1]
+                    })
+            
+            # Convert to DataFrame
+            df_map = pd.DataFrame(map_data)
+            
+            # Normalize prices for marker size (so expensive areas have larger markers)
+            max_price = df_map["Price"].max()
+            min_price = df_map["Price"].min()
+            df_map["size"] = 10 + 30 * (df_map["Price"] - min_price) / (max_price - min_price)
+            
+            # Create the map
+            fig = px.scatter_mapbox(
+                df_map,
+                lat="lat",
+                lon="lon",
+                color="Price",
+                size="size",
+                hover_name="Neighborhood",
+                hover_data=["Price"],
+                color_continuous_scale="Viridis",
+                zoom=12,
+                mapbox_style="carto-positron",
+                title="Zurich Real Estate Prices by Neighborhood"
+            )
+            
+            # Update layout
+            fig.update_layout(
+                margin={"r": 0, "t": 30, "l": 0, "b": 0},
+                coloraxis_colorbar=dict(
+                    title="Price (CHF)"
+                )
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            # Fallback to bar chart
+            st.info("Interactive map requires folium and streamlit-folium. Using bar chart instead.")
+            raise ImportError("Map dependencies not available")
+    except Exception as e:
         # Create a bar chart as a simple visualization
         df_prices = pd.DataFrame({
             "Neighborhood": list(neighborhood_prices.keys()),
@@ -420,41 +576,7 @@ with st.expander("App Setup Instructions"):
         )
         st.plotly_chart(fig, use_container_width=True)
         
-        # Show a message about map visualization
-        st.info("A full interactive map visualization would be shown here with real data. Install the map dependencies to see it.")
-    else:
-        try:
-            # Import the display_map function from maps.py
-            from maps import display_map, predict_prices_for_all_neighborhoods
-            
-            # Calculate prices for all neighborhoods
-            neighborhood_prices = predict_prices_for_all_neighborhoods(
-                predict_price, room_count, selected_building_age, max_travel_time, selected_travel_mode
-            )
-            
-            # Display the interactive map
-            display_map(neighborhood_prices)
-        except Exception as e:
-            st.error(f"Error displaying map: {e}")
-            
-            # Fallback to simple bar chart
-            neighborhood_prices = {}
-            for neighborhood in neighborhoods:
-                price = predict_price(neighborhood, room_count, selected_building_age, max_travel_time, selected_travel_mode)
-                neighborhood_prices[neighborhood] = price
-            
-            df_prices = pd.DataFrame({
-                "Neighborhood": list(neighborhood_prices.keys()),
-                "Price (CHF)": list(neighborhood_prices.values())
-            })
-            
-            fig = px.bar(
-                df_prices,
-                x="Neighborhood",
-                y="Price (CHF)", 
-                title=f"Price Comparison by Neighborhood ({room_count} rooms, {selected_building_age})"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+        st.info("A full interactive map visualization would be shown here with the proper dependencies installed.")
 
 # Show setup instructions
 with st.expander("App Setup Instructions"):
@@ -476,8 +598,7 @@ with st.expander("App Setup Instructions"):
        - The app will automatically create synthetic travel time data if no real data is available
     
     3. **Map Visualization**:
-       - Make sure you have `maps.py` in your project directory
-       - Install required dependencies: `pip install folium streamlit-folium`
+       - Install required dependencies: `pip install folium streamlit-folium plotly`
     
     4. **Model**:
        - The app will automatically create a simple model if not found
@@ -569,7 +690,7 @@ def get_travel_time(origin, destination, api_key, mode="transit"):
         origin (str): Origin coordinates in format "latitude,longitude"
         destination (str): Destination coordinates in format "latitude,longitude"
         api_key (str): Google Maps API key
-        mode (str): Travel mode (driving, walking, bicycling, transit)
+mode (str): Travel mode (driving, walking, bicycling, transit)
         
     Returns:
         int: Travel time in minutes
@@ -712,7 +833,3 @@ def main():
 if __name__ == "__main__":
     main()
 '''
-    
-    with open("scripts/generate_real_travel_times.py", "w") as f:
-        f.write(script_content)
-
