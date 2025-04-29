@@ -1,242 +1,176 @@
-"""
-Travel Time Generation Script for Zurich Real Estate Price Prediction
---------------------------------------------------------------------
-Purpose: Generate travel time data from neighborhoods to key destinations
-
-Tasks:
-1. Connect to Google Maps API (or Comparis)
-2. Calculate travel times from each neighborhood to key destinations
-3. Cache results to avoid API limits
-4. Export travel time data for model training
-
-Key destinations:
-- Hauptbahnhof (Main Train Station)
-- ETH Zurich
-- Zurich Airport
-- Bahnhofstrasse
-
-Owner: Rinor (Primary), Matteo (Support)
-"""
-
 import pandas as pd
 import numpy as np
 import os
+import sys
 import json
-import time
-import logging
+import random
 from datetime import datetime
-import requests
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Add project root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Define file paths
-PROCESSED_DATA_DIR = "../data/processed"
-PROCESSED_NEIGHBORHOOD_DATA = "processed_neighborhood.csv"
-CACHE_DIR = "../data/cache"
-CACHE_FILE = "travel_times_cache.json"
-OUTPUT_FILE = "neighborhood_travel_times.csv"
-
-# Define key destinations (coordinates)
+# Zurich key destinations
 KEY_DESTINATIONS = {
-    "Hauptbahnhof": {"lat": 47.3782, "lng": 8.5401},
-    "ETH_Zurich": {"lat": 47.3763, "lng": 8.5475},
-    "Zurich_Airport": {"lat": 47.4502, "lng": 8.5614},
-    "Bahnhofstrasse": {"lat": 47.3723, "lng": 8.5390}
+    "Hauptbahnhof": {"lat": 47.3783, "lon": 8.5402},
+    "ETH Zurich": {"lat": 47.3763, "lon": 8.5475},
+    "Zurich Airport": {"lat": 47.4502, "lon": 8.5618},
+    "Bahnhofstrasse": {"lat": 47.3708, "lon": 8.5392},
 }
 
-# Google Maps API key (to be set as environment variable)
-API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "YOUR_API_KEY_HERE")
+# Approximate neighborhood coordinates
+# This is a placeholder - in a real app, you would have actual geocoordinates for each neighborhood
+NEIGHBORHOOD_COORDS = {
+    "Zurich (Kreis 1)": {"lat": 47.3769, "lon": 8.5417},
+    "Zurich (Kreis 2)": {"lat": 47.3600, "lon": 8.5200},
+    "Zurich (Kreis 3)": {"lat": 47.3786, "lon": 8.5124},
+    "Zurich (Kreis 4)": {"lat": 47.3744, "lon": 8.5289},
+    "Zurich (Kreis 5)": {"lat": 47.3853, "lon": 8.5253},
+    "Zurich (Kreis 6)": {"lat": 47.3894, "lon": 8.5500},
+    "Zurich (Kreis 7)": {"lat": 47.3672, "lon": 8.5681},
+    "Zurich (Kreis 8)": {"lat": 47.3500, "lon": 8.5700},
+    "Zurich (Kreis 9)": {"lat": 47.3900, "lon": 8.4900},
+    "Zurich (Kreis 10)": {"lat": 47.4100, "lon": 8.5100},
+    "Zurich (Kreis 11)": {"lat": 47.4200, "lon": 8.5300},
+    "Zurich (Kreis 12)": {"lat": 47.3950, "lon": 8.5800},
+}
 
-def create_directories():
-    """Create necessary directories if they don't exist."""
-    os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    logger.info(f"Ensured directories exist: {PROCESSED_DATA_DIR}, {CACHE_DIR}")
+def create_processed_data_dir():
+    """Create processed data directory if it doesn't exist"""
+    processed_dir = os.path.join('data', 'processed')
+    os.makedirs(processed_dir, exist_ok=True)
+    return processed_dir
 
-def load_cache():
-    """Load existing cache of travel times."""
-    cache_path = os.path.join(CACHE_DIR, CACHE_FILE)
-    if os.path.exists(cache_path):
-        try:
-            with open(cache_path, 'r') as f:
-                cache = json.load(f)
-            logger.info(f"Loaded {len(cache)} cached travel times")
-            return cache
-        except Exception as e:
-            logger.error(f"Error loading cache: {e}")
-            return {}
-    else:
-        logger.info("No cache file found, creating new cache")
-        return {}
+def get_all_neighborhoods():
+    """Get all neighborhoods from the processed data"""
+    processed_dir = os.path.join('data', 'processed')
+    neighborhood_path = os.path.join(processed_dir, 'processed_neighborhood_data.csv')
+    
+    if not os.path.exists(neighborhood_path):
+        raise FileNotFoundError(f"File not found: {neighborhood_path}. Run data_preparation.py first.")
+    
+    neighborhood_df = pd.read_csv(neighborhood_path)
+    return sorted(neighborhood_df['neighborhood'].unique())
 
-def save_cache(cache):
-    """Save cache of travel times."""
-    cache_path = os.path.join(CACHE_DIR, CACHE_FILE)
-    try:
-        with open(cache_path, 'w') as f:
-            json.dump(cache, f)
-        logger.info(f"Saved {len(cache)} travel times to cache")
-    except Exception as e:
-        logger.error(f"Error saving cache: {e}")
-
-def get_neighborhood_coordinates():
+def simulate_travel_time(origin, destination):
     """
-    Get coordinates for each neighborhood.
+    Simulate a travel time calculation between two coordinates
+    In a real app, this would call the Google Maps API
     
-    TODO:
-    - Either load from processed data or define manually
-    - Create a mapping of neighborhood names to coordinates
-    """
-    # This is a placeholder - in a real implementation, you would:
-    # 1. Either have these coordinates in your dataset
-    # 2. Or use geocoding to get them
-    # 3. Or manually define them
-    
-    # Example placeholder data - replace with real data:
-    neighborhood_coords = {
-        "Kreis 1": {"lat": 47.3723, "lng": 8.5398},
-        "Kreis 2": {"lat": 47.3605, "lng": 8.5244},
-        "Kreis 3": {"lat": 47.3708, "lng": 8.5018},
-        "Kreis 4": {"lat": 47.3792, "lng": 8.5198},
-        "Kreis 5": {"lat": 47.3887, "lng": 8.5293},
-        "Kreis 6": {"lat": 47.3899, "lng": 8.5500},
-        "Kreis 7": {"lat": 47.3663, "lng": 8.5685},
-        "Kreis 8": {"lat": 47.3502, "lng": 8.5685},
-        "Kreis 9": {"lat": 47.3870, "lng": 8.4903},
-        "Kreis 10": {"lat": 47.4104, "lng": 8.5090},
-        "Kreis 11": {"lat": 47.4137, "lng": 8.5425},
-        "Kreis 12": {"lat": 47.3950, "lng": 8.5698}
-    }
-    
-    logger.info(f"Loaded coordinates for {len(neighborhood_coords)} neighborhoods")
-    return neighborhood_coords
-
-def get_travel_time_from_api(origin, destination, mode="transit"):
-    """
-    Get travel time from Google Maps API.
-    
-    Parameters:
-    - origin: dict with lat, lng
-    - destination: dict with lat, lng
-    - mode: transit, driving, walking, or bicycling
-    
-    Returns:
-    - Travel time in minutes
-    """
-    # Google Maps Directions API endpoint
-    url = "https://maps.googleapis.com/maps/api/directions/json"
-    
-    # Prepare parameters
-    params = {
-        "origin": f"{origin['lat']},{origin['lng']}",
-        "destination": f"{destination['lat']},{destination['lng']}",
-        "mode": mode,
-        "key": API_KEY
-    }
-    
-    try:
-        # This is where you would make the actual API call
-        # For this template, we'll just return dummy data
-        # response = requests.get(url, params=params)
-        # response.raise_for_status()
-        # data = response.json()
-        # if data["status"] == "OK":
-        #     # Extract duration in minutes
-        #     duration_seconds = data["routes"][0]["legs"][0]["duration"]["value"]
-        #     duration_minutes = duration_seconds / 60
-        #     return round(duration_minutes)
-        # else:
-        #     logger.error(f"API error: {data['status']}")
-        #     return None
+    Args:
+        origin: Origin coordinates dict with lat/lon
+        destination: Destination coordinates dict with lat/lon
         
-        # Dummy implementation - replace with actual API call in production
-        import random
-        time.sleep(0.1)  # Simulate API call delay
-        return random.randint(5, 60)  # Random duration between 5-60 minutes
+    Returns:
+        int: Estimated travel time in minutes
+    """
+    # Haversine distance calculation (simplified version)
+    R = 6371  # Earth radius in kilometers
     
-    except Exception as e:
-        logger.error(f"Error getting travel time: {e}")
-        return None
+    lat1 = np.radians(origin["lat"])
+    lon1 = np.radians(origin["lon"])
+    lat2 = np.radians(destination["lat"])
+    lon2 = np.radians(destination["lon"])
+    
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    
+    a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
+    distance = R * c  # Distance in km
+    
+    # Simulate travel time: approximately 3 minutes per km for public transport
+    # Add some randomness to make it more realistic
+    base_time = distance * 3
+    variability = base_time * 0.2  # 20% variability
+    
+    travel_time = int(base_time + random.uniform(-variability, variability))
+    
+    # Ensure travel time is at least 5 minutes
+    return max(5, travel_time)
 
 def generate_travel_times():
-    """Generate travel times from neighborhoods to key destinations."""
-    # Load cache
-    cache = load_cache()
+    """
+    Generate travel times from each neighborhood to key destinations
     
-    # Get neighborhood coordinates
-    neighborhood_coords = get_neighborhood_coordinates()
+    Returns:
+        dict: Nested dictionary of travel times
+    """
+    travel_times = {}
+    neighborhoods = get_all_neighborhoods()
     
-    # Prepare dataframe to store results
-    results = []
+    print(f"Generating travel times for {len(neighborhoods)} neighborhoods to {len(KEY_DESTINATIONS)} destinations...")
     
-    # Calculate travel times for each neighborhood to each destination
-    for neighborhood, origin in neighborhood_coords.items():
-        logger.info(f"Processing travel times for {neighborhood}")
+    # Check if we have coordinates for all neighborhoods
+    missing_coords = []
+    for neighborhood in neighborhoods:
+        if neighborhood not in NEIGHBORHOOD_COORDS:
+            missing_coords.append(neighborhood)
+            
+            # Use a default coordinate (Zurich center) for missing neighborhoods
+            NEIGHBORHOOD_COORDS[neighborhood] = {"lat": 47.3769, "lon": 8.5417}
+    
+    if missing_coords:
+        print(f"Warning: Using default coordinates for {len(missing_coords)} neighborhoods:")
+        print(", ".join(missing_coords[:5]) + ("..." if len(missing_coords) > 5 else ""))
+    
+    # Generate travel times for each neighborhood
+    for neighborhood in neighborhoods:
+        neighborhood_times = {}
+        origin = NEIGHBORHOOD_COORDS[neighborhood]
         
-        for dest_name, destination in KEY_DESTINATIONS.items():
-            # Create cache key
-            cache_key = f"{neighborhood}_{dest_name}_transit"
-            
-            # Check if we have this in cache
-            if cache_key in cache:
-                travel_time = cache[cache_key]
-                logger.debug(f"Using cached value for {cache_key}: {travel_time} minutes")
-            else:
-                # Call API
-                travel_time = get_travel_time_from_api(origin, destination)
-                
-                # Store in cache
-                if travel_time is not None:
-                    cache[cache_key] = travel_time
-                    logger.debug(f"Added to cache: {cache_key}: {travel_time} minutes")
-                
-                # Add a delay to avoid hitting API rate limits
-                time.sleep(0.5)
-            
-            # Add to results
-            if travel_time is not None:
-                results.append({
-                    "neighborhood": neighborhood,
-                    "destination": dest_name,
-                    "travel_time_minutes": travel_time
-                })
+        for dest_name, dest_coords in KEY_DESTINATIONS.items():
+            travel_time = simulate_travel_time(origin, dest_coords)
+            neighborhood_times[dest_name] = travel_time
+        
+        travel_times[neighborhood] = neighborhood_times
     
-    # Save updated cache
-    save_cache(cache)
-    
-    # Convert results to DataFrame
-    travel_times_df = pd.DataFrame(results)
-    logger.info(f"Generated {len(travel_times_df)} travel time entries")
-    
-    return travel_times_df
+    print(f"Generated travel times for all neighborhoods")
+    return travel_times
 
-def save_travel_times(travel_times_df):
-    """Save travel times to CSV."""
-    output_path = os.path.join(PROCESSED_DATA_DIR, OUTPUT_FILE)
-    travel_times_df.to_csv(output_path, index=False)
-    logger.info(f"Saved travel times to {output_path}")
+def save_travel_times(travel_times, processed_dir):
+    """Save travel times to a JSON file"""
+    travel_times_path = os.path.join(processed_dir, 'travel_times.json')
+    
+    with open(travel_times_path, 'w') as f:
+        json.dump(travel_times, f, indent=2)
+    
+    print(f"Saved travel times to {travel_times_path}")
+    
+    # Also save as CSV for easier analysis
+    csv_data = []
+    for neighborhood, dest_times in travel_times.items():
+        for destination, time in dest_times.items():
+            csv_data.append({
+                'neighborhood': neighborhood,
+                'destination': destination,
+                'travel_time_minutes': time
+            })
+    
+    travel_times_csv_path = os.path.join(processed_dir, 'travel_times.csv')
+    pd.DataFrame(csv_data).to_csv(travel_times_csv_path, index=False)
+    print(f"Saved travel times CSV to {travel_times_csv_path}")
 
 def main():
-    """Main travel time generation pipeline."""
-    start_time = datetime.now()
-    logger.info("Starting travel time generation")
+    """Main function to generate travel times"""
+    print("Starting travel time generation...")
     
-    # Create directories
-    create_directories()
+    # Create processed data directory
+    processed_dir = create_processed_data_dir()
     
-    # Generate travel times
-    travel_times_df = generate_travel_times()
-    
-    # Save results
-    save_travel_times(travel_times_df)
-    
-    end_time = datetime.now()
-    logger.info(f"Travel time generation completed in {end_time - start_time}")
+    try:
+        # Generate travel times
+        travel_times = generate_travel_times()
+        
+        # Save travel times
+        save_travel_times(travel_times, processed_dir)
+        
+        print("Travel time generation completed successfully!")
+        
+    except Exception as e:
+        print(f"Error during travel time generation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

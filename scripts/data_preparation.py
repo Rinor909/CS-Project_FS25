@@ -1,179 +1,144 @@
-"""
-Data Preparation Script for Zurich Real Estate Price Prediction
-----------------------------------------------------------------
-Purpose: Clean and preprocess raw datasets for model training
-
-Tasks:
-1. Load raw datasets (neighborhood and building age)
-2. Clean missing values and handle outliers
-3. Merge datasets if necessary
-4. Create derived features
-5. Export processed datasets to ../data/processed/
-
-Owner: Rinor (Primary), Matteo (Support)
-"""
-
 import pandas as pd
 import numpy as np
 import os
-import logging
-from datetime import datetime
+import sys
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Add project root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Define file paths
-RAW_DATA_DIR = "../data/raw"
-PROCESSED_DATA_DIR = "../data/processed"
-NEIGHBORHOOD_DATA = "bau515od5155.csv"  # Property Prices by Neighborhood
-BUILDING_AGE_DATA = "bau515od5156.csv"  # Property Prices by Building Age
+def create_processed_data_dir():
+    """Create processed data directory if it doesn't exist"""
+    processed_dir = os.path.join('data', 'processed')
+    os.makedirs(processed_dir, exist_ok=True)
+    return processed_dir
 
-def create_directories():
-    """Create necessary directories if they don't exist."""
-    os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
-    logger.info(f"Ensured directory exists: {PROCESSED_DATA_DIR}")
-
-def load_datasets():
-    """Load raw datasets."""
-    try:
-        # Load neighborhood dataset
-        neighborhood_path = os.path.join(RAW_DATA_DIR, NEIGHBORHOOD_DATA)
-        neighborhood_df = pd.read_csv(neighborhood_path)
-        logger.info(f"Loaded neighborhood data: {neighborhood_path}")
-        
-        # Load building age dataset
-        building_age_path = os.path.join(RAW_DATA_DIR, BUILDING_AGE_DATA)
-        building_age_df = pd.read_csv(building_age_path)
-        logger.info(f"Loaded building age data: {building_age_path}")
-        
-        return neighborhood_df, building_age_df
+def load_neighborhood_data():
+    """Load and process the neighborhood dataset"""
+    file_path = os.path.join('data', 'raw', 'bau515od5155.csv')
     
-    except FileNotFoundError as e:
-        logger.error(f"File not found: {e}")
-        raise
-    except Exception as e:
-        logger.error(f"Error loading datasets: {e}")
-        raise
-
-def clean_neighborhood_data(df):
-    """
-    Clean neighborhood dataset.
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
     
-    TODO:
-    - Handle missing values
-    - Remove outliers (e.g., using IQR or z-score method)
-    - Convert data types if necessary
-    - Extract district information
-    """
-    logger.info("Cleaning neighborhood data...")
+    print(f"Loading neighborhood data from {file_path}")
     
-    # Add your cleaning code here
-    # Example:
-    # df = df.dropna(subset=['price', 'rooms'])
-    # df = df[df['price'] > 0]
+    # Load the data
+    df = pd.read_csv(file_path)
+    
+    # Rename columns for clarity
+    column_map = {
+        'Stichtagdatjahr': 'year',
+        'RaumLang': 'neighborhood',
+        'AnzZimmerLevel2Lang_noDM': 'room_count',
+        'HAMedianPreis': 'median_price',
+        'HAPreisWohnflaeche': 'price_per_sqm',
+        'HAArtLevel1Lang': 'property_type'
+    }
+    
+    # Select necessary columns
+    selected_cols = list(column_map.keys())
+    df = df[selected_cols].rename(columns=column_map)
+    
+    # Filter for apartments only
+    df = df[df['property_type'] == 'Wohnungen']
+    
+    # Remove missing values
+    df = df.dropna(subset=['median_price', 'neighborhood', 'room_count'])
+    
+    # Convert price columns to numeric
+    df['median_price'] = pd.to_numeric(df['median_price'], errors='coerce')
+    df['price_per_sqm'] = pd.to_numeric(df['price_per_sqm'], errors='coerce')
+    
+    print(f"Processed neighborhood data: {len(df)} rows")
     
     return df
 
-def clean_building_age_data(df):
-    """
-    Clean building age dataset.
+def load_building_age_data():
+    """Load and process the building age dataset"""
+    file_path = os.path.join('data', 'raw', 'bau515od5156.csv')
     
-    TODO:
-    - Handle missing values
-    - Remove outliers
-    - Convert data types if necessary
-    - Create age categories if needed
-    """
-    logger.info("Cleaning building age data...")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
     
-    # Add your cleaning code here
+    print(f"Loading building age data from {file_path}")
     
-    return df
-
-def merge_datasets(neighborhood_df, building_age_df):
-    """
-    Merge neighborhood and building age datasets if necessary.
+    # Load the data
+    df = pd.read_csv(file_path)
     
-    TODO:
-    - Determine appropriate join keys
-    - Handle conflicts or duplicates
-    """
-    logger.info("Merging datasets...")
+    # Rename columns for clarity
+    column_map = {
+        'Stichtagdatjahr': 'year',
+        'BaualterLang_noDM': 'building_age',
+        'AnzZimmerLevel2Lang_noDM': 'room_count',
+        'HAMedianPreis': 'median_price',
+        'HAPreisWohnflaeche': 'price_per_sqm',
+        'HAArtLevel1Lang': 'property_type'
+    }
     
-    # Add your merging code here
-    # Example:
-    # merged_df = pd.merge(
-    #     neighborhood_df, 
-    #     building_age_df, 
-    #     on=['year', 'rooms'], 
-    #     how='inner'
-    # )
+    # Select necessary columns
+    selected_cols = list(column_map.keys())
+    df = df[selected_cols].rename(columns=column_map)
     
-    # For now, we'll just return them separately
-    return neighborhood_df, building_age_df
-
-def create_derived_features(df):
-    """
-    Create derived features.
+    # Filter for apartments only
+    df = df[df['property_type'] == 'Wohnungen']
     
-    TODO:
-    - Calculate price per room
-    - Calculate year-over-year price changes
-    - Create location clusters if needed
-    """
-    logger.info("Creating derived features...")
+    # Remove missing values
+    df = df.dropna(subset=['median_price', 'building_age', 'room_count'])
     
-    # Add your feature engineering code here
+    # Convert price columns to numeric
+    df['median_price'] = pd.to_numeric(df['median_price'], errors='coerce')
+    df['price_per_sqm'] = pd.to_numeric(df['price_per_sqm'], errors='coerce')
+    
+    print(f"Processed building age data: {len(df)} rows")
     
     return df
 
-def save_processed_data(neighborhood_df, building_age_df, merged_df=None):
-    """Save processed datasets."""
-    neighborhood_output = os.path.join(PROCESSED_DATA_DIR, "processed_neighborhood.csv")
-    building_age_output = os.path.join(PROCESSED_DATA_DIR, "processed_building_age.csv")
+def save_processed_data(neighborhood_df, building_age_df, processed_dir):
+    """Save processed data to CSV files"""
+    # Save neighborhood data
+    neighborhood_path = os.path.join(processed_dir, 'processed_neighborhood_data.csv')
+    neighborhood_df.to_csv(neighborhood_path, index=False)
+    print(f"Saved processed neighborhood data to {neighborhood_path}")
     
-    neighborhood_df.to_csv(neighborhood_output, index=False)
-    logger.info(f"Saved processed neighborhood data: {neighborhood_output}")
+    # Save building age data
+    building_age_path = os.path.join(processed_dir, 'processed_building_age_data.csv')
+    building_age_df.to_csv(building_age_path, index=False)
+    print(f"Saved processed building age data to {building_age_path}")
     
-    building_age_df.to_csv(building_age_output, index=False)
-    logger.info(f"Saved processed building age data: {building_age_output}")
+    # Create a combined dataset for the latest year
+    latest_year = max(neighborhood_df['year'].max(), building_age_df['year'].max())
     
-    if merged_df is not None:
-        merged_output = os.path.join(PROCESSED_DATA_DIR, "processed_merged.csv")
-        merged_df.to_csv(merged_output, index=False)
-        logger.info(f"Saved processed merged data: {merged_output}")
+    latest_neighborhood = neighborhood_df[neighborhood_df['year'] == latest_year]
+    latest_building_age = building_age_df[building_age_df['year'] == latest_year]
+    
+    # Save latest year data
+    latest_neighborhood_path = os.path.join(processed_dir, f'latest_{latest_year}_neighborhood_data.csv')
+    latest_neighborhood.to_csv(latest_neighborhood_path, index=False)
+    print(f"Saved latest neighborhood data to {latest_neighborhood_path}")
+    
+    latest_building_age_path = os.path.join(processed_dir, f'latest_{latest_year}_building_age_data.csv')
+    latest_building_age.to_csv(latest_building_age_path, index=False)
+    print(f"Saved latest building age data to {latest_building_age_path}")
 
 def main():
-    """Main data preparation pipeline."""
-    start_time = datetime.now()
-    logger.info("Starting data preparation pipeline")
+    """Main function to process data"""
+    print("Starting data preparation...")
     
-    # Create directories
-    create_directories()
+    # Create processed data directory
+    processed_dir = create_processed_data_dir()
     
-    # Load raw datasets
-    neighborhood_df, building_age_df = load_datasets()
-    
-    # Clean datasets
-    neighborhood_df = clean_neighborhood_data(neighborhood_df)
-    building_age_df = clean_building_age_data(building_age_df)
-    
-    # Merge datasets if necessary
-    neighborhood_df, building_age_df = merge_datasets(neighborhood_df, building_age_df)
-    
-    # Create derived features
-    neighborhood_df = create_derived_features(neighborhood_df)
-    building_age_df = create_derived_features(building_age_df)
-    
-    # Save processed data
-    save_processed_data(neighborhood_df, building_age_df)
-    
-    end_time = datetime.now()
-    logger.info(f"Data preparation pipeline completed in {end_time - start_time}")
+    try:
+        # Load and process data
+        neighborhood_df = load_neighborhood_data()
+        building_age_df = load_building_age_data()
+        
+        # Save processed data
+        save_processed_data(neighborhood_df, building_age_df, processed_dir)
+        
+        print("Data preparation completed successfully!")
+        
+    except Exception as e:
+        print(f"Error during data preparation: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

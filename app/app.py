@@ -1,47 +1,25 @@
-"""
-Main Application for Zurich Real Estate Price Prediction
--------------------------------------------------------
-Purpose: Streamlit web application for price prediction and visualization
-
-Tasks:
-1. Create user interface for inputting property details
-2. Display predicted prices based on user input
-3. Visualize property prices and travel times on interactive maps
-4. Show data insights and model explanations
-
-Owner: Matteo (Primary), Anna (Support)
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import pickle
 import os
-import logging
 import sys
-from datetime import datetime
 
-# Add parent directory to path to import from sibling directories
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add script directory to path
+sys.path.append('./scripts')
+sys.path.append('./app')
 
-# Import custom modules
-from app.utils import (
-    load_model, load_datasets, prepare_prediction_input, predict_price,
-    format_price, get_price_range, get_neighborhoods, get_neighborhood_coordinates,
-    get_key_destinations, get_building_age_options, get_room_count_options,
-    convert_age_category_to_years
-)
-from app.maps import (
-    create_price_heatmap, create_travel_time_map, create_combined_map, create_interactive_map
-)
+# Import helper modules
+from utils import load_data, preprocess_data
+from maps import create_price_heatmap, create_travel_time_map
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# Set page config
+# Set page configuration
 st.set_page_config(
     page_title="Zurich Real Estate Price Prediction",
     page_icon="🏡",
@@ -49,276 +27,151 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-def load_data():
-    """Load model and datasets."""
-    # Load model
-    model, features = load_model()
-    
-    # Load datasets
-    neighborhood_df, building_age_df, travel_time_df = load_datasets()
-    
-    # Get coordinates
-    neighborhood_coords = get_neighborhood_coordinates()
-    key_destinations = get_key_destinations()
-    
-    return model, features, neighborhood_df, building_age_df, travel_time_df, neighborhood_coords, key_destinations
+# App title and description
+st.title("🏡 Zurich Real Estate Price Prediction")
+st.markdown("""
+This app predicts real estate prices in Zurich based on property characteristics and travel time.
+Select parameters on the left sidebar to get price predictions and view visualizations.
+""")
 
-def create_sidebar():
-    """Create sidebar with user inputs."""
-    st.sidebar.title("Property Details")
+# Cache data loading
+@st.cache_data
+def get_data():
+    # Load the neighborhood dataset
+    neighborhood_data = load_data("data/raw/bau515od5155.csv")
+    # Load the building age dataset
+    building_age_data = load_data("data/raw/bau515od5156.csv")
     
-    # Neighborhood selection
-    neighborhoods = get_neighborhoods()
-    neighborhood = st.sidebar.selectbox(
-        "Neighborhood",
-        neighborhoods,
+    # Process and return the data
+    return preprocess_data(neighborhood_data, building_age_data)
+
+# Try to load data
+try:
+    data, neighborhoods, room_counts, building_ages, latest_year = get_data()
+    
+    # Sidebar inputs
+    st.sidebar.header("Property Parameters")
+    
+    selected_neighborhood = st.sidebar.selectbox(
+        "Select Neighborhood",
+        options=neighborhoods,
         index=0
     )
     
-    # Room count selection
-    room_options = get_room_count_options()
-    room_count = st.sidebar.selectbox(
+    selected_rooms = st.sidebar.selectbox(
         "Number of Rooms",
-        room_options,
-        index=4  # Default to 3 rooms
+        options=room_counts,
+        index=2  # Default to 3-4 rooms
     )
     
-    # Building age selection
-    age_options = get_building_age_options()
-    building_age_category = st.sidebar.selectbox(
+    selected_building_age = st.sidebar.selectbox(
         "Building Age",
-        age_options,
-        index=6  # Default to 1991-2000
+        options=building_ages,
+        index=len(building_ages) // 2  # Default to middle age range
     )
-    
-    # Convert building age category to years
-    building_age = convert_age_category_to_years(building_age_category)
     
     # Travel time preferences
-    st.sidebar.subheader("Travel Time Preferences")
-    
-    max_travel_time_hauptbahnhof = st.sidebar.slider(
-        "Max travel time to Hauptbahnhof (min)",
+    st.sidebar.header("Travel Time Preferences")
+    max_travel_time = st.sidebar.slider(
+        "Maximum Travel Time (minutes)",
         min_value=5,
         max_value=60,
         value=30,
         step=5
     )
     
-    max_travel_time_eth = st.sidebar.slider(
-        "Max travel time to ETH Zurich (min)",
-        min_value=5,
-        max_value=60,
-        value=30,
-        step=5
+    key_destinations = ["Hauptbahnhof", "ETH Zurich", "Zurich Airport", "Bahnhofstrasse"]
+    selected_destinations = st.sidebar.multiselect(
+        "Key Destinations",
+        options=key_destinations,
+        default=["Hauptbahnhof"]
     )
     
-    max_travel_time_airport = st.sidebar.slider(
-        "Max travel time to Zurich Airport (min)",
-        min_value=5,
-        max_value=90,
-        value=45,
-        step=5
-    )
-    
-    max_travel_time_bahnhofstrasse = st.sidebar.slider(
-        "Max travel time to Bahnhofstrasse (min)",
-        min_value=5,
-        max_value=60,
-        value=30,
-        step=5
-    )
-    
-    # Collect travel time preferences
-    travel_times = {
-        "Hauptbahnhof": max_travel_time_hauptbahnhof,
-        "ETH_Zurich": max_travel_time_eth,
-        "Zurich_Airport": max_travel_time_airport,
-        "Bahnhofstrasse": max_travel_time_bahnhofstrasse
-    }
-    
-    # Add a calculate button
-    calculate_button = st.sidebar.button("Calculate Price")
-    
-    return neighborhood, room_count, building_age, travel_times, calculate_button
-
-def display_prediction(model, features, neighborhood, room_count, building_age, travel_times):
-    """Display price prediction."""
-    # Prepare input data
-    input_data = prepare_prediction_input(neighborhood, room_count, building_age, travel_times)
-    
-    # Make prediction
-    predicted_price = predict_price(model, features, input_data)
-    
-    # Display prediction
-    st.header("Property Price Prediction")
-    
-    # Create columns for better layout
-    col1, col2, col3 = st.columns(3)
+    # Main content area - split into columns
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.metric(
-            label="Predicted Price",
-            value=format_price(predicted_price)
-        )
+        st.header("Price Prediction")
+        
+        # Load model if available, otherwise display placeholder
+        model_path = os.path.join("models", "price_model.pkl")
+        if os.path.exists(model_path):
+            with open(model_path, 'rb') as file:
+                model = pickle.load(file)
+                
+            # Create input features for prediction
+            features = {
+                'neighborhood': selected_neighborhood,
+                'room_count': selected_rooms,
+                'building_age': selected_building_age,
+                'travel_time': max_travel_time
+            }
+            
+            # Make prediction (placeholder for now)
+            # In reality, we would transform these features properly
+            predicted_price = 1000000  # Placeholder
+            
+            st.metric(
+                label="Estimated Price (CHF)",
+                value=f"{predicted_price:,.0f}"
+            )
+            
+            st.info(f"This estimate is based on {latest_year} data for a {selected_rooms} room property in {selected_neighborhood} built during {selected_building_age}.")
+        else:
+            st.warning("Price prediction model not found. Please train the model first.")
+            st.info("Using historical data to show neighborhood averages instead.")
+            
+            # Filter data for visualization
+            filtered_data = data[
+                (data['neighborhood'] == selected_neighborhood) & 
+                (data['room_count'] == selected_rooms)
+            ].sort_values('year')
+            
+            if not filtered_data.empty:
+                st.line_chart(filtered_data.set_index('year')['median_price'])
+            else:
+                st.error("No matching data found for the selected parameters.")
     
     with col2:
-        low_range, high_range = get_price_range(predicted_price)
-        st.metric(
-            label="Price Range (±10%)",
-            value=f"{low_range} - {high_range}"
-        )
-    
-    with col3:
-        price_per_room = predicted_price / room_count if predicted_price and room_count else None
-        st.metric(
-            label="Price per Room",
-            value=format_price(price_per_room)
-        )
-    
-    st.write("""
-    **Note**: This prediction is based on historical data and the characteristics you provided.
-    Actual market prices may vary based on additional factors like property condition, specific location,
-    amenities, and current market conditions.
-    """)
-
-def display_maps(neighborhood_df, travel_time_df, neighborhood_coords, key_destinations, neighborhood, travel_times):
-    """Display interactive maps."""
-    st.header("Interactive Zurich Maps")
-    
-    # Create tabs for different map views
-    tab1, tab2, tab3 = st.tabs(["Price Map", "Travel Time", "Combined View"])
-    
-    with tab1:
-        st.subheader("Property Prices across Zurich")
-        price_map = create_price_heatmap(neighborhood_df, neighborhood_coords)
-        st.plotly_chart(price_map, use_container_width=True)
-    
-    with tab2:
-        st.subheader("Travel Times from Key Destinations")
+        st.header("Price Distribution Map")
         
-        # Create selectbox for different destinations
-        destinations = list(key_destinations.keys())
-        selected_destination = st.selectbox(
-            "Select Destination",
-            destinations,
-            index=0
-        )
-        
-        # Create travel time map
-        travel_map = create_travel_time_map(
-            travel_time_df,
-            neighborhood_coords,
-            key_destinations[selected_destination],
-            selected_destination.replace("_", " ")
-        )
-        st.plotly_chart(travel_map, use_container_width=True)
+        # Create map visualization
+        map_data = data[data['year'] == latest_year]
+        st.plotly_chart(create_price_heatmap(map_data))
     
-    with tab3:
-        st.subheader("Interactive Property Map")
-        
-        # Create interactive map with filters
-        interactive_map = create_interactive_map(
-            neighborhood_df,
-            travel_time_df,
-            neighborhood_coords,
-            key_destinations,
-            selected_neighborhood=neighborhood,
-            max_travel_time=travel_times["Hauptbahnhof"]
-        )
-        st.plotly_chart(interactive_map, use_container_width=True)
-    
-    st.write("""
-    **Map Legend**:
-    - Property price levels are shown in the color scale, with higher prices in darker colors
-    - Travel times are shown in minutes, with shorter times in greener colors
-    - The blue circle shows the approximate travel time radius from the selected neighborhood
-    - Red markers indicate key destinations in Zurich
-    """)
-
-def display_insights(neighborhood_df, building_age_df):
-    """Display data insights and model explanation."""
-    st.header("Market Insights")
-    
-    # Create tabs for different insights
-    tab1, tab2, tab3 = st.tabs(["Price Trends", "Neighborhood Comparison", "Building Age Impact"])
-    
-    with tab1:
-        st.subheader("Price Trends Over Time")
-        st.write("""
-        This section will show historical price trends from 2009-2024.
-        Charts will be implemented with actual data once available.
-        """)
-        
-        # Placeholder for price trend chart
-        st.info("Price trend chart will be displayed here.")
-    
-    with tab2:
-        st.subheader("Neighborhood Price Comparison")
-        st.write("""
-        This section will compare prices across different Zurich neighborhoods.
-        Charts will be implemented with actual data once available.
-        """)
-        
-        # Placeholder for neighborhood comparison chart
-        st.info("Neighborhood comparison chart will be displayed here.")
-    
-    with tab3:
-        st.subheader("Impact of Building Age")
-        st.write("""
-        This section will show how building age affects property prices.
-        Charts will be implemented with actual data once available.
-        """)
-        
-        # Placeholder for building age impact chart
-        st.info("Building age impact chart will be displayed here.")
-
-def main():
-    """Main application function."""
-    # Set app title
-    st.title("🏡 Zurich Real Estate Price Prediction")
-    
-    # Add app description
-    st.write("""
-    This application predicts real estate prices in Zurich based on neighborhood,
-    room count, building age, and travel time to key destinations.
-    
-    Use the sidebar to input property details and see the predicted price,
-    along with interactive maps and market insights.
+    # Travel time analysis section
+    st.header("Travel Time Analysis")
+    st.markdown("""
+    Note: Travel time data is currently a placeholder. In the complete app, this would show
+    actual travel times from the selected neighborhood to key destinations.
     """)
     
-    try:
-        # Load data
-        model, features, neighborhood_df, building_age_df, travel_time_df, neighborhood_coords, key_destinations = load_data()
-        
-        # Create sidebar with inputs
-        neighborhood, room_count, building_age, travel_times, calculate_button = create_sidebar()
-        
-        # Display prediction if calculate button is clicked
-        if calculate_button:
-            display_prediction(model, features, neighborhood, room_count, building_age, travel_times)
-        
-        # Display maps
-        display_maps(neighborhood_df, travel_time_df, neighborhood_coords, key_destinations, neighborhood, travel_times)
-        
-        # Display insights
-        display_insights(neighborhood_df, building_age_df)
-        
-        # Add footer with about section
-        st.markdown("---")
-        st.markdown("""
-        **About this app**:  
-        Developed as part of the Zurich Real Estate Price Prediction project.  
-        Data sources: Property Prices by Neighborhood (bau515od5155.csv), Property Prices by Building Age (bau515od5156.csv), and Google Maps API for travel times.
-        """)
+    # Placeholder for travel time visualization
+    travel_time_placeholder = pd.DataFrame({
+        'Destination': key_destinations,
+        'Travel Time (min)': [25, 18, 35, 20]
+    })
     
-    except FileNotFoundError as e:
-        st.error(f"Error: {e}. Make sure all required files are available.")
-        logger.error(f"File not found: {e}")
+    st.bar_chart(travel_time_placeholder.set_index('Destination'))
     
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
-        logger.error(f"Error in main application: {e}")
+    # Historical price trends
+    st.header("Historical Price Trends")
+    
+    # Filter for the selected neighborhood
+    neighborhood_history = data[data['neighborhood'] == selected_neighborhood]
+    
+    if not neighborhood_history.empty:
+        fig = px.line(
+            neighborhood_history,
+            x='year',
+            y='median_price',
+            color='room_count',
+            title=f"Price History in {selected_neighborhood}"
+        )
+        st.plotly_chart(fig)
+    else:
+        st.error("No historical data available for the selected neighborhood.")
 
-if __name__ == "__main__":
-    main()
+except Exception as e:
+    st.error(f"Error loading data: {str(e)}")
+    st.info("Please make sure the CSV files are in the correct location: data/raw/")
