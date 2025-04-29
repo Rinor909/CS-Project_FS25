@@ -13,8 +13,10 @@ import pickle
 sys.path.append(os.path.abspath('app'))
 
 # Import helper modules
-from app.utils import load_data, preprocess_data, load_travel_times, load_model
-from app.maps import create_price_heatmap, create_travel_time_map
+import sys
+sys.path.append('app')  # Make sure this points to the correct directory
+from utils import load_data, preprocess_data, load_travel_times, load_model
+from maps import create_price_heatmap, create_travel_time_map
 
 # Set page configuration
 st.set_page_config(
