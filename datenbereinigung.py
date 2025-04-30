@@ -12,64 +12,48 @@ import os
 import json
 import random
 
+# Debugging-Information: Wo sind wir?
+print(f"Aktuelles Verzeichnis: {os.getcwd()}")
+print("Dateien im Verzeichnis:")
+for file in os.listdir('.'):
+    print(f"  - {file}")
+
 # Ordner erstellen falls nicht existieren
 os.makedirs('data/processed', exist_ok=True)
 
 print("Immobilienpreis-Analyse Zürich: Datenbereinigung")
 print("=" * 50)
 
-# Pfade zu den CSV-Dateien definieren (Die Dateien müssen im gleichen Verzeichnis sein)
 print("Suche nach Datensätzen...")
 
-# Mögliche Pfade zu den CSV-Dateien
-possible_paths = [
-    'bau515od5155.csv',               # Im aktuellen Verzeichnis
-    '../bau515od5155.csv',            # Ein Verzeichnis höher
-    '../../bau515od5155.csv',         # Zwei Verzeichnisse höher
-    './data/raw/bau515od5155.csv',    # Im data/raw Unterverzeichnis
-    '../data/raw/bau515od5155.csv',   # Im data/raw Unterverzeichnis eine Ebene höher
-]
+# Prüfen, ob die Dateien im aktuellen Verzeichnis existieren
+file1 = 'bau515od5155.csv'
+file2 = 'bau515od5156.csv'
 
-# Finde den ersten Pfad, der existiert
-neighborhood_data_path = None
-for path in possible_paths:
-    if os.path.exists(path):
-        neighborhood_data_path = path
-        print(f"Gefunden: {path}")
-        break
-
-# Gleiches für die zweite Datei
-building_age_data_path = None
-for path in possible_paths:
-    building_path = path.replace('bau515od5155.csv', 'bau515od5156.csv')
-    if os.path.exists(building_path):
-        building_age_data_path = building_path
-        print(f"Gefunden: {building_path}")
-        break
-
-if not neighborhood_data_path or not building_age_data_path:
+if os.path.exists(file1) and os.path.exists(file2):
+    print(f"Dateien im aktuellen Verzeichnis gefunden!")
+    neighborhood_data_path = file1
+    building_age_data_path = file2
+else:
     print("FEHLER: Konnte die CSV-Dateien nicht finden!")
     print("Bitte stellen Sie sicher, dass die folgenden Dateien existieren:")
-    print("- bau515od5155.csv")
-    print("- bau515od5156.csv")
-    print("\nMögliche Speicherorte:")
-    for path in possible_paths:
-        print(f"- {path}")
+    print(f"- {file1}")
+    print(f"- {file2}")
     exit(1)
 
 # Daten laden
 print("Lade Datensätze...")
 try:
-    neighborhood_df = pd.read_csv(neighborhood_data_path)
-    building_age_df = pd.read_csv(building_age_data_path)
-    print(f"Daten erfolgreich geladen mit {len(neighborhood_df)} und {len(building_age_df)} Zeilen")
+    df1 = pd.read_csv(neighborhood_data_path)
+    df2 = pd.read_csv(building_age_data_path)
+    print(f"Daten erfolgreich geladen mit {len(df1)} und {len(df2)} Zeilen")
 except Exception as e:
     print(f"Fehler beim Laden der Daten: {e}")
     exit(1)
 
 # Quartier-Daten bereinigen
 print("Bereinige Quartier-Daten...")
-neighborhood_clean = neighborhood_df[[
+neighborhood_clean = df1[[
     'Stichtagdatjahr',  # Jahr
     'HASTWELang',       # Miete oder Eigentum
     'RaumLang',         # Quartier
@@ -88,7 +72,7 @@ neighborhood_clean = neighborhood_clean.rename(columns={
 
 # Baualter-Daten bereinigen
 print("Bereinige Baualter-Daten...")
-building_age_clean = building_age_data[[
+building_age_clean = df2[[
     'Stichtagdatjahr',
     'HASTWELang',
     'BaualterLang_noDM',
@@ -179,20 +163,8 @@ kombinierter_df = pd.DataFrame(kombinierte_daten)
 print(f"Kombinierter Datensatz mit {len(kombinierter_df)} Einträgen erstellt")
 
 # Reisezeitdaten integrieren oder Platzhalter erstellen
-reisezeiten_pfade = [
-    'reisezeiten.json',
-    'data/processed/reisezeiten.json',
-    '../reisezeiten.json'
-]
-
-reisezeiten_pfad = None
-reisezeiten_vorhanden = False
-
-for pfad in reisezeiten_pfade:
-    if os.path.exists(pfad):
-        reisezeiten_pfad = pfad
-        reisezeiten_vorhanden = True
-        break
+reisezeiten_pfad = 'reisezeiten.json'
+reisezeiten_vorhanden = os.path.exists(reisezeiten_pfad)
 
 if reisezeiten_vorhanden:
     print(f"Lade Reisezeitdaten aus {reisezeiten_pfad}...")
@@ -240,6 +212,9 @@ pd.DataFrame({'Quartier': quartiere}).to_csv('data/processed/quartier_liste.csv'
 # Wenn keine echten Reisezeitdaten vorhanden sind, speichere die Platzhalter
 if not reisezeiten_vorhanden:
     with open('data/processed/reisezeiten_platzhalter.json', 'w') as f:
+        json.dump(reisezeiten, f, indent=2)
+    # Kopie im Hauptverzeichnis für einfachen Zugriff
+    with open('reisezeiten.json', 'w') as f:
         json.dump(reisezeiten, f, indent=2)
 
 print("\n✅ Datenbereinigung abgeschlossen!")

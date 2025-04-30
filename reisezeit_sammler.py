@@ -16,6 +16,12 @@ import json
 import os
 import random
 
+# Debug-Information: Wo sind wir?
+print(f"Aktuelles Verzeichnis: {os.getcwd()}")
+print("Dateien im Verzeichnis:")
+for file in os.listdir('.'):
+    print(f"  - {file}")
+
 # Versuche dotenv zu importieren für API-Schlüssel
 try:
     from dotenv import load_dotenv
@@ -127,80 +133,3 @@ def reisezeiten_sammeln(quartiere):
         if quartier in reisezeiten and all(ziel in reisezeiten[quartier] for ziel in zielorte):
             print(f"  Überspringe: {quartier} (bereits verarbeitet)")
             continue
-        
-        # Quartier initialisieren, falls es noch nicht im Wörterbuch ist
-        if quartier not in reisezeiten:
-            reisezeiten[quartier] = {}
-        
-        # Für jedes Ziel die Reisezeit abrufen
-        for zielname, zieladresse in zielorte.items():
-            # Überspringen, wenn dieses Ziel bereits verarbeitet wurde
-            if zielname in reisezeiten[quartier]:
-                continue
-            
-            # Reisezeit abrufen
-            reisezeit = get_reisezeit(quartier, zieladresse)
-            
-            # Ergebnis speichern
-            reisezeiten[quartier][zielname] = reisezeit if reisezeit else 30  # Standardwert 30 Minuten
-            
-            # Kurze Pause zwischen API-Anfragen
-            time.sleep(1)
-        
-        # Cache nach jedem Quartier aktualisieren
-        with open(cache_file, "w") as f:
-            json.dump(reisezeiten, f, indent=2)
-        
-        print(f"  Fortschritt gespeichert ({i+1}/{len(quartiere)})")
-    
-    return reisezeiten
-
-# Hauptprogramm
-if __name__ == "__main__":
-    print("🚆 Reisezeit-Sammler für Zürich Immobilienpreise")
-    print("=" * 50)
-    
-    # Versuche, die Liste der Quartiere zu laden
-    quartier_liste_pfad = 'data/processed/quartier_liste.csv'
-    
-    if not os.path.exists(quartier_liste_pfad):
-        print(f"⚠️ Quartier-Liste nicht gefunden unter: {quartier_liste_pfad}")
-        print("Bitte führen Sie zuerst 'datenbereinigung.py' aus!")
-        exit(1)
-    
-    try:
-        quartiere_df = pd.read_csv(quartier_liste_pfad)
-        quartiere = quartiere_df['Quartier'].tolist()
-        print(f"Quartiere geladen: {len(quartiere)} Einträge")
-    except Exception as e:
-        print(f"Fehler beim Laden der Quartier-Liste: {e}")
-        exit(1)
-    
-    # Hinweis zum API-Schlüssel
-    if not GOOGLE_MAPS_API_KEY:
-        print("\n⚠️ Kein Google Maps API-Schlüssel gefunden!")
-        print("Es werden realistische Platzhalter-Daten generiert.")
-        print("Für echte Daten: Besorge einen Schlüssel von der Google Cloud Console")
-        print("und füge ihn in eine .env-Datei ein: GOOGLE_MAPS_API_KEY=dein_schlüssel")
-        print("\nFortfahren mit Platzhalter-Daten in 5 Sekunden...")
-        time.sleep(5)
-    
-    print(f"\nSammle Reisezeiten für {len(quartiere)} Quartiere zu {len(zielorte)} Zielen...")
-    
-    # Reisezeiten sammeln
-    reisezeiten = reisezeiten_sammeln(quartiere)
-    
-    # Ergebnisse speichern
-    with open("data/processed/reisezeiten.json", "w") as f:
-        json.dump(reisezeiten, f, indent=2)
-    
-    # Für Kompatibilität auch im Hauptverzeichnis speichern
-    with open("reisezeiten.json", "w") as f:
-        json.dump(reisezeiten, f, indent=2)
-    
-    print("\n✅ Reisezeiterfassung abgeschlossen!")
-    print(f"Reisezeiten für {len(reisezeiten)} Quartiere zu {len(zielorte)} Zielen gespeichert.")
-    print("Dateien gespeichert in:")
-    print("- data/processed/reisezeiten.json")
-    print("- reisezeiten.json")
-    print("\nSie können jetzt mit der Modellentwicklung fortfahren.")
