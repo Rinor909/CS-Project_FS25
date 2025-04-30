@@ -1,6 +1,12 @@
 """
 Reisezeit-Sammler für Zürich Immobilienpreis-Vorhersage
-Sammelt Reisezeiten von Quartieren zu wichtigen Orten in Zürich
+
+Dieses Skript sammelt Reisezeiten von verschiedenen Quartieren in Zürich
+zu wichtigen Zielen wie Hauptbahnhof, ETH, Flughafen und Bahnhofstrasse.
+Die Daten werden für die Immobilienpreis-Vorhersage verwendet.
+
+Hinweis: Für echte Google Maps API-Daten wird ein API-Schlüssel benötigt.
+Ohne Schlüssel werden realistische Platzhalter-Daten generiert.
 """
 
 import pandas as pd
@@ -8,11 +14,9 @@ import requests
 import time
 import json
 import os
-import datetime
-import random  # für Platzhalter falls API nicht funktioniert
+import random
 
 # Versuche dotenv zu importieren für API-Schlüssel
-# Falls nicht installiert, zeigen wir einen Hinweis
 try:
     from dotenv import load_dotenv
     load_dotenv()  # .env-Datei laden falls vorhanden
@@ -23,36 +27,26 @@ except ImportError:
 # API-Schlüssel aus Umgebungsvariable oder direkt eingeben
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
-# Falls kein API-Schlüssel, Hinweis anzeigen
-if not GOOGLE_MAPS_API_KEY:
-    print("⚠️ Kein Google Maps API-Schlüssel gefunden!")
-    print("Ohne Schlüssel werden Platzhalter-Daten generiert.")
-    print("Für echte Daten: Besorge einen Schlüssel von der Google Cloud Console")
-    print("und füge ihn in eine .env-Datei ein: GOOGLE_MAPS_API_KEY=dein_schlüssel")
-
 # Wichtige Orte in Zürich
 zielorte = {
     "Hauptbahnhof": "Zürich HB, Zürich",
     "ETH Zürich": "ETH Zürich, Rämistrasse 101, 8092 Zürich",
     "Flughafen Zürich": "Flughafen Zürich, 8058 Zürich",
-    "Bahnhofstrasse": "Bahnhofstrasse, 8001 Zürich",
-    "Paradeplatz": "Paradeplatz, 8001 Zürich",
-    "Sihlcity": "Sihlcity, Kalanderplatz 1, 8045 Zürich",
-    "Bellevue": "Bellevue, 8008 Zürich",
-    "UZH Irchel Campus": "Universität Zürich Irchel, Winterthurerstrasse 190, 8057 Zürich"
+    "Bahnhofstrasse": "Bahnhofstrasse, 8001 Zürich"
 }
 
 def get_reisezeit(start, ziel, modus="transit"):
-    """Ermittelt die Reisezeit zwischen zwei Orten mit Google Maps API"""
+    """Ermittelt die Reisezeit zwischen zwei Orten mit Google Maps API oder als Platzhalter"""
     
     # Sicherstellen, dass wir in Zürich suchen
     if "Zürich" not in start and "Zurich" not in start:
         start = f"{start}, Zürich, Schweiz"
     
-    # Wenn kein API-Schlüssel, Fake-Daten zurückgeben
+    # Wenn kein API-Schlüssel, Platzhalter-Daten zurückgeben
     if not GOOGLE_MAPS_API_KEY:
         print(f"  Platzhalter für {start} nach {ziel}: ", end="")
-        # Realistischere Reisezeiten je nach Ziel
+        
+        # Realistischere Platzhalter-Zeiten je nach Ziel
         if "Flughafen" in ziel:
             # Flughafen ist weiter weg
             zeit = random.randint(20, 60)
@@ -61,29 +55,20 @@ def get_reisezeit(start, ziel, modus="transit"):
             zeit = random.randint(5, 40)
         else:
             zeit = random.randint(10, 50)
+        
         print(f"{zeit} Minuten (Platzhalter)")
         return zeit
     
     # Google Maps API URL
     url = "https://maps.googleapis.com/maps/api/directions/json"
     
-    # Berechne den nächsten Mittwoch um 8:30 Uhr (Pendlerzeit)
-    jetzt = datetime.datetime.now()
-    tage_bis_mittwoch = (2 - jetzt.weekday()) % 7  # 2 = Mittwoch (0-6 ist Mo-So)
-    if tage_bis_mittwoch == 0:
-        tage_bis_mittwoch = 7  # Wenn heute Mittwoch ist, dann nächste Woche
-    
-    naechster_mittwoch = jetzt + datetime.timedelta(days=tage_bis_mittwoch)
-    pendlerzeit = naechster_mittwoch.replace(hour=8, minute=30, second=0)
-    unix_zeit = int(pendlerzeit.timestamp())
-    
-    # Parameter für die API-Anfrage
+    # Parameter für die API-Anfrage (Pendlerzeit um 8:30 Uhr)
     params = {
         "origin": start,
         "destination": ziel,
         "mode": modus,
         "key": GOOGLE_MAPS_API_KEY,
-        "departure_time": unix_zeit,
+        "departure_time": 1620202200,  # Feste Zeit für Konsistenz
         "traffic_model": "best_guess"
     }
     
@@ -173,37 +158,34 @@ def reisezeiten_sammeln(quartiere):
 # Hauptprogramm
 if __name__ == "__main__":
     print("🚆 Reisezeit-Sammler für Zürich Immobilienpreise")
-    print("=================================================")
+    print("=" * 50)
     
-    # Mögliche Speicherorte für die Quartier-Liste
-    moegliche_dateien = [
-        'data/processed/quartier_liste.csv',  # Unser bevorzugter Speicherort
-        'quartier_liste.csv',                 # Alternativ im Hauptverzeichnis
-        'data/processed/quartier_daten.csv',  # Alternativ in vollständiger Datei
-        'quartier_preise.csv'                 # Weitere Alternative
-    ]
+    # Versuche, die Liste der Quartiere zu laden
+    quartier_liste_pfad = 'data/processed/quartier_liste.csv'
     
-    # Quartiere laden
-    quartiere = None
-    geladene_datei = None
-    
-    for datei in moegliche_dateien:
-        if os.path.exists(datei):
-            try:
-                df = pd.read_csv(datei)
-                if 'Quartier' in df.columns:
-                    quartiere = df['Quartier'].unique()
-                    geladene_datei = datei
-                    break
-            except Exception as e:
-                print(f"Fehler beim Laden von {datei}: {e}")
-    
-    if quartiere is None:
-        print("⚠️ Keine Quartier-Liste gefunden! Führe zuerst datenbereinigung.py aus.")
+    if not os.path.exists(quartier_liste_pfad):
+        print(f"⚠️ Quartier-Liste nicht gefunden unter: {quartier_liste_pfad}")
+        print("Bitte führen Sie zuerst 'datenbereinigung.py' aus!")
         exit(1)
     
-    print(f"Quartiere geladen aus: {geladene_datei}")
-    print(f"Sammle Reisezeiten für {len(quartiere)} Quartiere...")
+    try:
+        quartiere_df = pd.read_csv(quartier_liste_pfad)
+        quartiere = quartiere_df['Quartier'].tolist()
+        print(f"Quartiere geladen: {len(quartiere)} Einträge")
+    except Exception as e:
+        print(f"Fehler beim Laden der Quartier-Liste: {e}")
+        exit(1)
+    
+    # Hinweis zum API-Schlüssel
+    if not GOOGLE_MAPS_API_KEY:
+        print("\n⚠️ Kein Google Maps API-Schlüssel gefunden!")
+        print("Es werden realistische Platzhalter-Daten generiert.")
+        print("Für echte Daten: Besorge einen Schlüssel von der Google Cloud Console")
+        print("und füge ihn in eine .env-Datei ein: GOOGLE_MAPS_API_KEY=dein_schlüssel")
+        print("\nFortfahren mit Platzhalter-Daten in 5 Sekunden...")
+        time.sleep(5)
+    
+    print(f"\nSammle Reisezeiten für {len(quartiere)} Quartiere zu {len(zielorte)} Zielen...")
     
     # Reisezeiten sammeln
     reisezeiten = reisezeiten_sammeln(quartiere)
@@ -220,4 +202,5 @@ if __name__ == "__main__":
     print(f"Reisezeiten für {len(reisezeiten)} Quartiere zu {len(zielorte)} Zielen gespeichert.")
     print("Dateien gespeichert in:")
     print("- data/processed/reisezeiten.json")
-    print("- reisezeiten.json (Kopie)")
+    print("- reisezeiten.json")
+    print("\nSie können jetzt mit der Modellentwicklung fortfahren.")
