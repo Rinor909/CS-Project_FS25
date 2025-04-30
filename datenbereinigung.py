@@ -20,23 +20,56 @@ print("=" * 50)
 
 # Pfade zu den CSV-Dateien definieren (Die Dateien müssen im gleichen Verzeichnis sein)
 print("Suche nach Datensätzen...")
-neighborhood_data_path = 'bau515od5155.csv'
-building_age_data_path = 'bau515od5156.csv'
+
+# Mögliche Pfade zu den CSV-Dateien
+possible_paths = [
+    'bau515od5155.csv',               # Im aktuellen Verzeichnis
+    '../bau515od5155.csv',            # Ein Verzeichnis höher
+    '../../bau515od5155.csv',         # Zwei Verzeichnisse höher
+    './data/raw/bau515od5155.csv',    # Im data/raw Unterverzeichnis
+    '../data/raw/bau515od5155.csv',   # Im data/raw Unterverzeichnis eine Ebene höher
+]
+
+# Finde den ersten Pfad, der existiert
+neighborhood_data_path = None
+for path in possible_paths:
+    if os.path.exists(path):
+        neighborhood_data_path = path
+        print(f"Gefunden: {path}")
+        break
+
+# Gleiches für die zweite Datei
+building_age_data_path = None
+for path in possible_paths:
+    building_path = path.replace('bau515od5155.csv', 'bau515od5156.csv')
+    if os.path.exists(building_path):
+        building_age_data_path = building_path
+        print(f"Gefunden: {building_path}")
+        break
+
+if not neighborhood_data_path or not building_age_data_path:
+    print("FEHLER: Konnte die CSV-Dateien nicht finden!")
+    print("Bitte stellen Sie sicher, dass die folgenden Dateien existieren:")
+    print("- bau515od5155.csv")
+    print("- bau515od5156.csv")
+    print("\nMögliche Speicherorte:")
+    for path in possible_paths:
+        print(f"- {path}")
+    exit(1)
 
 # Daten laden
 print("Lade Datensätze...")
 try:
-    neighborhood_data = pd.read_csv(neighborhood_data_path)
-    building_age_data = pd.read_csv(building_age_data_path)
-    print(f"Daten erfolgreich geladen mit {len(neighborhood_data)} und {len(building_age_data)} Zeilen")
+    neighborhood_df = pd.read_csv(neighborhood_data_path)
+    building_age_df = pd.read_csv(building_age_data_path)
+    print(f"Daten erfolgreich geladen mit {len(neighborhood_df)} und {len(building_age_df)} Zeilen")
 except Exception as e:
     print(f"Fehler beim Laden der Daten: {e}")
-    print("Bitte stellen Sie sicher, dass die CSV-Dateien im gleichen Verzeichnis wie dieses Skript sind.")
     exit(1)
 
 # Quartier-Daten bereinigen
 print("Bereinige Quartier-Daten...")
-neighborhood_clean = neighborhood_data[[
+neighborhood_clean = neighborhood_df[[
     'Stichtagdatjahr',  # Jahr
     'HASTWELang',       # Miete oder Eigentum
     'RaumLang',         # Quartier
@@ -146,8 +179,20 @@ kombinierter_df = pd.DataFrame(kombinierte_daten)
 print(f"Kombinierter Datensatz mit {len(kombinierter_df)} Einträgen erstellt")
 
 # Reisezeitdaten integrieren oder Platzhalter erstellen
-reisezeiten_pfad = 'reisezeiten.json'
-reisezeiten_vorhanden = os.path.exists(reisezeiten_pfad)
+reisezeiten_pfade = [
+    'reisezeiten.json',
+    'data/processed/reisezeiten.json',
+    '../reisezeiten.json'
+]
+
+reisezeiten_pfad = None
+reisezeiten_vorhanden = False
+
+for pfad in reisezeiten_pfade:
+    if os.path.exists(pfad):
+        reisezeiten_pfad = pfad
+        reisezeiten_vorhanden = True
+        break
 
 if reisezeiten_vorhanden:
     print(f"Lade Reisezeitdaten aus {reisezeiten_pfad}...")
