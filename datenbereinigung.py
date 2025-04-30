@@ -3,19 +3,75 @@ Datenbereinigungsskript für Zürich Immobilienpreis-Projekt
 """
 
 import pandas as pd
-import matplotlib.pyplot as plt  # für Visualisierungen später
+import matplotlib.pyplot as plt
 import json
 import os
-import random  # für Platzhalter-Reisezeiten
+import random
+
+# Debug-Information: Wo sind wir und was ist hier?
+print(f"Aktuelles Verzeichnis: {os.getcwd()}")
+print("Dateien im Verzeichnis:")
+for file in os.listdir('.'):
+    print(f"  - {file}")
 
 # Ordner erstellen falls nicht existieren
-if not os.path.exists('data/processed'):
-    os.makedirs('data/processed')
+os.makedirs('data/processed', exist_ok=True)
+
+# Absolute Pfad zur aktuellen Datei und Projektordner
+current_dir = os.path.dirname(os.path.abspath(__file__))
+print(f"Skript-Verzeichnis: {current_dir}")
+
+# Versuche verschiedene Möglichkeiten, die CSV-Dateien zu finden
+possible_paths = [
+    # Direkter Pfad
+    os.path.join(current_dir, 'bau515od5155.csv'),
+    # Ein Verzeichnis höher
+    os.path.join(current_dir, '..', 'bau515od5155.csv'),
+    # Relativer Pfad vom aktuellen Arbeitsverzeichnis
+    'bau515od5155.csv',
+    # Im data-Unterordner
+    os.path.join(current_dir, 'data', 'bau515od5155.csv'),
+    # Im raw-Unterordner
+    os.path.join(current_dir, 'data', 'raw', 'bau515od5155.csv')
+]
+
+# Finde den ersten Pfad, der existiert
+neighborhood_data_path = None
+for path in possible_paths:
+    if os.path.exists(path):
+        neighborhood_data_path = path
+        print(f"Gefunden: {path}")
+        break
+
+if not neighborhood_data_path:
+    print("FEHLER: Konnte bau515od5155.csv nicht finden!")
+    print("Überprüfe, ob die Datei in einem dieser Pfade existiert:")
+    for path in possible_paths:
+        print(f"  - {path}")
+    exit(1)
+
+# Das gleiche für die zweite Datei
+building_age_data_path = None
+for path in possible_paths:
+    path = path.replace('bau515od5155.csv', 'bau515od5156.csv')
+    if os.path.exists(path):
+        building_age_data_path = path
+        print(f"Gefunden: {path}")
+        break
+
+if not building_age_data_path:
+    print("FEHLER: Konnte bau515od5156.csv nicht finden!")
+    exit(1)
 
 # Daten laden
 print("Lade Datensätze...")
-neighborhood_data = pd.read_csv('bau515od5155.csv')  # Preise nach Quartier
-building_age_data = pd.read_csv('bau515od5156.csv')  # Preise nach Baualter
+try:
+    neighborhood_data = pd.read_csv(neighborhood_data_path)
+    building_age_data = pd.read_csv(building_age_data_path)
+    print(f"Daten erfolgreich geladen mit {len(neighborhood_data)} und {len(building_age_data)} Zeilen")
+except Exception as e:
+    print(f"Fehler beim Laden der Daten: {e}")
+    exit(1)
 
 # Nur die Spalten behalten, die wir brauchen
 # Quartier-Daten bereinigen
@@ -129,24 +185,30 @@ print(f"Kombinierter Datensatz mit {len(kombinierter_df)} Einträgen erstellt")
 
 # Reisezeitdaten integrieren
 # Schauen ob reisezeiten.json existiert
-if os.path.exists("data/processed/reisezeiten.json"):
-    # Reisezeiten laden
-    with open("data/processed/reisezeiten.json", "r") as f:
-        reisezeiten = json.load(f)
-    
-    print(f"Reisezeitdaten für {len(reisezeiten)} Quartiere geladen")
-    reisezeiten_vorhanden = True
-elif os.path.exists("reisezeiten.json"):  # Auch im Hauptverzeichnis suchen
-    # Reisezeiten laden
-    with open("reisezeiten.json", "r") as f:
-        reisezeiten = json.load(f)
-    
-    print(f"Reisezeitdaten aus dem Hauptverzeichnis für {len(reisezeiten)} Quartiere geladen")
-    reisezeiten_vorhanden = True
-else:
+reisezeiten_pfade = [
+    os.path.join(current_dir, 'data', 'processed', 'reisezeiten.json'),
+    os.path.join(current_dir, 'reisezeiten.json'),
+    'reisezeiten.json',
+    os.path.join('data', 'processed', 'reisezeiten.json')
+]
+
+reisezeiten_vorhanden = False
+reisezeiten = {}
+
+# Suche nach der reisezeiten.json Datei
+for pfad in reisezeiten_pfade:
+    if os.path.exists(pfad):
+        try:
+            with open(pfad, "r") as f:
+                reisezeiten = json.load(f)
+            print(f"Reisezeitdaten aus {pfad} geladen für {len(reisezeiten)} Quartiere")
+            reisezeiten_vorhanden = True
+            break
+        except Exception as e:
+            print(f"Fehler beim Laden von {pfad}: {e}")
+
+if not reisezeiten_vorhanden:
     print("Keine Reisezeitdaten gefunden - erstelle Platzhalter")
-    reisezeiten_vorhanden = False
-    reisezeiten = {}
 
 # Wichtige Ziele in Zürich
 ziele = [
@@ -187,6 +249,8 @@ for ziel in ziele:
 
 # Daten speichern
 print("Speichere bereinigte Daten...")
+os.makedirs('data/processed', exist_ok=True)
+
 neighborhood_clean.to_csv('data/processed/quartier_daten.csv', index=False)
 building_age_clean.to_csv('data/processed/baualter_daten.csv', index=False)
 kombinierter_df.to_csv('data/processed/zuerich_immobilien_komplett.csv', index=False)
