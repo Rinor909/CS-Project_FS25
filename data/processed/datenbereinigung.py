@@ -183,3 +183,7 @@ kombinierter_df.to_csv('data/processed/zuerich_immobilien_komplett.csv', index=F
 if not reisezeiten_vorhanden:
     with open('data/processed/reisezeiten_platzhalter.json', 'w') as f:
         json.dump(reisezeiten, f, indent=2)
+
+# Save a CSV with just Quartier names for travel time collection
+quartier_daten = pd.DataFrame({'Quartier': quartiere})
+quartier_daten.to_csv('quartier_preise.csv', index=False)
