@@ -9,14 +9,29 @@ import pandas as pd  # Bibliothek für Datenanalyse und -manipulation
 import matplotlib.pyplot as plt  # Bibliothek für Visualisierungen
 import json  # Bibliothek zum Lesen/Schreiben von JSON-Dateien
 import os  # Bibliothek für Dateisystemoperationen
-import random  # Bibliothek für Zufallszahlen (für Platzhalter) - FEHLTE IM ORIGINAL
+import random  # Bibliothek für Zufallszahlen (für Platzhalter)
+
+# Sicherstellen, dass Verzeichnisse existieren
+os.makedirs('data/processed', exist_ok=True)
+os.makedirs('data/raw', exist_ok=True)
+
+# Dateipfade definieren
+NEIGHBORHOOD_FILE = 'bau515od5155.csv'
+BUILDING_AGE_FILE = 'bau515od5156.csv'
+REISEZEITEN_FILE = 'data/processed/reisezeiten.json'  # Geänderter Pfad für Konsistenz
 
 # Schritt 1 : Laden der CSV-Dateien in pandas DataFrame-Objekte
-neighborhood_data = pd.read_csv('bau515od5155.csv') # Preise nach Quartier 
-building_age_data = pd.read_csv('bau515od5156.csv') # Preise nach Baualter
+try:
+    neighborhood_data = pd.read_csv(NEIGHBORHOOD_FILE) # Preise nach Quartier
+    building_age_data = pd.read_csv(BUILDING_AGE_FILE) # Preise nach Baualter
+    print(f"Datensätze erfolgreich geladen: {len(neighborhood_data)} Quartiereinträge, {len(building_age_data)} Baualtereinträge")
+except FileNotFoundError as e:
+    print(f"Fehler beim Laden der Datensätze: {e}")
+    print("Bitte stellen Sie sicher, dass die CSV-Dateien im richtigen Verzeichnis liegen.")
+    exit(1)
 
 # Schritt 2 : Bereinigung der Datensätze
-# Wir behalten nur die wichtigsten Spalten für unsere Analyse -- Here we create a new version of the data set with only the columns that we want to use
+# Wir behalten nur die wichtigsten Spalten für unsere Analyse
 neighborhood_clean = neighborhood_data[[
     'Stichtagdatjahr', # Jahr
     'HASTWELang', # Typ (Miete/Eigentum)
@@ -25,13 +40,13 @@ neighborhood_clean = neighborhood_data[[
     'HAMedianPreis' # Medianpreis
 ]]
 
-# Wir umbennen die Spalten für bessere Lesbarkeit -- Here we are renaming these newly selected columns for better readability
+# Wir umbennen die Spalten für bessere Lesbarkeit
 neighborhood_clean = neighborhood_clean.rename(columns={
     'Stichtagdatjahr': 'Jahr',
     'HASTWELang': 'Immobilientyp',
     'RaumLang': 'Quartier',
     'AnzZimmerLevel2Lang_noDM': 'Zimmeranzahl',
-    'HAMedianPreis': 'QuartierPreis'  # GEÄNDERT von 'Medianpreis' zu 'QuartierPreis' für Konsistenz
+    'HAMedianPreis': 'QuartierPreis'
 })
 
 # Das Gleiche für die Baualtersdaten
@@ -49,27 +64,29 @@ building_age_clean = building_age_clean.rename(columns={
     'HASTWELang': 'Immobilientyp',
     'BaualterLang_noDM': 'Baualter',
     'AnzZimmerLevel2Lang_noDM': 'Zimmeranzahl',
-    'HAMedianPreis': 'BaualterPreis'  # GEÄNDERT von 'Medianpreis' zu 'BaualterPreis' für Konsistenz
+    'HAMedianPreis': 'BaualterPreis'
 })
 
 # Schritt 3: Behandlung von fehlenden Werten
 # Wir überprüfen, ob der Preis fehlende Werte hat und füllen diese mit dem Durchschnitt
-if neighborhood_clean['QuartierPreis'].isnull().sum() > 0:  # GEÄNDERT: 'Medianpreis' zu 'QuartierPreis'
-    mean_price = neighborhood_clean['QuartierPreis'].mean()  # GEÄNDERT: 'Medianpreis' zu 'QuartierPreis'
-    neighborhood_clean['QuartierPreis'] = neighborhood_clean['QuartierPreis'].fillna(mean_price)  # GEÄNDERT
-# Das gleiche für Baualter Datensatz
-if building_age_clean['BaualterPreis'].isnull().sum() > 0:  # GEÄNDERT: 'Medianpreis' zu 'BaualterPreis'
-    mean_price = building_age_clean['BaualterPreis'].mean()  # GEÄNDERT: 'Medianpreis' zu 'BaualterPreis'
-    building_age_clean['BaualterPreis'] = building_age_clean['BaualterPreis'].fillna(mean_price)  # GEÄNDERT
+if neighborhood_clean['QuartierPreis'].isnull().sum() > 0:
+    mean_price = neighborhood_clean['QuartierPreis'].mean()
+    neighborhood_clean['QuartierPreis'] = neighborhood_clean['QuartierPreis'].fillna(mean_price)
+    print(f"Fehlende Quartierpreise mit Durchschnitt gefüllt: {mean_price:.2f}")
 
-# Schritt 4 : Erstellen eines gemeinsamen Schlüssels für beide Datensätze -- We are creating a join key which is used to match entries from both datasets later
+# Das gleiche für Baualter Datensatz
+if building_age_clean['BaualterPreis'].isnull().sum() > 0:
+    mean_price = building_age_clean['BaualterPreis'].mean()
+    building_age_clean['BaualterPreis'] = building_age_clean['BaualterPreis'].fillna(mean_price)
+    print(f"Fehlende Baualterpreise mit Durchschnitt gefüllt: {mean_price:.2f}")
+
+# Schritt 4 : Erstellen eines gemeinsamen Schlüssels für beide Datensätze
 neighborhood_clean['Schluessel'] = (
     neighborhood_clean['Jahr'].astype(str) + '_' +
     neighborhood_clean['Immobilientyp'] + '_' +
     neighborhood_clean['Zimmeranzahl']
 )
 
-# FEHLT IM ORIGINAL: Schlüssel auch für building_age_clean erstellen
 building_age_clean['Schluessel'] = (
     building_age_clean['Jahr'].astype(str) + '_' +
     building_age_clean['Immobilientyp'] + '_' +
@@ -77,10 +94,12 @@ building_age_clean['Schluessel'] = (
 )
 
 # Schritt 5: Zusammenführen der Datensätze
-# Eindeutige Werte für die Kombinationen ermitteln -- We need to get eh 
-quartiere = neighborhood_clean['Quartier'].unique()  # KORRIGIERT: 'Quartiere' zu 'Quartier'
+# Eindeutige Werte für die Kombinationen ermitteln
+quartiere = neighborhood_clean['Quartier'].unique()
 baualter = building_age_clean['Baualter'].unique()
 schluessel = pd.concat([neighborhood_clean['Schluessel'], building_age_clean['Schluessel']]).unique()
+
+print(f"Gefundene eindeutige Werte: {len(quartiere)} Quartiere, {len(baualter)} Baualter, {len(schluessel)} Schlüssel")
 
 # Leere Liste für den kombinierten Datensatz
 kombinierte_daten = []
@@ -91,7 +110,7 @@ for key in schluessel:
     jahr, typ, zimmer = key.split('_', 2)
 
     # Preisdaten für alle Quartiere mit diesem Schlüssel finden
-    quartier_preise = neighborhood_clean[neighborhood_clean['Schluessel'] == key]  # KORRIGIERT: 'Schlüssel' zu 'Schluessel'
+    quartier_preise = neighborhood_clean[neighborhood_clean['Schluessel'] == key]
     # Wenn es Quartierdaten für diesen Schlüssel gibt
     if len(quartier_preise) > 0:
         for _, quartier_row in quartier_preise.iterrows():
@@ -118,23 +137,26 @@ for key in schluessel:
                         'BaualterPreis': alter_preis,
                         'GeschaetzterPreis': (quartier_preis + alter_preis) / 2  # Einfacher Durchschnitt
                     })
+
 # In DataFrame umwandeln
 kombinierter_df = pd.DataFrame(kombinierte_daten)
+print(f"Kombinierter Datensatz erstellt mit {len(kombinierter_df)} Einträgen")
 
 # Schritt 6: Reisezeitdaten integrieren (falls vorhanden oder mit Platzhaltern)
 # Prüfen, ob eine reisezeiten.json Datei existiert
-if os.path.exists("reisezeiten.json"):
+if os.path.exists(REISEZEITEN_FILE):
     # Reisezeiten aus Datei laden
-    with open("reisezeiten.json", "r") as f:
+    with open(REISEZEITEN_FILE, "r") as f:
         reisezeiten = json.load(f)
     
     print(f"Reisezeitdaten für {len(reisezeiten)} Quartiere geladen")
     reisezeiten_vorhanden = True
 else:
-    print("Keine reisezeiten.json gefunden. Es werden Platzhalter verwendet.")
+    print(f"Keine Reisezeitdaten unter {REISEZEITEN_FILE} gefunden. Es werden Platzhalter erstellt.")
     reisezeiten_vorhanden = False
     # Platzhalter erstellen
     reisezeiten = {}
+
 # Wichtige Ziele in Zürich
 ziele = [
     'Hauptbahnhof', 
@@ -146,6 +168,7 @@ ziele = [
     'Bellevue',
     'UZH Irchel Campus'
 ]
+
 # Reisezeiten zum kombinierten Datensatz hinzufügen
 for ziel in ziele:
     spaltenname = f'Reisezeit_{ziel}'
@@ -169,9 +192,6 @@ for ziel in ziele:
         )
 
 # Schritt 7: Daten speichern
-# Ordner für verarbeitete Daten erstellen
-os.makedirs('data/processed', exist_ok=True)
-
 # Bereinigte Einzeldatensätze speichern
 neighborhood_clean.to_csv('data/processed/quartier_daten.csv', index=False)
 building_age_clean.to_csv('data/processed/baualter_daten.csv', index=False)
@@ -186,4 +206,10 @@ if not reisezeiten_vorhanden:
 
 # Save a CSV with just Quartier names for travel time collection
 quartier_daten = pd.DataFrame({'Quartier': quartiere})
-quartier_daten.to_csv('quartier_preise.csv', index=False)
+quartier_daten.to_csv('data/processed/quartier_liste.csv', index=False)
+
+print("Datensatzbereinigung abgeschlossen. Alle Dateien wurden in 'data/processed/' gespeichert.")
+print(f"- {len(neighborhood_clean)} Quartierpreise gespeichert")
+print(f"- {len(building_age_clean)} Baualterpreise gespeichert")
+print(f"- {len(kombinierter_df)} kombinierte Einträge gespeichert")
+print(f"- {len(quartiere)} Quartiere für Reisezeiterfassung gespeichert")
