@@ -169,8 +169,6 @@ for ziel in ziele:
         )
 
 # Schritt 7: Daten speichern
-print("\nBereinigte und zusammengeführte Daten werden gespeichert...")
-
 # Ordner für verarbeitete Daten erstellen
 os.makedirs('data/processed', exist_ok=True)
 
