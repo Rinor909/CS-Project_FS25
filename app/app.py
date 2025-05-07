@@ -1,49 +1,22 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import os
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime
-
-# Make sure app directory is in the path
 import sys
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
 
-# Import utility functions with fallbacks
-try:
-    from app.utils import (
+# Main app logic
+def main():
+    # Import functions from local modules
+    from utils import (
         load_processed_data, load_model, load_quartier_mapping,
         preprocess_input, predict_price, get_travel_times_for_quartier,
         get_quartier_statistics, get_price_history, get_zurich_coordinates,
         get_quartier_coordinates
     )
-except ImportError:
-    st.error("Could not import utility functions. Check directory structure.")
     
-    # Define fallback functions
-    def load_processed_data():
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    
-    def load_model():
-        return None
-    
-    def load_quartier_mapping():
-        return {}
-
-# Import mapping functions
-try:
-    from app.maps import (
+    from maps import (
         create_price_heatmap, create_travel_time_map,
         create_price_comparison_chart, create_price_time_series
     )
-except ImportError:
-    st.error("Could not import mapping functions. Check directory structure.")
-
-# Main function
-def main():
+    
     # Page configuration
     st.set_page_config(
         page_title="Zurich Real Estate Price Prediction",
@@ -138,7 +111,6 @@ def main():
         quartier_options = sorted(inv_quartier_mapping.keys())
     else:
         # Fallback to neighborhoods from the data
-        st.warning("Neighborhood mapping not loaded. Using neighborhoods from data.")
         quartier_options = sorted(df_quartier['Quartier'].unique()) if 'Quartier' in df_quartier.columns else ['Seefeld', 'City', 'Hottingen']
         inv_quartier_mapping = {name: i for i, name in enumerate(quartier_options)}
     
@@ -434,4 +406,16 @@ def main():
     )
 
 if __name__ == "__main__":
+    # Import necessary libraries at the top level
+    import pandas as pd
+    import numpy as np
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from datetime import datetime
+    
+    # Put our modules in the path
+    import sys
+    sys.path.append('app')
+    
+    # Run the main function
     main()
