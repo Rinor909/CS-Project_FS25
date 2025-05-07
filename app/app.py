@@ -6,23 +6,45 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
-# Import utility functions
-from app.utils import (
-    load_processed_data, load_model, load_quartier_mapping,
-    preprocess_input, predict_price, get_travel_times_for_quartier,
-    get_quartier_statistics, get_price_history, get_zurich_coordinates,
-    get_quartier_coordinates
-)
+# Make sure app directory is in the path
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+# Import utility functions with fallbacks
+try:
+    from app.utils import (
+        load_processed_data, load_model, load_quartier_mapping,
+        preprocess_input, predict_price, get_travel_times_for_quartier,
+        get_quartier_statistics, get_price_history, get_zurich_coordinates,
+        get_quartier_coordinates
+    )
+except ImportError:
+    st.error("Could not import utility functions. Check directory structure.")
+    
+    # Define fallback functions
+    def load_processed_data():
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    
+    def load_model():
+        return None
+    
+    def load_quartier_mapping():
+        return {}
 
 # Import mapping functions
-from app.maps import (
-    create_price_heatmap, create_travel_time_map,
-    create_price_comparison_chart, create_price_time_series
-)
+try:
+    from app.maps import (
+        create_price_heatmap, create_travel_time_map,
+        create_price_comparison_chart, create_price_time_series
+    )
+except ImportError:
+    st.error("Could not import mapping functions. Check directory structure.")
 
 # Main function
 def main():
-    # Seitenkonfiguration
+    # Page configuration
     st.set_page_config(
         page_title="Zurich Real Estate Price Prediction",
         page_icon="🏡",
@@ -73,6 +95,7 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
+    # Function to load data and model with caching
     @st.cache_resource
     def load_data_and_model():
         """Loads all data and models (with caching for performance)"""
@@ -84,8 +107,9 @@ def main():
             
             return df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords
         except Exception as e:
-            st.error(f"Error loading data: {e}")
-            return None, None, None, None, None, None
+            st.error(f"Error loading data: {str(e)}")
+            # Return empty dataframes as fallback
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), None, {}, {}
 
     # Header
     st.markdown('<div class="main-header">🏡 Zurich Real Estate Price Prediction</div>', unsafe_allow_html=True)
@@ -97,22 +121,35 @@ def main():
     # Load data and model
     df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords = load_data_and_model()
     
-    if df_quartier is None:
-        st.warning("The data could not be loaded. Please make sure all files are present.")
+    # Check if data is available
+    if df_quartier.empty or 'Quartier' not in df_quartier.columns:
+        st.warning("Required data not found. Please run the data preparation scripts first.")
+        st.info("Run: python scripts/data_preparation.py")
+        st.info("Run: python scripts/generate_travel_times.py")
+        st.info("Run: python scripts/model_training.py")
         return
     
     # Sidebar for filters and inputs
     st.sidebar.markdown("## 🔍 Filters & Inputs")
     
-    # Neighborhood selection (with inverse mapping from codes to names)
-    inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
-    quartier_options = sorted(inv_quartier_mapping.keys())
+    # Neighborhood selection with fallback if mapping is empty
+    if quartier_mapping and isinstance(quartier_mapping, dict) and len(quartier_mapping) > 0:
+        inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
+        quartier_options = sorted(inv_quartier_mapping.keys())
+    else:
+        # Fallback to neighborhoods from the data
+        st.warning("Neighborhood mapping not loaded. Using neighborhoods from data.")
+        quartier_options = sorted(df_quartier['Quartier'].unique()) if 'Quartier' in df_quartier.columns else ['Seefeld', 'City', 'Hottingen']
+        inv_quartier_mapping = {name: i for i, name in enumerate(quartier_options)}
+    
     selected_quartier = st.sidebar.selectbox(
         "Select neighborhood",
         options=quartier_options,
         index=0
     )
-    quartier_code = inv_quartier_mapping[selected_quartier]
+    
+    # Get quartier code with fallback
+    quartier_code = inv_quartier_mapping.get(selected_quartier, 0)
     
     # Number of rooms selection
     zimmer_options = [1, 2, 3, 4, 5, 6]
@@ -201,7 +238,7 @@ def main():
                 """, unsafe_allow_html=True)
             
             with stats_col2:
-                min_max_ratio = round((predicted_price / quartier_stats['median_preis'] - 1) * 100, 1)
+                min_max_ratio = round((predicted_price / quartier_stats['median_preis'] - 1) * 100, 1) if quartier_stats['median_preis'] > 0 else 0
                 color = "green" if min_max_ratio < 0 else "red"
                 
                 st.markdown(f"""
@@ -275,44 +312,52 @@ def main():
             col1, col2 = st.columns(2)
             
             with col1:
-                years = sorted(df_quartier['Jahr'].unique(), reverse=True)
+                years = sorted(df_quartier['Jahr'].unique(), reverse=True) if 'Jahr' in df_quartier.columns else [2024]
                 selected_year = st.selectbox("Year", options=years, index=0)
             
             with col2:
-                zimmer_options = sorted(df_quartier['Zimmeranzahl_num'].unique())
-                map_zimmer = st.selectbox("Number of rooms", options=zimmer_options, index=2)
+                zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique()) if 'Zimmeranzahl_num' in df_quartier.columns else [3]
+                map_zimmer = st.selectbox("Number of rooms", options=zimmer_options_map, index=2 if len(zimmer_options_map) > 2 else 0)
             
-            # Create property price map
-            price_map = create_price_heatmap(
-                df_quartier, 
-                quartier_coords, 
-                selected_year=selected_year, 
-                selected_zimmer=map_zimmer
-            )
-            
-            st.plotly_chart(price_map, use_container_width=True)
+            try:
+                # Create property price map
+                price_map = create_price_heatmap(
+                    df_quartier, 
+                    quartier_coords, 
+                    selected_year=selected_year, 
+                    selected_zimmer=map_zimmer
+                )
+                
+                st.plotly_chart(price_map, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating price map: {str(e)}")
+                st.info("Make sure you have properly processed data and valid coordinates.")
             
         else:  # Travel Times
             # Selection for destination and transport mode
             col1, col2 = st.columns(2)
             
             with col1:
-                zielorte = df_travel_times['Zielort'].unique()
+                zielorte = df_travel_times['Zielort'].unique() if not df_travel_times.empty and 'Zielort' in df_travel_times.columns else ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']
                 selected_ziel = st.selectbox("Destination", options=zielorte, index=0)
             
             with col2:
-                transport_options = df_travel_times['Transportmittel'].unique()
-                map_transport = st.selectbox("Transport Mode", options=transport_options, index=0)
+                transport_options_map = df_travel_times['Transportmittel'].unique() if not df_travel_times.empty and 'Transportmittel' in df_travel_times.columns else ['transit', 'driving']
+                map_transport = st.selectbox("Transport Mode", options=transport_options_map, index=0)
             
-            # Create travel time map
-            travel_map = create_travel_time_map(
-                df_travel_times, 
-                quartier_coords, 
-                zielort=selected_ziel, 
-                transportmittel=map_transport
-            )
-            
-            st.plotly_chart(travel_map, use_container_width=True)
+            try:
+                # Create travel time map
+                travel_map = create_travel_time_map(
+                    df_travel_times, 
+                    quartier_coords, 
+                    zielort=selected_ziel, 
+                    transportmittel=map_transport
+                )
+                
+                st.plotly_chart(travel_map, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating travel time map: {str(e)}")
+                st.info("Make sure you have generated travel time data first.")
     
     # Tab 3: Comparison & Trends
     with tab3:
@@ -333,25 +378,29 @@ def main():
                 value=selected_zimmer
             )
             
-            # Create price comparison
-            price_comparison = create_price_comparison_chart(
-                df_quartier, 
-                compare_quartiere, 
-                selected_zimmer=compare_zimmer
-            )
-            
-            st.plotly_chart(price_comparison, use_container_width=True)
-            
-            # Time series comparison
-            st.markdown('<div class="sub-header">Price Trends Comparison</div>', unsafe_allow_html=True)
-            
-            time_series = create_price_time_series(
-                df_quartier, 
-                compare_quartiere, 
-                selected_zimmer=compare_zimmer
-            )
-            
-            st.plotly_chart(time_series, use_container_width=True)
+            try:
+                # Create price comparison
+                price_comparison = create_price_comparison_chart(
+                    df_quartier, 
+                    compare_quartiere, 
+                    selected_zimmer=compare_zimmer
+                )
+                
+                st.plotly_chart(price_comparison, use_container_width=True)
+                
+                # Time series comparison
+                st.markdown('<div class="sub-header">Price Trends Comparison</div>', unsafe_allow_html=True)
+                
+                time_series = create_price_time_series(
+                    df_quartier, 
+                    compare_quartiere, 
+                    selected_zimmer=compare_zimmer
+                )
+                
+                st.plotly_chart(time_series, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating comparison charts: {str(e)}")
+                st.info("Make sure you have properly processed data.")
             
             # Feature Importance
             st.markdown('<div class="sub-header">Price Influencing Factors</div>', unsafe_allow_html=True)
