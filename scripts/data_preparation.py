@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
 
 
 df_quartier = pd.read_csv('data/raw/bau515od5155.csv', sep=',')
