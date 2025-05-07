@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 # Get absolute path to the CSV files regardless of where script is run from
 # This handles Windows path issues correctly
