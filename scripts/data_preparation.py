@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 # CSV-Datasets einlesen
-df_quartier = pd.read_csv('data/raw/bau515od5155.csv', sep=',')
-df_baualter = pd.read_csv('data/raw/bau515od5156.csv', sep=',')
+df_quartier = pd.read_csv('../data/raw/bau515od5155.csv', sep=',')
+df_baualter = pd.read_csv('../data/raw/bau515od5156.csv', sep=',')
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
