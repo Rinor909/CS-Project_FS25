@@ -6,30 +6,30 @@ import plotly.graph_objects as go
 
 def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selected_zimmer=3):
     """
-    Erstellt eine Heatmap der Immobilienpreise in Zürich
+    Creates a heatmap of real estate prices in Zurich
     
     Args:
-        df_quartier (pd.DataFrame): DataFrame mit Quartierdaten
-        quartier_coords (dict): Dictionary mit Koordinaten der Quartiere
-        selected_year (int): Ausgewähltes Jahr
-        selected_zimmer (int): Ausgewählte Zimmeranzahl
+        df_quartier (pd.DataFrame): DataFrame with neighborhood data
+        quartier_coords (dict): Dictionary with neighborhood coordinates
+        selected_year (int): Selected year
+        selected_zimmer (int): Selected number of rooms
         
     Returns:
-        plotly.graph_objects.Figure: Plotly-Figur mit der Heatmap
+        plotly.graph_objects.Figure: Plotly figure with the heatmap
     """
-    # Daten für das ausgewählte Jahr und die ausgewählte Zimmeranzahl filtern
+    # Filter data for the selected year and number of rooms
     df_filtered = df_quartier[
         (df_quartier['Jahr'] == selected_year) & 
         (df_quartier['Zimmeranzahl_num'] == selected_zimmer)
     ].copy()
     
-    # Sicherstellen, dass jedes Quartier nur einmal vorkommt (Durchschnitt, falls mehrere Einträge)
+    # Ensure each neighborhood only appears once (average if multiple entries)
     df_grouped = df_filtered.groupby('Quartier').agg({
         'MedianPreis': 'mean',
         'PreisProQm': 'mean'
     }).reset_index()
     
-    # Koordinaten für jedes Quartier hinzufügen
+    # Add coordinates for each neighborhood
     df_map = pd.DataFrame(columns=['Quartier', 'MedianPreis', 'PreisProQm', 'lat', 'lon'])
     
     for _, row in df_grouped.iterrows():
@@ -44,11 +44,11 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
                 'lon': [coords['lng']]
             })], ignore_index=True)
     
-    # Farskala für die Preise festlegen
+    # Set color scale for prices
     min_price = df_map['MedianPreis'].min()
     max_price = df_map['MedianPreis'].max()
     
-    # Plot erstellen
+    # Create plot
     fig = px.scatter_mapbox(
         df_map, 
         lat='lat', 
@@ -68,15 +68,15 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         zoom=11,
         height=600,
         width=800,
-        title=f'Immobilienpreise in Zürich ({selected_year}, {selected_zimmer} Zimmer)'
+        title=f'Real Estate Prices in Zurich ({selected_year}, {selected_zimmer} rooms)'
     )
     
-    # Layout anpassen
+    # Adjust layout
     fig.update_layout(
         mapbox_style='open-street-map',
         margin={"r":0, "t":50, "l":0, "b":0},
         coloraxis_colorbar=dict(
-            title='Preis (CHF)',
+            title='Price (CHF)',
             tickformat=',.0f'
         )
     )
@@ -85,24 +85,24 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
 
 def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnhof', transportmittel='transit'):
     """
-    Erstellt eine Karte mit den Reisezeiten zu einem bestimmten Zielort
+    Creates a map with travel times to a specific destination
     
     Args:
-        df_travel_times (pd.DataFrame): DataFrame mit Reisezeitdaten
-        quartier_coords (dict): Dictionary mit Koordinaten der Quartiere
-        zielort (str): Ausgewählter Zielort
-        transportmittel (str): Ausgewähltes Transportmittel
+        df_travel_times (pd.DataFrame): DataFrame with travel time data
+        quartier_coords (dict): Dictionary with neighborhood coordinates
+        zielort (str): Selected destination
+        transportmittel (str): Selected transport mode
         
     Returns:
-        plotly.graph_objects.Figure: Plotly-Figur mit der Reisezeit-Karte
+        plotly.graph_objects.Figure: Plotly figure with the travel time map
     """
-    # Daten für den ausgewählten Zielort und das ausgewählte Transportmittel filtern
+    # Filter data for the selected destination and transport mode
     df_filtered = df_travel_times[
         (df_travel_times['Zielort'] == zielort) & 
         (df_travel_times['Transportmittel'] == transportmittel)
     ].copy()
     
-    # Koordinaten für jedes Quartier hinzufügen
+    # Add coordinates for each neighborhood
     df_map = pd.DataFrame(columns=['Quartier', 'Reisezeit_Minuten', 'lat', 'lon'])
     
     for _, row in df_filtered.iterrows():
@@ -116,7 +116,7 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
                 'lon': [coords['lng']]
             })], ignore_index=True)
     
-    # Plot erstellen
+    # Create plot
     fig = px.scatter_mapbox(
         df_map, 
         lat='lat', 
@@ -130,19 +130,19 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
             'lat': False,
             'lon': False
         },
-        color_continuous_scale='Cividis_r',  # Umgekehrte Farbskala (dunkel = lange Reisezeit)
+        color_continuous_scale='Cividis_r',  # Reversed color scale (dark = long travel time)
         zoom=11,
         height=600,
         width=800,
-        title=f'Reisezeit nach {zielort} ({transportmittel})'
+        title=f'Travel Time to {zielort} ({transportmittel})'
     )
     
-    # Layout anpassen
+    # Adjust layout
     fig.update_layout(
         mapbox_style='open-street-map',
         margin={"r":0, "t":50, "l":0, "b":0},
         coloraxis_colorbar=dict(
-            title='Minuten',
+            title='Minutes',
             tickformat=',.0f'
         )
     )
@@ -151,17 +151,17 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
 
 def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimmer=3):
     """
-    Erstellt ein Balkendiagramm zum Vergleich der Preise in verschiedenen Quartieren
+    Creates a bar chart to compare prices across different neighborhoods
     
     Args:
-        df_quartier (pd.DataFrame): DataFrame mit Quartierdaten
-        selected_quartiere (list): Liste der ausgewählten Quartiere
-        selected_zimmer (int): Ausgewählte Zimmeranzahl
+        df_quartier (pd.DataFrame): DataFrame with neighborhood data
+        selected_quartiere (list): List of selected neighborhoods
+        selected_zimmer (int): Selected number of rooms
         
     Returns:
-        plotly.graph_objects.Figure: Plotly-Figur mit dem Balkendiagramm
+        plotly.graph_objects.Figure: Plotly figure with the bar chart
     """
-    # Neueste Daten für die ausgewählten Quartiere und Zimmeranzahl filtern
+    # Filter latest data for the selected neighborhoods and number of rooms
     neuestes_jahr = df_quartier['Jahr'].max()
     df_filtered = df_quartier[
         (df_quartier['Jahr'] == neuestes_jahr) & 
@@ -169,33 +169,43 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         (df_quartier['Quartier'].isin(selected_quartiere))
     ].copy()
     
-    # Durchschnittliche Preise pro Quartier berechnen
+    # If no data available, return empty figure
+    if df_filtered.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No data available for the selected parameters",
+            height=400,
+            width=800
+        )
+        return fig
+    
+    # Calculate average prices per neighborhood
     df_grouped = df_filtered.groupby('Quartier').agg({
         'MedianPreis': 'mean',
         'PreisProQm': 'mean'
     }).reset_index()
     
-    # Quartiere nach Preis sortieren
+    # Sort neighborhoods by price
     df_grouped = df_grouped.sort_values('MedianPreis', ascending=False)
     
-    # Zwei Balkendiagramme erstellen: MedianPreis und PreisProQm
+    # Create two bar charts: MedianPreis and PreisProQm
     fig = go.Figure()
     
-    # MedianPreis-Balken
+    # MedianPreis bars
     fig.add_trace(go.Bar(
         x=df_grouped['Quartier'],
         y=df_grouped['MedianPreis'],
-        name='Median-Kaufpreis (CHF)',
+        name='Median Purchase Price (CHF)',
         marker_color='royalblue',
         text=df_grouped['MedianPreis'].apply(lambda x: f'{x:,.0f} CHF'),
         textposition='auto'
     ))
     
-    # Layout anpassen
+    # Adjust layout
     fig.update_layout(
-        title=f'Immobilienpreisvergleich ({neuestes_jahr}, {selected_zimmer} Zimmer)',
-        xaxis_title='Quartier',
-        yaxis_title='Preis (CHF)',
+        title=f'Real Estate Price Comparison ({neuestes_jahr}, {selected_zimmer} rooms)',
+        xaxis_title='Neighborhood',
+        yaxis_title='Price (CHF)',
         height=400,
         width=800,
         barmode='group',
@@ -206,45 +216,55 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
 
 def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3):
     """
-    Erstellt ein Liniendiagramm zur Preisentwicklung über die Zeit
+    Creates a line chart showing price development over time
     
     Args:
-        df_quartier (pd.DataFrame): DataFrame mit Quartierdaten
-        selected_quartiere (list): Liste der ausgewählten Quartiere
-        selected_zimmer (int): Ausgewählte Zimmeranzahl
+        df_quartier (pd.DataFrame): DataFrame with neighborhood data
+        selected_quartiere (list): List of selected neighborhoods
+        selected_zimmer (int): Selected number of rooms
         
     Returns:
-        plotly.graph_objects.Figure: Plotly-Figur mit dem Liniendiagramm
+        plotly.graph_objects.Figure: Plotly figure with the line chart
     """
-    # Daten für die ausgewählten Quartiere und Zimmeranzahl filtern
+    # Filter data for the selected neighborhoods and number of rooms
     df_filtered = df_quartier[
         (df_quartier['Zimmeranzahl_num'] == selected_zimmer) &
         (df_quartier['Quartier'].isin(selected_quartiere))
     ].copy()
     
-    # Nach Jahr und Quartier gruppieren
+    # If no data available, return empty figure
+    if df_filtered.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No data available for the selected parameters",
+            height=400,
+            width=800
+        )
+        return fig
+    
+    # Group by year and neighborhood
     df_grouped = df_filtered.groupby(['Jahr', 'Quartier']).agg({
         'MedianPreis': 'mean',
         'PreisProQm': 'mean'
     }).reset_index()
     
-    # Plot erstellen
+    # Create plot
     fig = px.line(
         df_grouped, 
         x='Jahr', 
         y='MedianPreis', 
         color='Quartier',
         markers=True,
-        title=f'Preisentwicklung ({selected_zimmer} Zimmer)',
+        title=f'Price Development ({selected_zimmer} rooms)',
         height=400,
         width=800
     )
     
-    # Layout anpassen
+    # Adjust layout
     fig.update_layout(
-        xaxis_title='Jahr',
-        yaxis_title='Median-Kaufpreis (CHF)',
-        legend_title='Quartier',
+        xaxis_title='Year',
+        yaxis_title='Median Purchase Price (CHF)',
+        legend_title='Neighborhood',
         yaxis=dict(tickformat=',.0f'),
         hovermode='x unified'
     )
