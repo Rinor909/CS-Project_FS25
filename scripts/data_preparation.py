@@ -2,50 +2,9 @@ import pandas as pd
 import numpy as np
 import os
 
-# ==========================================
-# STEP 1: Find where we are and where the files are
-# ==========================================
 
-print("Starting data preparation script...")
-print(f"Current working directory: {os.getcwd()}")
-
-# List files in current directory
-print("Files in current directory:")
-files_in_dir = os.listdir('.')
-for file in files_in_dir:
-    print(f"  - {file}")
-
-# Check if the CSV files are in the current directory
-quartier_exists = 'bau515od5155.csv' in files_in_dir
-baualter_exists = 'bau515od5156.csv' in files_in_dir
-
-print(f"CSV files in current directory: quartier={quartier_exists}, baualter={baualter_exists}")
-
-# ==========================================
-# STEP 2: Load the CSV files
-# ==========================================
-
-try:
-    print("\nLoading CSV files...")
-    
-    # Use simple filenames - they should be in the current directory in Codespaces
-    df_quartier = pd.read_csv('bau515od5155.csv', sep=',')
-    print(f"Quartier file loaded successfully with {len(df_quartier)} rows")
-    
-    df_baualter = pd.read_csv('bau515od5156.csv', sep=',')
-    print(f"Baualter file loaded successfully with {len(df_baualter)} rows")
-    
-except FileNotFoundError as e:
-    print(f"Error: {e}")
-    print("\nIMPORTANT: Make sure the CSV files are in your GitHub repository root.")
-    print("You might need to commit and push these files to your repository.")
-    
-    # Exit with an error if we can't find the files
-    raise
-
-# ==========================================
-# STEP 3: Process the data
-# ==========================================
+df_quartier = pd.read_csv('Rinor909/zurich-real-estate/bau515od5155.csv', sep=',')
+df_baualter = pd.read_csv('Rinor909/zurich-real-estate/bau515od5156.csv', sep=',')
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
