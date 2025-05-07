@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 
 # CSV-Datasets einlesen
-df_quartier = pd.read_csv('bau515od5155.csv', sep=',')
-df_baualter = pd.read_csv('bau515od5156.csv', sep=',')
+# Use parent directory to find CSV files (going one level up from scripts folder)
+csv_dir = os.path.join(os.path.dirname(__file__), '..')
+df_quartier = pd.read_csv(os.path.join(csv_dir, 'bau515od5155.csv'), sep=',')
+df_baualter = pd.read_csv(os.path.join(csv_dir, 'bau515od5156.csv'), sep=',')
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
