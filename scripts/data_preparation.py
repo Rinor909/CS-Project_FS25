@@ -2,14 +2,50 @@ import pandas as pd
 import numpy as np
 import os
 
-# Get absolute path to the CSV files regardless of where script is run from
-# This handles Windows path issues correctly
-script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(script_dir, ".."))
+# ==========================================
+# STEP 1: Find where we are and where the files are
+# ==========================================
 
-# CSV-Datasets einlesen - with absolute paths
-df_quartier = pd.read_csv(os.path.abspath(os.path.join(project_root, "bau515od5155.csv")), sep=',')
-df_baualter = pd.read_csv(os.path.abspath(os.path.join(project_root, "bau515od5156.csv")), sep=',')
+print("Starting data preparation script...")
+print(f"Current working directory: {os.getcwd()}")
+
+# List files in current directory
+print("Files in current directory:")
+files_in_dir = os.listdir('.')
+for file in files_in_dir:
+    print(f"  - {file}")
+
+# Check if the CSV files are in the current directory
+quartier_exists = 'bau515od5155.csv' in files_in_dir
+baualter_exists = 'bau515od5156.csv' in files_in_dir
+
+print(f"CSV files in current directory: quartier={quartier_exists}, baualter={baualter_exists}")
+
+# ==========================================
+# STEP 2: Load the CSV files
+# ==========================================
+
+try:
+    print("\nLoading CSV files...")
+    
+    # Use simple filenames - they should be in the current directory in Codespaces
+    df_quartier = pd.read_csv('bau515od5155.csv', sep=',')
+    print(f"Quartier file loaded successfully with {len(df_quartier)} rows")
+    
+    df_baualter = pd.read_csv('bau515od5156.csv', sep=',')
+    print(f"Baualter file loaded successfully with {len(df_baualter)} rows")
+    
+except FileNotFoundError as e:
+    print(f"Error: {e}")
+    print("\nIMPORTANT: Make sure the CSV files are in your GitHub repository root.")
+    print("You might need to commit and push these files to your repository.")
+    
+    # Exit with an error if we can't find the files
+    raise
+
+# ==========================================
+# STEP 3: Process the data
+# ==========================================
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
