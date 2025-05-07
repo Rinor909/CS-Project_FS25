@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
 
-# CSV-Datasets einlesen
-# Use parent directory to find CSV files (going one level up from scripts folder)
-csv_dir = os.path.join(os.path.dirname(__file__), '..')
-df_quartier = pd.read_csv(os.path.join(csv_dir, 'bau515od5155.csv'), sep=',')
-df_baualter = pd.read_csv(os.path.join(csv_dir, 'bau515od5156.csv'), sep=',')
+# Get absolute path to the CSV files regardless of where script is run from
+# This handles Windows path issues correctly
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(script_dir, ".."))
+
+# CSV-Datasets einlesen - with absolute paths
+df_quartier = pd.read_csv(os.path.abspath(os.path.join(project_root, "bau515od5155.csv")), sep=',')
+df_baualter = pd.read_csv(os.path.abspath(os.path.join(project_root, "bau515od5156.csv")), sep=',')
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
