@@ -419,8 +419,3 @@ with tabs[1]:
     # Show the map
     folium_static(m)
     
-    # Legend
-    st.markdown("""
-    **Legende:**
-    - 🟢 Reisezeit ≤ 15 Minuten
-    - 🟠 Reisezeit ≤ 30 Minuten
