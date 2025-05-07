@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 
-df_quartier = pd.read_csv('Rinor909/zurich-real-estate/bau515od5155.csv', sep=',')
-df_baualter = pd.read_csv('Rinor909/zurich-real-estate/bau515od5156.csv', sep=',')
+df_quartier = pd.read_csv('data/raw/bau515od5155.csv', sep=',')
+df_baualter = pd.read_csv('data/raw/bau515od5156.csv', sep=',')
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
