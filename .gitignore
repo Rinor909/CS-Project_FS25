@@ -23,32 +23,31 @@ var/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Streamlit
-.streamlit/secrets.toml
-
 # Environment
 .env
 .venv
 venv/
 ENV/
 
-# Data and model files
-data/processed/
-models/*.pkl
-*.csv
-*.json
-
 # Cache files
 *.cache
 *_cache/
-travel_time_cache.json
 
 # IDE specific files
 .idea/
-.vscode/
+# Keep VS Code settings
+# .vscode/
 *.swp
 *.swo
 
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Don't ignore these files (remove these lines)
+# .streamlit/secrets.toml
+# data/processed/
+# models/*.pkl
+# *.csv
+# *.json
+# travel_time_cache.json
