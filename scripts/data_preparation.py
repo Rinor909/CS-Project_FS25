@@ -1,7 +1,12 @@
 import pandas as pd
 import numpy as np
+import os
 
+# Create directories if they don't exist
+os.makedirs('data/processed', exist_ok=True)
+os.makedirs('models', exist_ok=True)
 
+# Use fixed relative paths
 df_quartier = pd.read_csv('data/raw/bau515od5155.csv', sep=',')
 df_baualter = pd.read_csv('data/raw/bau515od5156.csv', sep=',')
 
