@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid valu
 os.makedirs('data/processed', exist_ok=True)
 os.makedirs('models', exist_ok=True)
 
-# Use fixed relative paths
+# Wir lesen die CSV-Dateien mit eine Raw-Datei von unser GitHub Repo (sonst ging das nicht)
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv'
 url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv'
 df_quartier = pd.read_csv(url_quartier)
