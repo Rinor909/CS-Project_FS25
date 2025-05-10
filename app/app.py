@@ -24,7 +24,7 @@ def main():
     
     # Page configuration
     st.set_page_config(
-        page_title="Zurich Real Estate Price Prediction",
+        page_title="ImmoInsight Zürich",
         page_icon="🏡",
         layout="wide",
         initial_sidebar_state="expanded"
