@@ -139,7 +139,9 @@ df_final.dropna(subset=['MedianPreis', 'Quartier', 'Zimmeranzahl_num'], inplace=
 # Restliche NaN-Werte durch sinnvolle Werte ersetzen
 for column in df_final.columns:
     if df_final[column].dtype in [np.float64, np.int64]:
-        df_final[column].fillna(df_final[column].median(), inplace=True)
+        # FIX: Use the proper way to fill NA values that avoids the SettingWithCopyWarning
+        df_final = df_final.copy()
+        df_final.loc[:, column] = df_final[column].fillna(df_final[column].median())
 
 # Kategorische Features vorbereiten (für ML-Modelle wie Random Forest)
 # Quartier als kategorisches Feature - später One-Hot-Encoding anwenden
