@@ -105,18 +105,18 @@ def main():
         # Property details
         with st.container(border=True):
             # Size slider
-            st.subheader("Anzahl der Zimmer")
+            st.subheader("Size")
             selected_zimmer = st.slider(
                 "",
                 min_value=1,
                 max_value=6,
                 value=3,
                 step=1,
-                format="%d Zimmer"
+                format="%d Rooms"
             )
             
                 # Construction year with dropdown
-            st.subheader("Baujahr")
+            st.subheader("Construction Year")
             selected_baujahr = st.selectbox(
                 "",
                 options=list(range(1900, 2026, 5)),
@@ -125,10 +125,10 @@ def main():
             )
             # Transportation mode - Put this in its own container
         with st.container(border=True):
-            st.subheader("Transportmodus")
+            st.subheader("Transportation Mode")
             selected_transport = st.radio(
                 "",
-                options=["öffentlicher Verkehr", "Auto"],
+                options=["Public Transit", "Car"],
                 horizontal=True,
                 index=0
             )
@@ -157,12 +157,12 @@ def main():
     # Put main content in a container
     with st.container(border=True):
         # Property valuation section
-        st.subheader("Immobilienbewertung")
+        st.subheader("Property Valuation")
         
         # Price display in a colored container
         price_container = st.container(border=False)
         price_container.metric(
-            label="geschätzte Immobilienbewertung",
+            label="Estimated Property Value",
             value=f"{predicted_price:,.0f} CHF" if predicted_price else "N/A",
             delta=f"{round((predicted_price / 1000000 - 1) * 100, 1):+.1f}%" if predicted_price else None,
             delta_color="inverse"
@@ -170,9 +170,9 @@ def main():
         
         # Tabs for different views
         tab1, tab2, tab3 = st.tabs([
-            "📊 Immobilienanalyse", 
-            "🗺️ Standort", 
-            "📈 Marktentwicklungen"
+            "📊 Property Analysis fkhflén", 
+            "🗺️ Location", 
+            "📈 Market Trends"
         ])
         
         # Tab 1: Property Analysis
@@ -181,7 +181,7 @@ def main():
             
             with col1:
                 # Neighborhood statistics
-                st.subheader("Nachbarschaftsstatistiken")
+                st.subheader("Neighborhood Statistics")
                 
                 quartier_stats = get_quartier_statistics(selected_quartier, df_quartier)
                 
@@ -205,7 +205,7 @@ def main():
                     {"Destination": key, "Minutes": value} for key, value in travel_times.items()
                 ]
                 df_travel_viz = pd.DataFrame(travel_times_data)
-                
+                    
                 if not df_travel_viz.empty:
                     fig = px.bar(
                         df_travel_viz,
@@ -441,7 +441,7 @@ def main():
     st.map(df_map, zoom=12, use_container_width=True)
     
     # ---- FOOTER ----
-    st.caption("Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: opendata.swiss | © 2025 Immo Insight Zürich")
+    st.caption("Developed for HSG Computer Science Project | Data Source: opendata.swiss | © 2025 ValueState Zürich")
 
 if __name__ == "__main__":
     # Put our modules in the path
