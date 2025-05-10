@@ -5,28 +5,55 @@ import json
 import time
 import requests
 import streamlit as st
+import sys
 
 # Use Streamlit secrets for the API key
 try:
     GOOGLE_MAPS_API_KEY = st.secrets["GOOGLE_MAPS_API_KEY"]
 except Exception as e:
-    print(f"Error loading API key from Streamlit secrets: {e}")
-    GOOGLE_MAPS_API_KEY = None  # Will use simulations if the key is not found
+    print("Error: Could not load Google Maps API key from Streamlit secrets.")
+    # Try to get from environment variable as fallback
+    import os
+    GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+    
+    # If still no API key, exit with error
+    if not GOOGLE_MAPS_API_KEY:
+        print("ERROR: No Google Maps API key found.")
+        print("You must provide a Google Maps API key to calculate travel times.")
+        print("Set your API key in .streamlit/secrets.toml file:")
+        print('GOOGLE_MAPS_API_KEY = "your-api-key-here"')
+        print("Or set it as an environment variable.")
+        sys.exit(1)
 
-# Lade Quartier-Daten
+# Use direct GitHub URLs for data loading
+# Wir lesen die CSV-Dateien mit eine Raw-Datei von unser GitHub Repo (sonst ging das nicht)
+url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv'
+
 try:
-    df_quartier = pd.read_csv('data/processed/quartier_processed.csv')
-except FileNotFoundError:
-    # Graceful handling if file doesn't exist yet
-    print("Quartier data not found. Run data_preparation.py first.")
-    # Create a directory structure if it doesn't exist
-    os.makedirs('data/processed', exist_ok=True)
-    # Create an empty dataframe with the expected structure
-    df_quartier = pd.DataFrame(columns=['Quartier'])
-    quartiere = []
-else:
+    # Load processed quartier data from GitHub
+    print("Loading quartier data from GitHub...")
+    df_quartier = pd.read_csv(url_quartier)
     # Liste der eindeutigen Quartiere
     quartiere = df_quartier['Quartier'].unique()
+    print(f"Loaded {len(quartiere)} unique neighborhoods.")
+except Exception as e:
+    print(f"Error loading quartier data from GitHub: {e}")
+    # Fallback to local file if GitHub fails
+    try:
+        local_path = 'data/processed/quartier_processed.csv'
+        print(f"Trying to load from local path: {local_path}")
+        df_quartier = pd.read_csv(local_path)
+        quartiere = df_quartier['Quartier'].unique()
+        print(f"Loaded {len(quartiere)} unique neighborhoods from local file.")
+    except FileNotFoundError:
+        print("ERROR: No quartier data found. Please run data_preparation.py first.")
+        print("Run: python scripts/data_preparation.py")
+        sys.exit(1)
+
+# Define output directory
+output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
+processed_dir = os.path.join(output_dir, "processed")
+os.makedirs(processed_dir, exist_ok=True)
 
 # Wichtige Zielorte in Zürich
 zielorte = {
@@ -36,8 +63,7 @@ zielorte = {
     'Bahnhofstrasse': 'Bahnhofstrasse, Zürich, Schweiz'
 }
 
-# Fiktive zentrale Koordinaten für jedes Quartier (normalerweise würde man diese aus GeoJSON-Daten beziehen)
-# Dies ist eine Vereinfachung. Reale Implementierung würde präzisere Daten verwenden.
+# Tatsächliche zentrale Koordinaten für jedes Quartier
 quartier_koordinaten = {
     'Hottingen': {'lat': 47.3692, 'lng': 8.5631},
     'Fluntern': {'lat': 47.3809, 'lng': 8.5629},
@@ -65,14 +91,38 @@ quartier_koordinaten = {
     'Seebach': {'lat': 47.4258, 'lng': 8.5422},
     'Saatlen': {'lat': 47.4087, 'lng': 8.5742},
     'Schwamendingen-Mitte': {'lat': 47.4064, 'lng': 8.5648},
-    'Hirzenbach': {'lat': 47.4031, 'lng': 8.5841}
+    'Hirzenbach': {'lat': 47.4031, 'lng': 8.5841},
+    'Ganze Stadt': {'lat': 47.3769, 'lng': 8.5417},
+    'Kreis 1': {'lat': 47.3732, 'lng': 8.5413},
+    'Kreis 2': {'lat': 47.3559, 'lng': 8.5277},
+    'Kreis 3': {'lat': 47.3682, 'lng': 8.5097},
+    'Kreis 4': {'lat': 47.3767, 'lng': 8.5257},
+    'Kreis 5': {'lat': 47.3875, 'lng': 8.5295},
+    'Kreis 6': {'lat': 47.3846, 'lng': 8.5498},
+    'Kreis 7': {'lat': 47.3637, 'lng': 8.5751},
+    'Kreis 8': {'lat': 47.3560, 'lng': 8.5513},
+    'Kreis 9': {'lat': 47.3796, 'lng': 8.4882},
+    'Kreis 10': {'lat': 47.4088, 'lng': 8.5253},
+    'Kreis 11': {'lat': 47.4173, 'lng': 8.5456},
+    'Kreis 12': {'lat': 47.3985, 'lng': 8.5761},
+    'Hochschulen': {'lat': 47.3743, 'lng': 8.5482},
+    'Langstrasse': {'lat': 47.3800, 'lng': 8.5300},
+    'Wurde-Furrer': {'lat': 47.3791, 'lng': 8.5261},
+    'Escher-Wyss': {'lat': 47.3888, 'lng': 8.5219},
+    'Gewerbeschule': {'lat': 47.3850, 'lng': 8.5311},
+    'Hard': {'lat': 47.3832, 'lng': 8.5198}
 }
 
 # Für fehlende Quartiere Standardwerte hinzufügen
+missing_quartiers = []
 for quartier in quartiere:
     if quartier not in quartier_koordinaten:
+        missing_quartiers.append(quartier)
         # Setze Default-Koordinaten für Zürich Zentrum
         quartier_koordinaten[quartier] = {'lat': 47.3769, 'lng': 8.5417}
+
+if missing_quartiers:
+    print(f"Warning: Used default coordinates for {len(missing_quartiers)} neighborhoods: {', '.join(missing_quartiers[:5])}{' and more...' if len(missing_quartiers) > 5 else ''}")
 
 # Funktion zur Berechnung der Reisezeit mit Google Maps API
 def get_travel_time(origin, destination, mode='transit'):
@@ -87,10 +137,8 @@ def get_travel_time(origin, destination, mode='transit'):
     Returns:
         float: Reisezeit in Minuten
     """
-    # Ensure the processed directory exists
-    os.makedirs('data/processed', exist_ok=True)
-    
-    cache_file = f'data/processed/travel_time_cache.json'
+    # Cache file path
+    cache_file = os.path.join(processed_dir, 'travel_time_cache.json')
     
     # Cache laden, falls vorhanden
     if os.path.exists(cache_file):
@@ -99,6 +147,7 @@ def get_travel_time(origin, destination, mode='transit'):
                 cache = json.load(f)
         except json.JSONDecodeError:
             # Handle corrupted cache file
+            print(f"Warning: Corrupted cache file. Creating new cache.")
             cache = {}
     else:
         cache = {}
@@ -109,20 +158,6 @@ def get_travel_time(origin, destination, mode='transit'):
     # Wenn Ergebnis im Cache, aus Cache zurückgeben
     if cache_key in cache:
         return cache[cache_key]
-    
-    # Wenn kein API-Key verfügbar, simulierte Reisezeit zurückgeben
-    if not GOOGLE_MAPS_API_KEY:
-        # Zufällige aber realistische Reisezeit simulieren
-        # Hier könnte man später eine bessere Simulation basierend auf Entfernung implementieren
-        simulated_time = np.random.normal(30, 10)  # Mittelwert 30 Min, Standardabweichung 10 Min
-        simulated_time = max(5, min(90, simulated_time))  # Zwischen 5 und 90 Minuten begrenzen
-        
-        # Im Cache speichern
-        cache[cache_key] = simulated_time
-        with open(cache_file, 'w') as f:
-            json.dump(cache, f)
-            
-        return simulated_time
     
     # URL für Google Maps Directions API
     url = "https://maps.googleapis.com/maps/api/directions/json"
@@ -161,35 +196,68 @@ def get_travel_time(origin, destination, mode='transit'):
             if 'error_message' in data:
                 print(f"Error details: {data['error_message']}")
             
-            # Fallback to simulation if API fails
-            simulated_time = np.random.normal(30, 10)
-            simulated_time = max(5, min(90, simulated_time))
-            return simulated_time
+            if data['status'] == 'REQUEST_DENIED':
+                print("ERROR: API request denied. Check your API key.")
+                sys.exit(1)
+                
+            print("ERROR: Failed to get travel time from API.")
+            return None
     except Exception as e:
-        print(f"Fehler bei der API-Anfrage: {e}")
-        # Fallback to simulation
-        simulated_time = np.random.normal(30, 10)
-        simulated_time = max(5, min(90, simulated_time))
-        return simulated_time
+        print(f"ERROR: Could not get travel time data: {e}")
+        return None
 
 if __name__ == "__main__":
-    # Only execute this part when script is run directly
     # DataFrame für Reisezeiten erstellen
     travel_times = []
+    
+    if len(quartiere) == 0:
+        print("ERROR: No neighborhoods found. Make sure quartier_processed.csv exists and contains neighborhood data.")
+        sys.exit(1)
+
+    # Limit the number of neighborhoods to process if too many
+    max_quartiere = 100  # Set a reasonable limit
+    if len(quartiere) > max_quartiere:
+        print(f"Warning: Large number of neighborhoods ({len(quartiere)}). Processing the first {max_quartiere}.")
+        quartiere = quartiere[:max_quartiere]
+
+    # Progress counter
+    total_calculations = len(quartiere) * len(zielorte) * 2  # 2 transport modes
+    processed = 0
+    
+    print(f"Starting travel time calculations for {len(quartiere)} neighborhoods to {len(zielorte)} destinations...")
+    print(f"Total calculations to perform: {total_calculations}")
+    print(f"Using Google Maps API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:] if GOOGLE_MAPS_API_KEY else ''}")
+
+    # Verify API key works by testing one calculation
+    test_quartier = quartiere[0]
+    test_origin = quartier_koordinaten.get(test_quartier)
+    test_result = get_travel_time(test_origin, zielorte['Hauptbahnhof'], 'transit')
+    
+    if test_result is None:
+        print("ERROR: Initial API test failed. Please check your API key and connection.")
+        sys.exit(1)
+    else:
+        print(f"API test successful. Travel time from {test_quartier} to Hauptbahnhof: {test_result:.1f} minutes.")
 
     # Für jedes Quartier die Reisezeiten zu allen Zielorten berechnen
     for quartier in quartiere:
         origin = quartier_koordinaten.get(quartier)
         if not origin:
-            print(f"Keine Koordinaten für {quartier} gefunden.")
+            print(f"No coordinates found for {quartier}. Skipping.")
             continue
             
-        print(f"Berechne Reisezeiten für {quartier}...")
+        print(f"Calculating travel times for {quartier}...")
         
         # Reisezeiten für verschiedene Transportmittel berechnen
         for ziel_name, ziel_adresse in zielorte.items():
             for mode in ['transit', 'driving']:
-                time.sleep(0.2)  # Kurze Pause, um API-Limits einzuhalten
+                # Update progress
+                processed += 1
+                if processed % 10 == 0:
+                    print(f"Progress: {processed}/{total_calculations} ({processed/total_calculations*100:.1f}%)")
+                
+                # Add small delay to avoid rate limiting
+                time.sleep(0.1)
                 
                 # Reisezeit berechnen
                 duration = get_travel_time(origin, ziel_adresse, mode)
@@ -202,30 +270,45 @@ if __name__ == "__main__":
                         'Reisezeit_Minuten': round(duration, 1)
                     })
                 else:
-                    print(f"Konnte Reisezeit von {quartier} nach {ziel_name} nicht berechnen.")
+                    print(f"Could not calculate travel time from {quartier} to {ziel_name}.")
 
     # DataFrame erstellen
     df_travel_times = pd.DataFrame(travel_times)
 
-    # Ergebnisse speichern
-    if not os.path.exists('data/processed'):
-        os.makedirs('data/processed')
-        
-    df_travel_times.to_csv('data/processed/travel_times.csv', index=False)
+    # Check if we got any travel times
+    if df_travel_times.empty:
+        print("ERROR: No travel times were calculated. Check your API key and network connection.")
+        sys.exit(1)
 
-    print(f"Reisezeiten wurden in 'data/processed/travel_times.csv' gespeichert.")
+    # Save the results
+    travel_times_path = os.path.join(processed_dir, 'travel_times.csv')
+    df_travel_times.to_csv(travel_times_path, index=False)
+    print(f"Travel times saved to: {travel_times_path}")
 
-    # Durchschnittliche Reisezeiten pro Quartier berechnen
-    if not df_travel_times.empty:
-        df_avg_times = df_travel_times.groupby(['Quartier', 'Transportmittel']).agg({
-            'Reisezeit_Minuten': ['mean', 'min', 'max']
-        }).reset_index()
+    # Calculate average travel times per neighborhood
+    df_avg_times = df_travel_times.groupby(['Quartier', 'Transportmittel']).agg({
+        'Reisezeit_Minuten': ['mean', 'min', 'max']
+    }).reset_index()
 
-        df_avg_times.columns = ['Quartier', 'Transportmittel', 'Durchschnitt_Minuten', 'Min_Minuten', 'Max_Minuten']
+    df_avg_times.columns = ['Quartier', 'Transportmittel', 'Durchschnitt_Minuten', 'Min_Minuten', 'Max_Minuten']
 
-        # Durchschnittliche Reisezeitdaten speichern
-        df_avg_times.to_csv('data/processed/avg_travel_times.csv', index=False)
-
-        print(f"Durchschnittliche Reisezeiten wurden in 'data/processed/avg_travel_times.csv' gespeichert.")
-    else:
-        print("Keine Reisezeiten berechnet. Bitte überprüfen Sie Ihre Daten und API-Konfiguration.")
+    # Save average travel times
+    avg_travel_times_path = os.path.join(processed_dir, 'avg_travel_times.csv')
+    df_avg_times.to_csv(avg_travel_times_path, index=False)
+    print(f"Average travel times saved to: {avg_travel_times_path}")
+    
+    # Print some summary statistics
+    print("\nSummary Statistics:")
+    print(f"Total neighborhoods processed: {len(df_travel_times['Quartier'].unique())}")
+    print(f"Total travel time calculations: {len(df_travel_times)}")
+    print(f"Average travel times (transit): {df_travel_times[df_travel_times['Transportmittel'] == 'transit']['Reisezeit_Minuten'].mean():.1f} minutes")
+    print(f"Average travel times (driving): {df_travel_times[df_travel_times['Transportmittel'] == 'driving']['Reisezeit_Minuten'].mean():.1f} minutes")
+    
+    print("\nTravel time generation completed successfully!")
+    
+    # Try to open the folder in Windows Explorer
+    try:
+        os.startfile(processed_dir)
+        print("Opening folder in Windows Explorer...")
+    except Exception as e:
+        print(f"Could not open folder: {e}")
