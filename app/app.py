@@ -31,211 +31,47 @@ def main():
     )
 
     # CSS for better styling
-    # Add this CSS to your app.py file to create a modern, clean design
-
-st.markdown("""
-<style>
-    /* Main container styling */
-    .main {
-        background-color: #f8f9fa;
-        padding: 0;
-    }
-    
-    /* Custom header with logo */
-    .header-container {
-        display: flex;
-        align-items: center;
-        padding: 2rem 2rem 1rem 2rem;
-        background-color: white;
-        border-radius: 0;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    
-    .logo-container {
-        display: flex;
-        align-items: center;
-    }
-    
-    .logo {
-        font-size: 2rem;
-        color: #1565C0;
-        margin-right: 0.5rem;
-    }
-    
-    .logo-text {
-        font-weight: 700;
-        color: #1565C0;
-        font-size: 1.3rem;
-        margin-right: 1.5rem;
-    }
-    
-    .header-text {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .main-header {
-        font-size: 1.8rem;
-        font-weight: 600;
-        color: #212121;
-        margin-bottom: 0.2rem;
-        line-height: 1.2;
-    }
-    
-    .sub-tagline {
-        font-size: 1rem;
-        color: #616161;
-        margin-top: 0;
-    }
-    
-    /* Main content cards */
-    .content-card {
-        background-color: white;
-        border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 2rem;
-    }
-    
-    /* Input fields styling */
-    .stSlider > div {
-        padding-top: 0.5rem;
-        padding-bottom: 2rem;
-    }
-    
-    .stSelectbox > div > div {
-        background-color: white;
-        border-radius: 8px;
-    }
-    
-    /* Custom button */
-    .cta-button {
-        display: inline-block;
-        background-color: #1565C0;
-        color: white;
-        padding: 0.7rem 2rem;
-        font-weight: 500;
-        border-radius: 50px;
-        text-align: center;
-        margin: 1rem 0;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .cta-button:hover {
-        background-color: #0D47A1;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-    
-    /* Price display */
-    .price-display-container {
-        background-color: #f5f9ff;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-left: 5px solid #1565C0;
-    }
-    
-    .price-display {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #1565C0;
-        margin-bottom: 0.5rem;
-    }
-    
-    .price-label {
-        font-size: 0.9rem;
-        color: #616161;
-    }
-    
-    /* Statistics cards */
-    .stats-container {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
-    
-    .metric-card {
-        background-color: white;
-        border-radius: 10px;
-        padding: 1rem;
-        flex: 1;
-        text-align: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-        border: 1px solid #f0f0f0;
-    }
-    
-    .metric-value {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #1565C0;
-    }
-    
-    .metric-label {
-        font-size: 0.85rem;
-        color: #616161;
-        margin-top: 0.3rem;
-    }
-    
-    /* Map container */
-    .map-container {
-        border-radius: 10px;
-        overflow: hidden;
-        margin-top: 1rem;
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        border-radius: 4px 4px 0 0;
-        gap: 0.5rem;
-        font-weight: 500;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background-color: white;
-        color: #1565C0;
-    }
-    
-    /* Footer */
-    .footer {
-        text-align: center;
-        padding: 1.5rem;
-        color: #616161;
-        font-size: 0.8rem;
-        margin-top: 2rem;
-        border-top: 1px solid #eeeeee;
-    }
-    
-    /* Hide default hamburger menu and footer */
-    #MainMenu, footer {
-        visibility: hidden;
-    }
-    
-    /* Make sidebar more modern */
-    .css-1d391kg, .css-12oz5g7 {
-        background-color: white;
-    }
-    
-    /* Sidebar headers */
-    .sidebar .block-container {
-        padding-top: 2rem;
-    }
-    
-    .sidebar h2 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #212121;
-        margin-bottom: 1.5rem;
-    }
-</style>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+        .main-header {
+            font-size: 2.5rem;
+            color: #1E88E5;
+            margin-bottom: 1rem;
+        }
+        .sub-header {
+            font-size: 1.5rem;
+            color: #424242;
+            margin-bottom: 1rem;
+        }
+        .highlight {
+            background-color: #f0f2f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .price-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1E88E5;
+        }
+        .metric-card {
+            background-color: #f0f2f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1E88E5;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: #424242;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
     # Function to load data and model with caching
     @st.cache_resource
