@@ -58,8 +58,11 @@ for df in [df_quartier_clean, df_baualter_clean]:
             lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean()))
     
     # Verbleibende fehlende Werte durch allgemeine Mediane ersetzen
-    df['MedianPreis'].fillna(df['MedianPreis'].median(), inplace=True)
-    df['PreisProQm'].fillna(df['PreisProQm'].median(), inplace=True)
+    median_price = df['MedianPreis'].median()
+    df['MedianPreis'].fillna(0 if pd.isna(median_price) else median_price, inplace=True)
+    
+    median_price_per_sqm = df['PreisProQm'].median()
+    df['PreisProQm'].fillna(0 if pd.isna(median_price_per_sqm) else median_price_per_sqm, inplace=True)
 
 # Datentypen anpassen und Feature-Engineering
 # Zimmeranzahl: Von Text (z.B. "2-Zimmer") zu Zahl (2) konvertieren
@@ -139,9 +142,15 @@ df_final.dropna(subset=['MedianPreis', 'Quartier', 'Zimmeranzahl_num'], inplace=
 # Restliche NaN-Werte durch sinnvolle Werte ersetzen
 for column in df_final.columns:
     if df_final[column].dtype in [np.float64, np.int64]:
-        # FIX: Use the proper way to fill NA values that avoids the SettingWithCopyWarning
+        # FIX: Handle empty slices by checking if median is NaN
         df_final = df_final.copy()
-        df_final.loc[:, column] = df_final[column].fillna(df_final[column].median())
+        median_value = df_final[column].median()
+        if pd.isna(median_value):
+            # If column has all NaN values, use 0 as fill value
+            df_final.loc[:, column] = df_final[column].fillna(0)
+        else:
+            # Use median for filling NaN values
+            df_final.loc[:, column] = df_final[column].fillna(median_value)
 
 # Kategorische Features vorbereiten (für ML-Modelle wie Random Forest)
 # Quartier als kategorisches Feature - später One-Hot-Encoding anwenden
