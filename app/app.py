@@ -4,6 +4,11 @@ import sys
 
 # Main app logic
 def main():
+    # Add this import statement at the top of the function
+    import pandas as pd
+    import numpy as np
+    import plotly.express as px
+    import plotly.graph_objects as go
     # Import functions from local modules
     from utils import (
         load_processed_data, load_model, load_quartier_mapping,
