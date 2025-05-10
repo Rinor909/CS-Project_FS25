@@ -211,8 +211,8 @@ def main():
                         df_travel_viz,
                         x="Destination",
                         y="Minutes",
-                        color="Minutes",
-                        color_continuous_scale="Blues",
+                        #color="Minutes",
+                        #color_continuous_scale="Blues",
                         title=f"Travel Times from {selected_quartier}"
                     )
                     
