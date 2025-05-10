@@ -115,7 +115,6 @@ def main():
                 format="%d Rooms"
             )
             
-            col1, col2 = st.columns(2)
             
             with col1:
                 # Construction year with dropdown
