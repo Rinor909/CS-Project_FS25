@@ -445,18 +445,15 @@ def main():
     # st.map(df_map, zoom=12, use_container_width=True)
     coords = get_zurich_coordinates()
 
-    # Créer la carte avec Folium
     map_folium = folium.Map(location=[coords['latitude'], coords['longitude']], zoom_start=13, tiles='OpenStreetMap')
 
-    # Ajouter un marqueur
     folium.Marker(
         [coords['latitude'], coords['longitude']],
         tooltip="Zurich",
         popup="Centre de Zurich"
     ).add_to(map_folium)
 
-    # Afficher la carte dans Streamlit
-    st_folium(map_folium, width=700, height=500)
+    st_folium(map_folium, width=1400, height=500)
     
     # ---- FOOTER ----
     st.caption("Developed for HSG Computer Science Project | Data Source: opendata.swiss | © 2025 ValueState Zürich")
