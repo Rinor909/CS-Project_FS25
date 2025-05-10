@@ -461,47 +461,128 @@ def main():
             with metrics_col2:
                 st.markdown("#### Modellvorhersagen vs. tatsächliche Preise")
                 
-                # Create a sample plot of predicted vs actual values
-                # This would be better with actual data from your model
-                np.random.seed(42)
-                n_samples = 100
-                actual = np.random.normal(1500000, 300000, n_samples)
-                predicted = actual + np.random.normal(0, 150000, n_samples)
+                # Path to the CSV file
+                prediction_data_path = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data\processed\model_evaluation_results.csv"
                 
-                pred_vs_actual = pd.DataFrame({
-                    'Tatsächlicher Preis (CHF)': actual,
-                    'Vorhergesagter Preis (CHF)': predicted
-                })
-                
-                fig = px.scatter(
-                    pred_vs_actual, 
-                    x='Tatsächlicher Preis (CHF)', 
-                    y='Vorhergesagter Preis (CHF)',
-                    opacity=0.7
-                )
-                
-                # Add a perfect prediction line
-                min_val = min(actual.min(), predicted.min())
-                max_val = max(actual.max(), predicted.max())
-                fig.add_trace(
-                    go.Scatter(
-                        x=[min_val, max_val], 
-                        y=[min_val, max_val], 
-                        mode='lines', 
-                        name='Perfekte Vorhersage',
-                        line=dict(color='red', dash='dash')
+                # Try to load actual prediction data
+                try:
+                    # Load the CSV with the prediction data
+                    pred_actual_df = pd.read_csv(prediction_data_path)
+                    
+                    # Create an interactive scatter plot using Plotly
+                    fig = px.scatter(
+                        pred_actual_df, 
+                        x='Tatsächlicher Preis (CHF)', 
+                        y='Vorhergesagter Preis (CHF)',
+                        opacity=0.7,
+                        hover_data={
+                            'Tatsächlicher Preis (CHF)': ':,.0f',
+                            'Vorhergesagter Preis (CHF)': ':,.0f'
+                        }
                     )
-                )
-                
-                # Improve chart styling
-                fig.update_layout(
-                    plot_bgcolor="white",
-                    paper_bgcolor="white",
-                    font=dict(family="Arial, sans-serif", size=12),
-                    margin=dict(l=40, r=20, t=30, b=20)
-                )
-                
-                st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Add a perfect prediction line
+                    min_val = min(pred_actual_df['Tatsächlicher Preis (CHF)'].min(), 
+                                pred_actual_df['Vorhergesagter Preis (CHF)'].min())
+                    max_val = max(pred_actual_df['Tatsächlicher Preis (CHF)'].max(), 
+                                pred_actual_df['Vorhergesagter Preis (CHF)'].max())
+                    
+                    # Add the diagonal line representing perfect predictions
+                    fig.add_trace(
+                        go.Scatter(
+                            x=[min_val, max_val], 
+                            y=[min_val, max_val], 
+                            mode='lines', 
+                            name='Perfekte Vorhersage',
+                            line=dict(color='red', dash='dash')
+                        )
+                    )
+                    
+                    # Add annotations to explain the chart
+                    fig.add_annotation(
+                        x=min_val + (max_val-min_val)*0.2,
+                        y=min_val + (max_val-min_val)*0.8,
+                        text="Überschätzte Preise",
+                        showarrow=False,
+                        font=dict(size=12)
+                    )
+                    
+                    fig.add_annotation(
+                        x=min_val + (max_val-min_val)*0.8,
+                        y=min_val + (max_val-min_val)*0.2,
+                        text="Unterschätzte Preise",
+                        showarrow=False,
+                        font=dict(size=12)
+                    )
+                    
+                    # Improve chart styling
+                    fig.update_layout(
+                        plot_bgcolor="white",
+                        paper_bgcolor="white",
+                        font=dict(family="Arial, sans-serif", size=12),
+                        margin=dict(l=40, r=20, t=30, b=20),
+                        xaxis=dict(
+                            title='Tatsächlicher Preis (CHF)',
+                            tickformat=',',
+                            gridcolor='lightgray'
+                        ),
+                        yaxis=dict(
+                            title='Vorhergesagter Preis (CHF)',
+                            tickformat=',',
+                            gridcolor='lightgray'
+                        )
+                    )
+                    
+                    # Display the interactive plot in Streamlit
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                except Exception as e:
+                    # Fall back to simulated data
+                    st.warning(f"Konnte keine gespeicherten Vorhersagedaten laden - Beispieldaten werden angezeigt.")
+                    
+                    # Use simulated data
+                    np.random.seed(42)
+                    n_samples = 100
+                    actual = np.random.normal(1500000, 300000, n_samples)
+                    predicted = actual + np.random.normal(0, 150000, n_samples)
+                    
+                    # Create DataFrame
+                    pred_vs_actual = pd.DataFrame({
+                        'Tatsächlicher Preis (CHF)': actual,
+                        'Vorhergesagter Preis (CHF)': predicted
+                    })
+                    
+                    # Create scatter plot
+                    fig = px.scatter(
+                        pred_vs_actual, 
+                        x='Tatsächlicher Preis (CHF)', 
+                        y='Vorhergesagter Preis (CHF)',
+                        opacity=0.7
+                    )
+                    
+                    # Add a perfect prediction line
+                    min_val = min(actual.min(), predicted.min())
+                    max_val = max(actual.max(), predicted.max())
+                    fig.add_trace(
+                        go.Scatter(
+                            x=[min_val, max_val], 
+                            y=[min_val, max_val], 
+                            mode='lines', 
+                            name='Perfekte Vorhersage',
+                            line=dict(color='red', dash='dash')
+                        )
+                    )
+                    
+                    # Apply styling
+                    fig.update_layout(
+                        plot_bgcolor="white",
+                        paper_bgcolor="white",
+                        font=dict(family="Arial, sans-serif", size=12),
+                        margin=dict(l=40, r=20, t=30, b=20)
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    st.caption("*Hinweis: Dies sind Beispieldaten, nicht die tatsächlichen Modellergebnisse*")
             
             # Feature importance section
             st.markdown("### Feature Importance")
