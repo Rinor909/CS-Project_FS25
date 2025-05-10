@@ -1,6 +1,11 @@
 import pandas as pd
 import numpy as np
 import os
+import warnings
+
+# Suppress specific NumPy warnings about mean of empty slice
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="Mean of empty slice")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered in")
 
 # Create directories if they don't exist
 os.makedirs('data/processed', exist_ok=True)
@@ -43,19 +48,19 @@ for df in [df_quartier_clean, df_baualter_clean]:
     if 'Quartier' in df.columns:
         # MedianPreis: Fehlende Werte nach Quartier und Zimmeranzahl ersetzen
         df['MedianPreis'] = df.groupby(['Quartier', 'Zimmeranzahl'])['MedianPreis'].transform(
-            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean()))
+            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean() if not pd.isna(x.mean()) else 0))
         
         # PreisProQm: Fehlende Werte nach Quartier und Zimmeranzahl ersetzen
         df['PreisProQm'] = df.groupby(['Quartier', 'Zimmeranzahl'])['PreisProQm'].transform(
-            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean()))
+            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean() if not pd.isna(x.mean()) else 0))
     else:
         # MedianPreis: Fehlende Werte nach Baualter und Zimmeranzahl ersetzen
         df['MedianPreis'] = df.groupby(['Baualter', 'Zimmeranzahl'])['MedianPreis'].transform(
-            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean()))
+            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean() if not pd.isna(x.mean()) else 0))
         
         # PreisProQm: Fehlende Werte nach Baualter und Zimmeranzahl ersetzen
         df['PreisProQm'] = df.groupby(['Baualter', 'Zimmeranzahl'])['PreisProQm'].transform(
-            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean()))
+            lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean() if not pd.isna(x.mean()) else 0))
     
     # Verbleibende fehlende Werte durch allgemeine Mediane ersetzen
     median_price = df['MedianPreis'].median()
@@ -160,3 +165,6 @@ df_final['Quartier_Code'] = pd.Categorical(df_final['Quartier']).codes
 df_quartier_clean.to_csv('data/processed/quartier_processed.csv', index=False)
 df_baualter_clean.to_csv('data/processed/baualter_processed.csv', index=False)
 df_final.to_csv('data/processed/modell_input_final.csv', index=False)
+
+print("Data preparation completed successfully!")
+print(f"Files saved to: {os.path.abspath('data/processed')}")
