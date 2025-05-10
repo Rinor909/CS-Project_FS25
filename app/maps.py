@@ -117,7 +117,7 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         
         # Adjust layout
         fig.update_layout(
-            mapbox_style='dark',
+            mapbox_style='open-street-map',
             margin={"r":0, "t":50, "l":0, "b":0},
             coloraxis_colorbar=dict(
                 title='Price (CHF)',
