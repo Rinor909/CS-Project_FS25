@@ -441,7 +441,7 @@ def main():
     st.map(df_map, zoom=12, use_container_width=True)
     
     # ---- FOOTER ----
-    st.caption("Developed for HSG Computer Science Project | Data Source: opendata.swiss | © 2025 ValueState Zürich")
+    st.caption("Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: opendata.swiss | © 2025 Immo Insight Zürich")
 
 if __name__ == "__main__":
     # Put our modules in the path
