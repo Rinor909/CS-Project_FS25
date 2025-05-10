@@ -7,8 +7,10 @@ os.makedirs('data/processed', exist_ok=True)
 os.makedirs('models', exist_ok=True)
 
 # Use fixed relative paths
-df_quartier = pd.read_csv('data/raw/bau515od5155.csv', sep=',')
-df_baualter = pd.read_csv('data/raw/bau515od5156.csv', sep=',')
+url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv'
+url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv'
+df_quartier = pd.read_csv(url_quartier)
+df_baualter = pd.read_csv(url_baualter)
 
 # Datenbereinigung - Quartier-Datensatz
 # Nur die wichtigsten Spalten behalten
