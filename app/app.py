@@ -450,7 +450,7 @@ def main():
     folium.Marker(
         [coords['latitude'], coords['longitude']],
         tooltip="Zurich",
-        popup="Centre de Zurich"
+        popup="Zurich center"
     ).add_to(map_folium)
 
     st_folium(map_folium, width=1400, height=500)
