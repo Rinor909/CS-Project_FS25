@@ -115,18 +115,15 @@ def main():
                 format="%d Rooms"
             )
             
-            col1 = st.columns(1)
-            
-            with col1:
                 # Construction year with dropdown
-                st.subheader("Construction Year")
-                selected_baujahr = st.selectbox(
-                    "",
-                    options=list(range(1900, 2026, 5)),
-                    index=20,  # Default to 2000
-                    format_func=lambda x: str(x),
-                    use_container_width=True
-                )
+        st.subheader("Construction Year")
+        selected_baujahr = st.selectbox(
+            "",
+            options=list(range(1900, 2026, 5)),
+            index=20,  # Default to 2000
+            format_func=lambda x: str(x),
+            use_container_width=True
+        )
         # Transportation mode
         st.write("")
         st.subheader("Transportation Mode")
