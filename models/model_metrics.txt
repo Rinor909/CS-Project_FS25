@@ -1,0 +1,5 @@
+Model: Gradient Boosting
+MAE: 136207.58 CHF
+RMSE: 303630.72 CHF
+R²: 0.9198
+CV RMSE: 179250.94 CHF
