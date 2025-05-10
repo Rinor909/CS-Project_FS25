@@ -63,7 +63,7 @@ def main():
     
     with header_col1:
         # Logo area
-        st.image("https://i.ibb.co/Fb2X2QRB/Logo-Immo-Insight-ZH-w-bg.png", width=350)
+        st.image("https://i.ibb.co/Fb2X2QRB/Logo-Immo-Insight-ZH-w-bg.png", width=300)
     
     with header_col2:
         # Title and subtitle
