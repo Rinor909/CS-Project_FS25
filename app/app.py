@@ -116,23 +116,23 @@ def main():
             )
             
                 # Construction year with dropdown
-        st.subheader("Construction Year")
-        selected_baujahr = st.selectbox(
-            "",
-            options=list(range(1900, 2026, 5)),
-            index=20,  # Default to 2000
-            format_func=lambda x: str(x),
-            use_container_width=True
-        )
-        # Transportation mode
-        st.write("")
-        st.subheader("Transportation Mode")
-        selected_transport = st.radio(
-            "",
-            options=["Public Transit", "Car"],
-            horizontal=True,
-            index=0
-        )
+            st.subheader("Construction Year")
+            selected_baujahr = st.selectbox(
+                "",
+                options=list(range(1900, 2026, 5)),
+                index=20,  # Default to 2000
+                format_func=lambda x: str(x),
+                use_container_width=True
+            )
+            # Transportation mode
+            st.write("")
+            st.subheader("Transportation Mode")
+            selected_transport = st.radio(
+                "",
+                options=["Public Transit", "Car"],
+                horizontal=True,
+                index=0
+            )
         # Map selection values back to original keys
         selected_transport = "transit" if selected_transport == "Public Transit" else "driving"
         
