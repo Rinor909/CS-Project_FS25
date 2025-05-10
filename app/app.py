@@ -25,7 +25,7 @@ def main():
     # Page configuration - clean and wide layout
     st.set_page_config(
         page_title="ImmoInsight ZH",
-        page_icon="📊",
+        page_icon="🦁",
         layout="wide",
         initial_sidebar_state="expanded"
     )
