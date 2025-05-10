@@ -275,81 +275,69 @@ def main():
                 st.info("No historical price data available for this neighborhood.")
         
         # Tab 2: Location
-        with tab2:
-            st.subheader("Interactive Maps")
-            
-            # Map type selection
-            map_type = st.radio(
-                "Map Type",
-                options=["Property Prices", "Travel Times"],
-                horizontal=True
+with tab2:
+    st.subheader("Interactive Maps")
+    
+    # Map type selection
+    map_type = st.radio(
+        "Map Type",
+        options=["Property Prices", "Travel Times"],
+        horizontal=True
+    )
+    
+    if map_type == "Property Prices":
+        # Selection for year and number of rooms
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            years = sorted(df_quartier['Jahr'].unique(), reverse=True) if 'Jahr' in df_quartier.columns else [2024]
+            selected_year = st.selectbox("Year", options=years, index=0)
+        
+        with col2:
+            zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique()) if 'Zimmeranzahl_num' in df_quartier.columns else [3]
+            map_zimmer = st.selectbox("Number of rooms", options=zimmer_options_map, index=2 if len(zimmer_options_map) > 2 else 0)
+        
+        try:
+            # Create property price map
+            price_map = create_price_heatmap(
+                df_quartier, 
+                quartier_coords, 
+                selected_year=selected_year, 
+                selected_zimmer=map_zimmer
             )
             
-            if map_type == "Property Prices":
-                # Selection for year and number of rooms
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    years = sorted(df_quartier['Jahr'].unique(), reverse=True) if 'Jahr' in df_quartier.columns else [2024]
-                    selected_year = st.selectbox("Year", options=years, index=0)
-                
-                with col2:
-                    zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique()) if 'Zimmeranzahl_num' in df_quartier.columns else [3]
-                    map_zimmer = st.selectbox("Number of rooms", options=zimmer_options_map, index=2 if len(zimmer_options_map) > 2 else 0)
-                
-                try:
-                    # Create property price map
-                    price_map = create_price_heatmap(
-                        df_quartier, 
-                        quartier_coords, 
-                        selected_year=selected_year, 
-                        selected_zimmer=map_zimmer
-                    )
-                    
-                    # Update map styling
-                    price_map.update_layout(
-                        mapbox_style="light",
-                        font=dict(family="Arial, sans-serif"),
-                        margin=dict(l=0, r=0, t=50, b=0),
-                    )
-                    
-                    st.plotly_chart(price_map, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Error creating price map: {str(e)}")
-                    st.info("Make sure you have properly processed data and valid coordinates.")
-                
-            else:  # Travel Times
-                # Selection for destination and transport mode
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    zielorte = df_travel_times['Zielort'].unique() if not df_travel_times.empty and 'Zielort' in df_travel_times.columns else ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']
-                    selected_ziel = st.selectbox("Destination", options=zielorte, index=0)
-                
-                with col2:
-                    transport_options_map = df_travel_times['Transportmittel'].unique() if not df_travel_times.empty and 'Transportmittel' in df_travel_times.columns else ['transit', 'driving']
-                    map_transport = st.selectbox("Transport Mode", options=transport_options_map, index=0)
-                
-                try:
-                    # Create travel time map
-                    travel_map = create_travel_time_map(
-                        df_travel_times, 
-                        quartier_coords, 
-                        zielort=selected_ziel, 
-                        transportmittel=map_transport
-                    )
-                    
-                    # Update map styling
-                    travel_map.update_layout(
-                        mapbox_style="light",
-                        font=dict(family="Arial, sans-serif"),
-                        margin=dict(l=0, r=0, t=50, b=0),
-                    )
-                    
-                    st.plotly_chart(travel_map, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Error creating travel time map: {str(e)}")
-                    st.info("Make sure you have generated travel time data first.")
+            # Let the map function handle layout - don't override here
+            st.plotly_chart(price_map, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error creating price map: {str(e)}")
+            st.info("Make sure you have properly processed data and valid coordinates.")
+        
+    else:  # Travel Times
+        # Selection for destination and transport mode
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            zielorte = df_travel_times['Zielort'].unique() if not df_travel_times.empty and 'Zielort' in df_travel_times.columns else ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']
+            selected_ziel = st.selectbox("Destination", options=zielorte, index=0)
+        
+        with col2:
+            transport_options_map = df_travel_times['Transportmittel'].unique() if not df_travel_times.empty and 'Transportmittel' in df_travel_times.columns else ['transit', 'driving']
+            map_transport = st.selectbox("Transport Mode", options=transport_options_map, index=0)
+        
+        try:
+            # Create travel time map
+            travel_map = create_travel_time_map(
+                df_travel_times, 
+                quartier_coords, 
+                zielort=selected_ziel, 
+                transportmittel=map_transport
+            )
+            
+            # Let the map function handle layout - don't override here
+            st.plotly_chart(travel_map, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error creating travel time map: {str(e)}")
+            st.info("Make sure you have generated travel time data first.")
         
         # Tab 3: Market Trends
         with tab3:
