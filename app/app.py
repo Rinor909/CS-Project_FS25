@@ -134,10 +134,6 @@ def main():
             )
         # Map selection values back to original keys
         selected_transport = "transit" if selected_transport == "Public Transit" else "driving"
-
-        # "Discover" button
-        st.write("")
-        discover_btn = st.button("Discover the Price", type="primary", use_container_width=True)
         
     # Get travel times for the selected neighborhood
     travel_times = get_travel_times_for_quartier(
