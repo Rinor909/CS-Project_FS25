@@ -403,7 +403,7 @@ def main():
                 importance_data = {
                     'Feature': ['Nachbarschaft', 'Reisezeit nach HB', 'Zimmeranzahl', 'Baujahr', 'Reisezeit nach Flughafen'],
                     'Importance': [0.45, 0.25, 0.15, 0.10, 0.05]
-                }
+                }   
                 df_importance = pd.DataFrame(importance_data)
                 
                 fig = px.bar(
