@@ -174,7 +174,7 @@ def main():
         
         # Tabs for different views
         tab1, tab2, tab3 = st.tabs([
-            "📊 Property Analysis fkhflén", 
+            "📊 Property Analysis", 
             "🗺️ Location", 
             "📈 Market Trends"
         ])
