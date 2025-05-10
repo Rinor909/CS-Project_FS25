@@ -412,8 +412,8 @@ def main():
                     y='Feature',
                     orientation='h',
                     title='Factors Influencing Property Prices',
-                    color='Importance',
-                    color_continuous_scale='Blues'
+                    #color='Importance',
+                    #color_continuous_scale='Blues'
                 )
                 
                 # Improve chart styling
