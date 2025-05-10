@@ -44,7 +44,10 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         fig.update_layout(
             title=f"No data available for year {selected_year} and {selected_zimmer} rooms",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -78,7 +81,10 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         fig.update_layout(
             title="No mappable data available. Check neighborhood coordinates.",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -116,7 +122,10 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
             coloraxis_colorbar=dict(
                 title='Price (CHF)',
                 tickformat=',.0f'
-            )
+            ),
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         
         return fig
@@ -127,7 +136,10 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         fig.update_layout(
             title=f"Error creating map: {str(e)}",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
 
@@ -152,7 +164,10 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
         fig.update_layout(
             title="No travel time data available. Please run generate_travel_times.py first.",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -168,7 +183,10 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
         fig.update_layout(
             title=f"No travel time data available for {zielort} with {transportmittel}",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -192,7 +210,10 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
         fig.update_layout(
             title="No mappable travel time data available. Check neighborhood coordinates.",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -225,7 +246,10 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
             coloraxis_colorbar=dict(
                 title='Minutes',
                 tickformat=',.0f'
-            )
+            ),
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         
         return fig
@@ -236,7 +260,10 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
         fig.update_layout(
             title=f"Error creating map: {str(e)}",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
 
@@ -260,7 +287,10 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         fig.update_layout(
             title="No data available. Please run data preparation scripts first.",
             height=400,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -279,7 +309,10 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
             fig.update_layout(
                 title=f"No data available for the selected neighborhoods and {selected_zimmer} rooms",
                 height=400,
-                width=800
+                width=800,
+                plot_bgcolor="#1E1E1E",
+                paper_bgcolor="#1E1E1E",
+                font=dict(color="#FFFFFF")
             )
             return fig
         
@@ -313,7 +346,10 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
             height=400,
             width=800,
             barmode='group',
-            xaxis={'categoryorder': 'total descending'}
+            xaxis={'categoryorder': 'total descending'},
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         
         return fig
@@ -324,7 +360,10 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         fig.update_layout(
             title=f"Error creating chart: {str(e)}",
             height=400,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
 
@@ -348,7 +387,10 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
         fig.update_layout(
             title="No data available. Please run data preparation scripts first.",
             height=400,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
@@ -365,7 +407,10 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
             fig.update_layout(
                 title=f"No data available for the selected neighborhoods and {selected_zimmer} rooms",
                 height=400,
-                width=800
+                width=800,
+                plot_bgcolor="#1E1E1E",
+                paper_bgcolor="#1E1E1E",
+                font=dict(color="#FFFFFF")
             )
             return fig
         
@@ -393,7 +438,10 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
             yaxis_title='Median Purchase Price (CHF)',
             legend_title='Neighborhood',
             yaxis=dict(tickformat=',.0f'),
-            hovermode='x unified'
+            hovermode='x unified',
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         
         return fig
@@ -404,6 +452,9 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
         fig.update_layout(
             title=f"Error creating chart: {str(e)}",
             height=400,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
