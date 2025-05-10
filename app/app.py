@@ -124,8 +124,8 @@ def main():
                 format_func=lambda x: str(x),
                 use_container_width=True
             )
-            # Transportation mode
-            st.write("")
+            # Transportation mode - Put this in its own container
+        with st.container(border=True):
             st.subheader("Transportation Mode")
             selected_transport = st.radio(
                 "",
@@ -135,7 +135,7 @@ def main():
             )
         # Map selection values back to original keys
         selected_transport = "transit" if selected_transport == "Public Transit" else "driving"
-        
+
         # "Discover" button
         st.write("")
         discover_btn = st.button("Discover the Price", type="primary", use_container_width=True)
