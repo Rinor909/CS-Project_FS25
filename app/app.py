@@ -109,7 +109,7 @@ def main():
         # Property details
         with st.container(border=True):
             # Size slider
-            st.subheader("Anzahl der Zimmer")
+            st.subheader("Zimmeranzahl")
             selected_zimmer = st.slider(
                 "",
                 min_value=1,
@@ -129,7 +129,7 @@ def main():
             )
             # Transportation mode - Put this in its own container
         with st.container(border=True):
-            st.subheader("Transportmodus")
+            st.subheader("Transportmittel")
             selected_transport = st.radio(
                 "",
                 options=["öffentlicher Verkehr", "Auto"],
@@ -185,7 +185,7 @@ def main():
             
             with col1:
                 # Neighborhood statistics
-                st.subheader("Neighborhood Statistics")
+                st.subheader("Nachbarschaftsstatistiken")
                 
                 quartier_stats = get_quartier_statistics(selected_quartier, df_quartier)
                 
@@ -194,30 +194,30 @@ def main():
                 
                 # Use columns for metrics
                 m1, m2 = st.columns(2)
-                m1.metric("Median Price", f"{quartier_stats['median_preis']:,.0f} CHF")
-                m2.metric("Price per m²", f"{quartier_stats['preis_pro_qm']:,.0f} CHF")
+                m1.metric("Medianpreis", f"{quartier_stats['median_preis']:,.0f} CHF")
+                m2.metric("Preis pro m²", f"{quartier_stats['preis_pro_qm']:,.0f} CHF")
                 
                 m3, m4 = st.columns(2)
                 m3.metric("vs. Median", f"{min_max_ratio:+.1f}%", delta_color="inverse")
-                m4.metric("Data Points", quartier_stats['anzahl_objekte'])
+                m4.metric("Datenpunkte", quartier_stats['anzahl_objekte'])
             
             with col2:
                 # Travel times visualization
-                st.subheader("Travel Times")
+                st.subheader("Reisezeiten")
                 
                 travel_times_data = [
-                    {"Destination": key, "Minutes": value} for key, value in travel_times.items()
+                    {"Reiseziel": key, "Minuten": value} for key, value in travel_times.items()
                 ]
                 df_travel_viz = pd.DataFrame(travel_times_data)
 
                 if not df_travel_viz.empty:
                     fig = px.bar(
                         df_travel_viz,
-                        x="Destination",
-                        y="Minutes",
+                        x="Reiseziel",
+                        y="Minuten",
                         #color="Minutes",
                         #color_continuous_scale="Blues",
-                        title=f"Travel Times from {selected_quartier}"
+                        title=f"Reisezeiten ab {selected_quartier}"
                     )
                     
                     # Improve figure styling
@@ -230,10 +230,10 @@ def main():
                     
                     st.plotly_chart(fig, use_container_width=True)
                 else:
-                    st.info("No travel time data available for this neighborhood.")
+                    st.info("Für dieses Viertel sind keine Reisezeitdaten verfügbar.")
             
             # Price history
-            st.subheader("Price Development")
+            st.subheader("Preisentwicklung")
             
             price_history = get_price_history(selected_quartier, df_quartier)
             
@@ -242,7 +242,7 @@ def main():
                     price_history,
                     x="Jahr",
                     y="MedianPreis",
-                    title=f"Price Development in {selected_quartier}",
+                    title=f"Preisentwicklung in {selected_quartier}",
                     markers=True,
                     color_discrete_sequence=["#1565C0"]
                 )
@@ -253,36 +253,36 @@ def main():
                     paper_bgcolor="white",
                     font=dict(family="Arial, sans-serif", size=12),
                     margin=dict(l=40, r=20, t=40, b=20),
-                    yaxis_title="Median Price (CHF)",
-                    xaxis_title="Year"
+                    yaxis_title="Medianpreis (CHF)",
+                    xaxis_title="Jahr"
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No historical price data available for this neighborhood.")
+                st.info("Für dieses Viertel sind keine historischen Preisdaten verfügbar.")
         
         # Tab 2: Location
     with tab2:
-        st.subheader("Interactive Maps")
+        st.subheader("Interaktive Karten")
         
         # Map type selection
         map_type = st.radio(
             "Map Type",
-            options=["Property Prices", "Travel Times"],
+            options=["Immobilienpreise", "Reisezeiten"],
             horizontal=True
         )
         
-        if map_type == "Property Prices":
+        if map_type == "Immobilienpreise":
             # Selection for year and number of rooms
             col1, col2 = st.columns(2)
             
             with col1:
                 years = sorted(df_quartier['Jahr'].unique(), reverse=True) if 'Jahr' in df_quartier.columns else [2024]
-                selected_year = st.selectbox("Year", options=years, index=0)
+                selected_year = st.selectbox("Jahr", options=years, index=0)
             
             with col2:
                 zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique()) if 'Zimmeranzahl_num' in df_quartier.columns else [3]
-                map_zimmer = st.selectbox("Number of rooms", options=zimmer_options_map, index=2 if len(zimmer_options_map) > 2 else 0)
+                map_zimmer = st.selectbox("Zimmeranzahl", options=zimmer_options_map, index=2 if len(zimmer_options_map) > 2 else 0)
             
             try:
                 # Create property price map
@@ -296,8 +296,8 @@ def main():
                 # Let the map function handle layout - don't override here
                 st.plotly_chart(price_map, use_container_width=True)
             except Exception as e:
-                st.error(f"Error creating price map: {str(e)}")
-                st.info("Make sure you have properly processed data and valid coordinates.")
+                st.error(f"Fehler beim Erstellen der Preistabelle: {str(e)}")
+                st.info("Stellen Sie sicher, dass Sie ordnungsgemäss verarbeitete Daten und gültige Koordinaten haben.")
             
         else:  # Travel Times
             # Selection for destination and transport mode
@@ -305,11 +305,11 @@ def main():
             
             with col1:
                 zielorte = df_travel_times['Zielort'].unique() if not df_travel_times.empty and 'Zielort' in df_travel_times.columns else ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']
-                selected_ziel = st.selectbox("Destination", options=zielorte, index=0)
+                selected_ziel = st.selectbox("Zielort", options=zielorte, index=0)
             
             with col2:
                 transport_options_map = df_travel_times['Transportmittel'].unique() if not df_travel_times.empty and 'Transportmittel' in df_travel_times.columns else ['transit', 'driving']
-                map_transport = st.selectbox("Transport Mode", options=transport_options_map, index=0)
+                map_transport = st.selectbox("Transportmittel", options=transport_options_map, index=0)
             
             try:
                 # Create travel time map
@@ -323,16 +323,16 @@ def main():
                 # Let the map function handle layout - don't override here
                 st.plotly_chart(travel_map, use_container_width=True)
             except Exception as e:
-                st.error(f"Error creating travel time map: {str(e)}")
-                st.info("Make sure you have generated travel time data first.")
+                st.error(f"Fehler beim Erstellen der Reisekarte: {str(e)}")
+                st.info("Stellen Sie sicher, dass Sie zunächst Reisezeitdaten generiert haben.")
         
         # Tab 3: Market Trends
         with tab3:
-            st.subheader("Neighborhood Comparison")
+            st.subheader("Nachbarschaftsvergleich")
             
             # Select multiple neighborhoods for comparison
             compare_quartiere = st.multiselect(
-                "Select neighborhoods to compare",
+                "Wählen Sie Nachbarschaften zum Vergleich",
                 options=quartier_options,
                 default=[selected_quartier]
             )
@@ -340,7 +340,7 @@ def main():
             if len(compare_quartiere) > 0:
                 # Select number of rooms for comparison
                 compare_zimmer = st.select_slider(
-                    "Number of rooms for comparison",
+                    "Zimmeranzahl zum Vergleich",
                     options=[1, 2, 3, 4, 5, 6],
                     value=selected_zimmer
                 )
@@ -368,7 +368,7 @@ def main():
                     st.plotly_chart(price_comparison, use_container_width=True)
                     
                     # Time series comparison
-                    st.subheader("Price Trends Comparison")
+                    st.subheader("Preis Trends im Vergleich")
                     
                     time_series = create_price_time_series(
                         df_quartier, 
@@ -393,15 +393,15 @@ def main():
                     
                     st.plotly_chart(time_series, use_container_width=True)
                 except Exception as e:
-                    st.error(f"Error creating comparison charts: {str(e)}")
+                    st.error(f"Fehler beim Erstellen der Vergleichskarten: {str(e)}")
                     st.info("Make sure you have properly processed data.")
                 
                 # Feature Importance
-                st.subheader("Price Influencing Factors")
+                st.subheader("Preisbeeinflussende Faktoren")
                 
                 # Simulated Feature Importance for the demo
                 importance_data = {
-                    'Feature': ['Neighborhood', 'Travel Time to HB', 'Number of Rooms', 'Construction Year', 'Travel Time to Airport'],
+                    'Feature': ['Nachbarschaft', 'Reisezeit nach HB', 'Zimmeranzahl', 'Baujahr', 'Reisezeit nach Flughafen'],
                     'Importance': [0.45, 0.25, 0.15, 0.10, 0.05]
                 }
                 df_importance = pd.DataFrame(importance_data)
@@ -411,7 +411,7 @@ def main():
                     x='Importance',
                     y='Feature',
                     orientation='h',
-                    title='Factors Influencing Property Prices',
+                    title='Faktoren, die die Immobilienpreise beeinflussen',
                     #color='Importance',
                     #color_continuous_scale='Blues'
                 )
@@ -427,11 +427,11 @@ def main():
                 
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("Please select at least one neighborhood for comparison.")
+                st.info("Bitte wählen Sie mindestens ein Stadtviertel zum Vergleich aus.")
     
     # ---- MAP SECTION ----
     # Create a map of Zurich
-    st.subheader("Zurich Map")
+    st.subheader("Zürich Karte")
     
     # Get Zurich coordinates
     # zurich_coords = get_zurich_coordinates()
@@ -450,13 +450,13 @@ def main():
     folium.Marker(
         [coords['latitude'], coords['longitude']],
         tooltip="Zurich",
-        popup="Zurich center"
+        popup="City (Kreis 1)"
     ).add_to(map_folium)
 
     st_folium(map_folium, width=1400, height=500)
     
     # ---- FOOTER ----
-    st.caption("Developed for HSG Computer Science Project | Data Source: opendata.swiss | © 2025 ValueState Zürich")
+    st.caption("Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: " "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | " "[Immobillienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3")
 
 if __name__ == "__main__":
     # Put our modules in the path
