@@ -456,8 +456,11 @@ def main():
     st_folium(map_folium, width=1400, height=500)
     
     # ---- FOOTER ----
-    st.caption("Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: " "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | " "[Immobillienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3")
-
+    st.caption(
+        "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
+        "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
+        "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
+    )
 if __name__ == "__main__":
     # Put our modules in the path
     import sys
