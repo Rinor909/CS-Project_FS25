@@ -462,7 +462,7 @@ def main():
                 st.markdown("#### Modellvorhersagen vs. tatsächliche Preise")
                 
                 # Path to the CSV file
-                prediction_data_path = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data\processed\model_evaluation_results.csv"
+                prediction_data_path = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/model_evaluation_results.csv'
                 
                 # Try to load actual prediction data
                 try:
@@ -585,83 +585,114 @@ def main():
                     st.caption("*Hinweis: Dies sind Beispieldaten, nicht die tatsächlichen Modellergebnisse*")
             
             # Feature importance section
-            st.markdown("### Feature Importance")
-            st.write("""
-            Die folgende Grafik zeigt, welche Faktoren den größten Einfluss auf die Immobilienpreise in Zürich haben.
-            Diese Feature Importance-Werte basieren auf dem trainierten Gradient Boosting-Modell.
-            """)
+            st.subheader("Feature Importance")
+            st.write("Die folgende Grafik zeigt, welche Faktoren den größten Einfluss auf die Immobilienpreise in Zürich haben. Diese Feature Importance-Werte basieren auf dem trainierten Gradient Boosting-Modell.")
             
-            # Feature importance plot based on actual model values from EDA
-            # Replace with actual feature importance values from your model
-            feature_importance = pd.DataFrame({
-                'Feature': ['Quartier', 'Quartier_Preisniveau', 'Reisezeit_Hauptbahnhof', 
-                        'Zimmeranzahl', 'Baujahr', 'Reisezeit_Flughafen', 'PreisProQm'],
-                'Importance': [0.42, 0.23, 0.12, 0.10, 0.07, 0.04, 0.02]
-            })
-            
-            feature_importance = feature_importance.sort_values('Importance', ascending=True)
-            
-            feature_map = {
-                'Quartier': 'Nachbarschaft',
-                'Quartier_Preisniveau': 'Nachbarschafts-Preisniveau',
-                'Reisezeit_Hauptbahnhof': 'Reisezeit zum HB',
-                'Zimmeranzahl': 'Anzahl Zimmer',
-                'Baujahr': 'Baujahr',
-                'Reisezeit_Flughafen': 'Reisezeit zum Flughafen',
-                'PreisProQm': 'Preis pro Quadratmeter'
-            }
-            
-            feature_importance['Feature'] = feature_importance['Feature'].map(feature_map)
-            
-            fig = px.bar(
-                feature_importance,
-                x='Importance',
-                y='Feature',
-                orientation='h',
-                title='Einfluss der verschiedenen Faktoren auf den Immobilienpreis',
-                color='Importance',
-                color_continuous_scale='Blues'
-            )
-            
-            # Improve chart styling
-            fig.update_layout(
-                plot_bgcolor="white",
-                paper_bgcolor="white",
-                font=dict(family="Arial, sans-serif", size=12),
-                margin=dict(l=40, r=20, t=50, b=20),
-                xaxis_title="Relativer Einfluss",
-                yaxis_title="",
-                coloraxis_showscale=False
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
+            # Try to load actual feature importance
+            try:
+                feature_imp_df = pd.read_csv('https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/feature_importance.csv')
+                
+                # Map technical feature names to user-friendly names
+                feature_map = {
+                    'Quartier_Code': 'Nachbarschaft',
+                    'Zimmeranzahl_num': 'Anzahl Zimmer',
+                    'PreisProQm': 'Preis pro Quadratmeter',
+                    'MedianPreis_Baualter': 'Median-Preis nach Baualter',
+                    'Durchschnitt_Baujahr': 'Baujahr',
+                    'Preis_Verhältnis': 'Preis-Verhältnis',
+                    'Quartier_Preisniveau': 'Nachbarschafts-Preisniveau',
+                    'Reisezeit_Hauptbahnhof': 'Reisezeit zum HB',
+                    'Reisezeit_Flughafen': 'Reisezeit zum Flughafen'
+                }
+                
+                # Apply mapping where possible
+                feature_imp_df['Feature_Display'] = feature_imp_df['Feature'].apply(
+                    lambda x: feature_map.get(x, x)
+                )
+                
+                # Sort by importance and get top features
+                feature_imp_df = feature_imp_df.sort_values('Importance', ascending=True).tail(10)
+                
+                # Create bar chart
+                fig = px.bar(
+                    feature_imp_df,
+                    x='Importance',
+                    y='Feature_Display',
+                    orientation='h',
+                    title='Einfluss der verschiedenen Faktoren auf den Immobilienpreis',
+                    color='Importance',
+                    color_continuous_scale='Blues'
+                )
+                
+                # Improve chart styling
+                fig.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=50, b=20),
+                    xaxis_title="Relativer Einfluss",
+                    yaxis_title="",
+                    coloraxis_showscale=False
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                # Fallback to example feature importance
+                st.warning("Konnte keine gespeicherten Feature-Importance-Daten laden - Beispieldaten werden angezeigt.")
+                
+                # Example feature importance data
+                feature_importance = pd.DataFrame({
+                    'Feature': ['Nachbarschaft', 'Nachbarschafts-Preisniveau', 'Reisezeit zum HB', 
+                            'Anzahl Zimmer', 'Baujahr', 'Reisezeit zum Flughafen', 'Preis pro Quadratmeter'],
+                    'Importance': [0.42, 0.23, 0.12, 0.10, 0.07, 0.04, 0.02]
+                })
+                
+                feature_importance = feature_importance.sort_values('Importance', ascending=True)
+                
+                fig = px.bar(
+                    feature_importance,
+                    x='Importance',
+                    y='Feature',
+                    orientation='h',
+                    title='Einfluss der verschiedenen Faktoren auf den Immobilienpreis',
+                    color='Importance',
+                    color_continuous_scale='Blues'
+                )
+                
+                # Improve chart styling
+                fig.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=50, b=20),
+                    xaxis_title="Relativer Einfluss",
+                    yaxis_title="",
+                    coloraxis_showscale=False
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
             
             # Methodology explanation
-            st.markdown("### Methodik")
+            st.subheader("Methodik")
             
-            st.write("""
-            #### Datenaufbereitung
-            1. **Datenbereinigung**: Fehlende Werte wurden durch Medianwerte ersetzt, Outliers wurden identifiziert und behandelt
-            2. **Feature Engineering**: Kategoriale Variablen wurden kodiert, Reisezeitdaten wurden integriert
-            3. **Datentransformation**: Preisniveau-Faktoren für jedes Quartier wurden berechnet
+            # Create columns for methodology explanation
+            method_col1, method_col2 = st.columns(2)
             
-            #### Modelltraining
-            1. **Modellauswahl**: Gradient Boosting wurde nach Vergleich mit linearer Regression und Random Forest ausgewählt
-            2. **Hyperparameter-Tuning**: Die optimalen Parameter wurden mittels Grid-Search bestimmt
-            3. **Kreuzvalidierung**: 5-fache Kreuzvalidierung wurde durchgeführt, um die Robustheit des Modells zu gewährleisten
+            with method_col1:
+                st.markdown("#### Datenaufbereitung")
+                st.markdown("1. **Datenbereinigung**: Fehlende Werte wurden durch Medianwerte ersetzt, Outliers wurden identifiziert und behandelt")
+                st.markdown("2. **Feature Engineering**: Kategoriale Variablen wurden kodiert, Reisezeitdaten wurden integriert")
+                st.markdown("3. **Datentransformation**: Preisniveau-Faktoren für jedes Quartier wurden berechnet")
             
-            #### Modellevaluierung
-            1. **Train-Test-Split**: 80% der Daten wurden zum Training verwendet, 20% zum Testen
-            2. **Evaluationsmetriken**: MAE, RMSE und R² wurden berechnet
-            3. **Feature Importance**: Die Bedeutung der einzelnen Merkmale wurde analysiert
-            """)
+            with method_col2:
+                st.markdown("#### Modelltraining")
+                st.markdown("1. **Modellauswahl**: Gradient Boosting wurde nach Vergleich mit linearer Regression und Random Forest ausgewählt")
+                st.markdown("2. **Hyperparameter-Tuning**: Die optimalen Parameter wurden mittels Grid-Search bestimmt")
+                st.markdown("3. **Kreuzvalidierung**: 5-fache Kreuzvalidierung wurde durchgeführt, um die Robustheit des Modells zu gewährleisten")
             
             # Interactive feature
-            st.markdown("### Interaktive Sensitivitätsanalyse")
-            st.write("""
-            Hier können Sie sehen, wie sich der Preis ändert, wenn Sie einen einzelnen Faktor variieren,
-            während alle anderen Faktoren konstant bleiben.
-            """)
+            st.subheader("Interaktive Sensitivitätsanalyse")
+            st.write("Hier können Sie sehen, wie sich der Preis ändert, wenn Sie einen einzelnen Faktor variieren, während alle anderen Faktoren konstant bleiben.")
             
             # Let user select a feature to analyze
             feature_to_vary = st.selectbox(
@@ -746,12 +777,11 @@ def main():
             
             # Add a note about limitations
             st.info("""
-            **Modelleinschränkungen**:
+            Modelleinschränkungen:
             - Das Modell basiert auf historischen Daten und kann unerwartete Marktveränderungen nicht vorhersagen
             - Faktoren wie Ausstattungsqualität oder Grundriss der Wohnung werden nicht berücksichtigt
             - Mikro-Standortfaktoren wie Aussicht oder Lärmbelastung können den tatsächlichen Preis beeinflussen
             """)
-                
     
     # ---- MAP SECTION ----
     # Create a map of Zurich
