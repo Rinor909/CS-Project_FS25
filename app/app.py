@@ -89,9 +89,9 @@ def main():
         
         # Property location with container styling
         with st.container(border=True):
-            st.subheader("Property Location")
+            st.subheader("Immobilienstandort")
             selected_quartier = st.selectbox(
-                "The real estate location goes here",
+                "Der Immobilienstandort geht hier hin:",
                 options=quartier_options,
                 index=0
             )
