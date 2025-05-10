@@ -126,16 +126,6 @@ def main():
                     index=20,  # Default to 2000
                     format_func=lambda x: str(x)
                 )
-            
-            with col2:
-                # Room count as dropdown
-                st.subheader("Rooms")
-                rooms_display = st.selectbox(
-                    "",
-                    options=[f"{i} Rooms" for i in range(1, 7)],
-                    index=2  # Default to 3 rooms
-                )
-        
         # Transportation mode
         st.write("")
         st.subheader("Transportation Mode")
