@@ -446,9 +446,9 @@ def main():
                 #Creating a data metrics timeframe
                 metrics_data = {
                     'Metrik': ['MAE (CHF)', 'RSME (CHF)', 'R²'],
-                    'Gradient Boosting': ['98,750', '132,420', '0.89'],
-                    'Random Forest': ['105,230', '142,850', '0.85'],
-                    'Lineare Regression': ['185,430', '265,120', '0.71']
+                    'Gradient Boosting': ['136207.58', '303630.72', '0.9198'],
+                    'Random Forest': ['174884.88', '405427.03', '0.8570'],
+                    'Lineare Regression': ['360458.99', '496903.20', '0.7851']
                 }
                 metrics_df = pd.DataFrame(metrics_data)
                 # Show metrics as a table
