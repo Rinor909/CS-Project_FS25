@@ -90,10 +90,10 @@ def main():
             return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), None, {}, {}
 
     # Header
-    st.markdown('<div class="main-header">🏡 Zurich Real Estate Price Prediction</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">🏡 ImmoInsight Zürich</div>', unsafe_allow_html=True)
     st.markdown("""
-    This app analyzes and predicts real estate prices in Zurich based on neighborhood, 
-    number of rooms, construction year, and travel times to important destinations.
+    Diese App analysiert und prognostiziert die Immobilienpreise in Zürich auf der Basis von Nachbarschaft, 
+ Anzahl Zimmer, Baujahr und Fahrzeiten zu wichtigen Zielen.
     """)
     
     # Load data and model
