@@ -109,18 +109,18 @@ def main():
         # Property details
         with st.container(border=True):
             # Size slider
-            st.subheader("Size")
+            st.subheader("Anzahl der Zimmer")
             selected_zimmer = st.slider(
                 "",
                 min_value=1,
                 max_value=6,
                 value=3,
                 step=1,
-                format="%d Rooms"
+                format="%d Zimmer"
             )
             
                 # Construction year with dropdown
-            st.subheader("Construction Year")
+            st.subheader("Baujahr")
             selected_baujahr = st.selectbox(
                 "",
                 options=list(range(1900, 2026, 5)),
@@ -129,10 +129,10 @@ def main():
             )
             # Transportation mode - Put this in its own container
         with st.container(border=True):
-            st.subheader("Transportation Mode")
+            st.subheader("Transportmodus")
             selected_transport = st.radio(
                 "",
-                options=["Public Transit", "Car"],
+                options=["öffentlicher Verkehr", "Auto"],
                 horizontal=True,
                 index=0
             )
@@ -161,12 +161,12 @@ def main():
     # Put main content in a container
     with st.container(border=True):
         # Property valuation section
-        st.subheader("Property Valuation")
+        st.subheader("Immobilienbewertung")
         
         # Price display in a colored container
         price_container = st.container(border=False)
         price_container.metric(
-            label="Estimated Property Value",
+            label="Geschätzer Immobilienwert",
             value=f"{predicted_price:,.0f} CHF" if predicted_price else "N/A",
             delta=f"{round((predicted_price / 1000000 - 1) * 100, 1):+.1f}%" if predicted_price else None,
             delta_color="inverse"
@@ -174,9 +174,9 @@ def main():
         
         # Tabs for different views
         tab1, tab2, tab3 = st.tabs([
-            "📊 Property Analysis", 
-            "🗺️ Location", 
-            "📈 Market Trends"
+            "📊 Immobilienanalyse", 
+            "🗺️ Standort", 
+            "📈 Marktentwicklungen"
         ])
         
         # Tab 1: Property Analysis
