@@ -64,7 +64,7 @@ def main():
     with header_col1:
         # Logo area
         st.image("https://i.ibb.co/Fb2X2QRB/Logo-Immo-Insight-ZH-w-bg.png", width=200)
-        st.caption("VALUESTATE ZÜRICH")
+        st.caption("Immo Insight Zürich")
     
     with header_col2:
         # Title and subtitle
