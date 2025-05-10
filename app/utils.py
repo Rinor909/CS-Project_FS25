@@ -136,7 +136,7 @@ def load_quartier_mapping():
 
 def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
     """
-    Prepares input data for the model
+    Prepares input data for the model with proper handling of construction year
     
     Args:
         quartier_code (int): Neighborhood code
@@ -151,6 +151,8 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
     aktuelles_jahr = 2025  # Current year
     alter = aktuelles_jahr - baujahr
     
+    print(f"Processing input: Quartier={quartier_code}, Zimmer={zimmeranzahl}, Baujahr={baujahr}")
+    
     # Load neighborhood-specific statistics
     try:
         # Try to load from GitHub
@@ -159,21 +161,18 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
         
         model_input_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/modell_input_final.csv"
         
-        print("Loading model input data from GitHub...")
+        print("Loading model input data...")
         response = requests.get(model_input_url)
         
         if response.status_code == 200:
             df_final = pd.read_csv(StringIO(response.text))
-            print(f"Successfully loaded model input data: {len(df_final)} rows")
+            print(f"Loaded model input data: {len(df_final)} rows")
         else:
             print(f"Error loading model input data: HTTP {response.status_code}")
             # Try local file
             if os.path.exists('data/processed/modell_input_final.csv'):
-                print("Trying to load model input data from local file...")
                 df_final = pd.read_csv('data/processed/modell_input_final.csv')
-                print(f"Loaded model input data from local file: {len(df_final)} rows")
             else:
-                print("No model input data found.")
                 # Create a default DataFrame if file doesn't exist
                 df_final = pd.DataFrame({
                     'Quartier_Code': [0],
@@ -193,11 +192,9 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
     quartier_data = df_final[df_final['Quartier_Code'] == quartier_code] if 'Quartier_Code' in df_final.columns else pd.DataFrame()
     
     if len(quartier_data) > 0:
-        print(f"Found data for neighborhood code {quartier_code}")
         quartier_preisniveau = quartier_data['Quartier_Preisniveau'].mean() if 'Quartier_Preisniveau' in quartier_data.columns else 1.0
         mediapreis_baualter = quartier_data['MedianPreis_Baualter'].mean() if 'MedianPreis_Baualter' in quartier_data.columns else 1000000
     else:
-        print(f"No data found for neighborhood code {quartier_code}. Using average values.")
         # Fallback: Use average values across all neighborhoods
         quartier_preisniveau = df_final['Quartier_Preisniveau'].mean() if 'Quartier_Preisniveau' in df_final.columns else 1.0
         mediapreis_baualter = df_final['MedianPreis_Baualter'].mean() if 'MedianPreis_Baualter' in df_final.columns else 1000000
@@ -208,8 +205,8 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
         'Zimmeranzahl_num': [zimmeranzahl],
         'PreisProQm': [quartier_preisniveau * 10000],  # Approximation
         'MedianPreis_Baualter': [mediapreis_baualter],
-        'Durchschnitt_Baujahr': [baujahr],
-        'Preis_Verhältnis': [1.0],  # Default value, will be adjusted by the model
+        'Durchschnitt_Baujahr': [baujahr],  # Make sure baujahr is used properly
+        'Preis_Verhältnis': [1.0],  # Default value
         'Quartier_Preisniveau': [quartier_preisniveau]
     })
     
@@ -218,14 +215,13 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
         if key in ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']:
             input_data[f'Reisezeit_{key}'] = value
     
-    print(f"Input data prepared: {input_data.columns.tolist()}")
-    print(f"Input data sample: {input_data.iloc[0].to_dict()}")
+    print(f"Prepared input data: {input_data.to_dict('records')[0]}")
     
     return input_data
 
 def predict_price(model, input_data):
     """
-    Predicts price based on input data
+    Predicts price based on input data with proper handling of construction year
     
     Args:
         model: Trained ML model
@@ -234,55 +230,91 @@ def predict_price(model, input_data):
     Returns:
         float: Predicted price
     """
+    # Extract key values from input data for logging and fallback calculations
+    quartier_code = input_data['Quartier_Code'].values[0] if 'Quartier_Code' in input_data.columns else 0
+    zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
+    baujahr = input_data['Durchschnitt_Baujahr'].values[0] if 'Durchschnitt_Baujahr' in input_data.columns else 2000
+    quartier_preisniveau = input_data['Quartier_Preisniveau'].values[0] if 'Quartier_Preisniveau' in input_data.columns else 1.0
+    
+    print(f"Predicting price for: Code={quartier_code}, Zimmer={zimmeranzahl}, Baujahr={baujahr}")
+    
     if model is None:
-        print("No model available for prediction.")
+        print("No model available for prediction. Using fallback calculation.")
         
-        # Only if absolutely necessary, use this as a last resort
-        # This is needed to prevent the app from completely failing
-        # when the model cannot be loaded for any reason
-        quartier_preisniveau = input_data['Quartier_Preisniveau'].values[0] if 'Quartier_Preisniveau' in input_data.columns else 1.0
-        mediapreis_baualter = input_data['MedianPreis_Baualter'].values[0] if 'MedianPreis_Baualter' in input_data.columns else 1000000
-        zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
+        # Use a fallback calculation that considers construction year
+        base_price = 1000000 * quartier_preisniveau
         
-        # Use the median price directly from input data and adjust by room count
-        base_price = mediapreis_baualter
-        room_factor = 1.0 + ((zimmeranzahl - 3) * 0.15)  # 15% per room difference from 3
-        calculated_price = base_price * room_factor * quartier_preisniveau
+        # Room factor: each room adds 15% to base price
+        room_factor = 1.0 + ((zimmeranzahl - 3) * 0.15)
         
-        print(f"Using fallback calculation: {calculated_price:.2f} CHF")
+        # Age factor: newer buildings are more expensive
+        # 2025 (current) - 1925 (100 years old) = 100 year range
+        # Map this to a factor between 0.7 and 1.3 (±30%)
+        aktuelles_jahr = 2025
+        max_age = 100
+        age = max(0, min(max_age, aktuelles_jahr - baujahr))
+        age_factor = 1.3 - (age / max_age * 0.6)  # Ranges from 0.7 to 1.3
+        
+        calculated_price = base_price * room_factor * age_factor
+        
+        print(f"Fallback calculation: Base={base_price:.0f}, Room factor={room_factor:.2f}, Age factor={age_factor:.2f}")
+        print(f"Calculated price: {calculated_price:.2f} CHF")
+        
         return calculated_price
     
     try:
-        # Make sure we have all required columns for prediction
-        print(f"Model features expected: {model.feature_names_in_ if hasattr(model, 'feature_names_in_') else 'Unknown'}")
-        print(f"Input data columns: {input_data.columns.tolist()}")
+        # Check if model has feature names
+        expected_features = []
+        if hasattr(model, 'feature_names_in_'):
+            expected_features = model.feature_names_in_
+            print(f"Model expects features: {expected_features}")
+            
+            # Check if any expected features are missing
+            missing_features = [f for f in expected_features if f not in input_data.columns]
+            if missing_features:
+                print(f"Warning: Missing features for model: {missing_features}")
         
         # Make the prediction
+        print("Making prediction with model...")
         prediction = model.predict(input_data)[0]
-        print(f"Model predicted: {prediction:.2f} CHF")
+        print(f"Raw model prediction: {prediction:.2f} CHF")
         
-        # Check if prediction is reasonable
-        if prediction <= 0 or prediction > 50000000:  # Sanity check
-            print(f"Warning: Prediction outside reasonable range. Using median price.")
-            return input_data['MedianPreis_Baualter'].values[0] if 'MedianPreis_Baualter' in input_data.columns else 1500000
+        # If prediction seems unreasonable, apply additional adjustment for construction year
+        if prediction < 500000 or prediction > 10000000:
+            print("Prediction outside reasonable range, applying adjustment.")
             
+            # Calculate age adjustment
+            aktuelles_jahr = 2025
+            max_age = 100
+            age = max(0, min(max_age, aktuelles_jahr - baujahr))
+            age_factor = 1.3 - (age / max_age * 0.6)  # Ranges from 0.7 to 1.3
+            
+            # Adjust prediction by age factor
+            adjusted_prediction = prediction * age_factor
+            print(f"Age-adjusted prediction: {adjusted_prediction:.2f} CHF (factor={age_factor:.2f})")
+            
+            return round(adjusted_prediction, 2)
+        
         return round(prediction, 2)
     except Exception as e:
         print(f"Error in price prediction: {e}")
         
-        # Use some values from input_data to create a more reasonable fallback
-        try:
-            quartier_preisniveau = input_data['Quartier_Preisniveau'].values[0] if 'Quartier_Preisniveau' in input_data.columns else 1.0
-            mediapreis_baualter = input_data['MedianPreis_Baualter'].values[0] if 'MedianPreis_Baualter' in input_data.columns else 1000000
-            zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
-            
-            # Use the median price directly from input data
-            calculated_price = mediapreis_baualter * quartier_preisniveau * (1.0 + ((zimmeranzahl - 3) * 0.15))
-            print(f"Using calculated price: {calculated_price:.2f} CHF")
-            return calculated_price
-        except:
-            # Absolute last resort
-            return 1500000
+        # Use a fallback calculation that considers construction year
+        base_price = 1000000 * quartier_preisniveau
+        
+        # Room factor: each room adds 15% to base price
+        room_factor = 1.0 + ((zimmeranzahl - 3) * 0.15)
+        
+        # Age factor: newer buildings are more expensive
+        aktuelles_jahr = 2025
+        max_age = 100
+        age = max(0, min(max_age, aktuelles_jahr - baujahr))
+        age_factor = 1.3 - (age / max_age * 0.6)  # Ranges from 0.7 to 1.3
+        
+        calculated_price = base_price * room_factor * age_factor
+        
+        print(f"Error fallback calculation: {calculated_price:.2f} CHF")
+        return calculated_price
 
 def get_travel_times_for_quartier(quartier, df_travel_times, transportmittel='transit'):
     """
