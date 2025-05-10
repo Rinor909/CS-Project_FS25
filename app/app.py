@@ -462,8 +462,8 @@ def main():
                 st.markdown("#### Modellvorhersagen vs. tatsächliche Preise")
                 
                 # Path to the CSV file
-                prediction_data_path = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/model_evaluation_results.csv'
-                
+                # Try this modified URL format
+                prediction_data_path = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/main/data/processed/model_evaluation_results.csv'                
                 # Try to load actual prediction data
                 try:
                     # Load the CSV with the prediction data
