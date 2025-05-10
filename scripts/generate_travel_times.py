@@ -4,51 +4,55 @@ import os
 import json
 import time
 import requests
-import streamlit as st
 import sys
 
-# Use Streamlit secrets for the API key
-try:
-    GOOGLE_MAPS_API_KEY = st.secrets["GOOGLE_MAPS_API_KEY"]
-except Exception as e:
-    print("Error: Could not load Google Maps API key from Streamlit secrets.")
-    # Try to get from environment variable as fallback
-    import os
+# Function to read API key directly from GitHub
+def get_api_key_from_github():
+    secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml'
+    try:
+        response = requests.get(secrets_url)
+        if response.status_code == 200:
+            content = response.text
+            for line in content.split('\n'):
+                if line.startswith('GOOGLE_MAPS_API_KEY'):
+                    api_key = line.split('=')[1].strip().strip('"').strip("'")
+                    return api_key
+        else:
+            print(f"Failed to get secrets file: HTTP {response.status_code}")
+    except Exception as e:
+        print(f"Error getting API key from GitHub: {e}")
+    return None
+
+# Try to get API key from GitHub
+print("Loading API key from GitHub...")
+GOOGLE_MAPS_API_KEY = get_api_key_from_github()
+
+# Fallback to environment variable if GitHub fails
+if not GOOGLE_MAPS_API_KEY:
+    print("Trying environment variable...")
     GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
-    
-    # If still no API key, exit with error
-    if not GOOGLE_MAPS_API_KEY:
-        print("ERROR: No Google Maps API key found.")
-        print("You must provide a Google Maps API key to calculate travel times.")
-        print("Set your API key in .streamlit/secrets.toml file:")
-        print('GOOGLE_MAPS_API_KEY = "your-api-key-here"')
-        print("Or set it as an environment variable.")
-        sys.exit(1)
+
+# Check if we have a key
+if not GOOGLE_MAPS_API_KEY:
+    print("ERROR: No Google Maps API key found.")
+    print("Please make sure your API key is correctly set in:")
+    print("https://github.com/Rinor909/zurich-real-estate/blob/main/.streamlit/secrets.toml")
+    sys.exit(1)
+else:
+    print(f"Successfully loaded API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:]}")
 
 # Use direct GitHub URLs for data loading
-# Wir lesen die CSV-Dateien mit eine Raw-Datei von unser GitHub Repo (sonst ging das nicht)
+print("Loading quartier data from GitHub...")
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv'
 
 try:
-    # Load processed quartier data from GitHub
-    print("Loading quartier data from GitHub...")
     df_quartier = pd.read_csv(url_quartier)
-    # Liste der eindeutigen Quartiere
     quartiere = df_quartier['Quartier'].unique()
     print(f"Loaded {len(quartiere)} unique neighborhoods.")
 except Exception as e:
     print(f"Error loading quartier data from GitHub: {e}")
-    # Fallback to local file if GitHub fails
-    try:
-        local_path = 'data/processed/quartier_processed.csv'
-        print(f"Trying to load from local path: {local_path}")
-        df_quartier = pd.read_csv(local_path)
-        quartiere = df_quartier['Quartier'].unique()
-        print(f"Loaded {len(quartiere)} unique neighborhoods from local file.")
-    except FileNotFoundError:
-        print("ERROR: No quartier data found. Please run data_preparation.py first.")
-        print("Run: python scripts/data_preparation.py")
-        sys.exit(1)
+    print("ERROR: Could not load quartier data.")
+    sys.exit(1)
 
 # Define output directory
 output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
@@ -211,7 +215,7 @@ if __name__ == "__main__":
     travel_times = []
     
     if len(quartiere) == 0:
-        print("ERROR: No neighborhoods found. Make sure quartier_processed.csv exists and contains neighborhood data.")
+        print("ERROR: No neighborhoods found.")
         sys.exit(1)
 
     # Limit the number of neighborhoods to process if too many
@@ -226,7 +230,6 @@ if __name__ == "__main__":
     
     print(f"Starting travel time calculations for {len(quartiere)} neighborhoods to {len(zielorte)} destinations...")
     print(f"Total calculations to perform: {total_calculations}")
-    print(f"Using Google Maps API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:] if GOOGLE_MAPS_API_KEY else ''}")
 
     # Verify API key works by testing one calculation
     test_quartier = quartiere[0]
