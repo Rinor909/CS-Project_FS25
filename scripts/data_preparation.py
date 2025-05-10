@@ -6,10 +6,19 @@ import warnings
 # Suppress specific NumPy warnings about mean of empty slice
 warnings.filterwarnings("ignore", category=RuntimeWarning, message="Mean of empty slice")
 warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered in")
+# Suppress the FutureWarning about inplace
+warnings.filterwarnings("ignore", category=FutureWarning, message=".*inplace.*")
+
+# Define the specific output directory
+output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
+processed_dir = os.path.join(output_dir, "processed")
 
 # Create directories if they don't exist
-os.makedirs('data/processed', exist_ok=True)
-os.makedirs('models', exist_ok=True)
+os.makedirs(processed_dir, exist_ok=True)
+os.makedirs(os.path.join(output_dir, "models"), exist_ok=True)
+
+print(f"Output directory: {output_dir}")
+print(f"Processed data will be saved to: {processed_dir}")
 
 # Wir lesen die CSV-Dateien mit eine Raw-Datei von unser GitHub Repo (sonst ging das nicht)
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv'
@@ -161,10 +170,29 @@ for column in df_final.columns:
 # Quartier als kategorisches Feature - später One-Hot-Encoding anwenden
 df_final['Quartier_Code'] = pd.Categorical(df_final['Quartier']).codes
 
-# Daten speichern
-df_quartier_clean.to_csv('data/processed/quartier_processed.csv', index=False)
-df_baualter_clean.to_csv('data/processed/baualter_processed.csv', index=False)
-df_final.to_csv('data/processed/modell_input_final.csv', index=False)
+# Daten speichern in den angegebenen Ordner
+quartier_path = os.path.join(processed_dir, 'quartier_processed.csv')
+baualter_path = os.path.join(processed_dir, 'baualter_processed.csv')
+final_path = os.path.join(processed_dir, 'modell_input_final.csv')
+
+df_quartier_clean.to_csv(quartier_path, index=False)
+df_baualter_clean.to_csv(baualter_path, index=False)
+df_final.to_csv(final_path, index=False)
 
 print("Data preparation completed successfully!")
-print(f"Files saved to: {os.path.abspath('data/processed')}")
+print(f"Files saved to: {processed_dir}")
+
+# Verify files were created
+for path in [quartier_path, baualter_path, final_path]:
+    file_size = os.path.getsize(path) / 1024  # Size in KB
+    print(f"Created: {os.path.basename(path)} ({file_size:.2f} KB)")
+
+print("\nYou can find your files at:")
+print(processed_dir)
+
+# Try to open the folder in Windows Explorer
+try:
+    os.startfile(processed_dir)
+    print("Opening folder in Windows Explorer...")
+except Exception as e:
+    print(f"Could not open folder: {e}")
