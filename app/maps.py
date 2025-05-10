@@ -25,7 +25,10 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         fig.update_layout(
             title="No data available. Please run data preparation scripts first.",
             height=600,
-            width=800
+            width=800,
+            plot_bgcolor="#1E1E1E",
+            paper_bgcolor="#1E1E1E",
+            font=dict(color="#FFFFFF")
         )
         return fig
     
