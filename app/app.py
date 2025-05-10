@@ -9,6 +9,7 @@ def main():
     import numpy as np
     import plotly.express as px
     import plotly.graph_objects as go
+    
     # Import functions from local modules
     from utils import (
         load_processed_data, load_model, load_quartier_mapping,
@@ -24,54 +25,240 @@ def main():
     
     # Page configuration
     st.set_page_config(
-        page_title="ImmoInsight Zürich",
-        page_icon="🏡",
+        page_title="ValueState Zürich",
+        page_icon="📊",
         layout="wide",
         initial_sidebar_state="expanded"
     )
 
-    # CSS for better styling
+    # Add modern styling
     st.markdown("""
     <style>
-        .main-header {
-            font-size: 2.5rem;
-            color: #1E88E5;
-            margin-bottom: 1rem;
+        /* Main container styling */
+        .main {
+            background-color: #f8f9fa;
+            padding: 0;
         }
-        .sub-header {
-            font-size: 1.5rem;
-            color: #424242;
-            margin-bottom: 1rem;
+        
+        /* Custom header with logo */
+        .header-container {
+            display: flex;
+            align-items: center;
+            padding: 2rem 2rem 1rem 2rem;
+            background-color: white;
+            border-radius: 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .highlight {
-            background-color: #f0f2f6;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
         }
-        .price-display {
+        
+        .logo {
             font-size: 2rem;
-            font-weight: bold;
-            color: #1E88E5;
+            color: #1565C0;
+            margin-right: 0.5rem;
         }
-        .metric-card {
-            background-color: #f0f2f6;
-            padding: 1rem;
-            border-radius: 0.5rem;
+        
+        .logo-text {
+            font-weight: 700;
+            color: #1565C0;
+            font-size: 1.3rem;
+            margin-right: 1.5rem;
+        }
+        
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-header {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #212121;
+            margin-bottom: 0.2rem;
+            line-height: 1.2;
+        }
+        
+        .sub-tagline {
+            font-size: 1rem;
+            color: #616161;
+            margin-top: 0;
+        }
+        
+        /* Main content cards */
+        .content-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        /* Input fields styling */
+        .stSlider > div {
+            padding-top: 0.5rem;
+            padding-bottom: 2rem;
+        }
+        
+        .stSelectbox > div > div {
+            background-color: white;
+            border-radius: 8px;
+        }
+        
+        /* Custom button */
+        .cta-button {
+            display: inline-block;
+            background-color: #1565C0;
+            color: white;
+            padding: 0.7rem 2rem;
+            font-weight: 500;
+            border-radius: 50px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #1E88E5;
+        
+        .cta-button:hover {
+            background-color: #0D47A1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
-        .metric-label {
+        
+        /* Price display */
+        .price-display-container {
+            background-color: #f5f9ff;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 5px solid #1565C0;
+        }
+        
+        .price-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1565C0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .price-label {
             font-size: 0.9rem;
-            color: #424242;
+            color: #616161;
+        }
+        
+        /* Statistics cards */
+        .stats-container {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            flex: 1;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+        }
+        
+        .metric-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1565C0;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #616161;
+            margin-top: 0.3rem;
+        }
+        
+        /* Map container */
+        .map-container {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        /* Tab styling */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 2rem;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            white-space: pre-wrap;
+            border-radius: 4px 4px 0 0;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .stTabs [aria-selected="true"] {
+            background-color: white;
+            color: #1565C0;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #616161;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            border-top: 1px solid #eeeeee;
+        }
+        
+        /* Hide default hamburger menu and footer */
+        #MainMenu, footer {
+            visibility: hidden;
+        }
+        
+        /* Make sidebar more modern */
+        .css-1d391kg, .css-12oz5g7 {
+            background-color: white;
+        }
+        
+        /* Sidebar headers */
+        .sidebar .block-container {
+            padding-top: 2rem;
+        }
+        
+        .sidebar h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #212121;
+            margin-bottom: 1.5rem;
+        }
+
+        /* General text styling */
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
         }
     </style>
     """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    # Import necessary libraries at the top level
+    import pandas as pd
+    import numpy as np
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from datetime import datetime
+    
+    # Put our modules in the path
+    import sys
+    sys.path.append('app')
+    
+    # Run the main function
+    main()
 
     # Function to load data and model with caching
     @st.cache_resource
@@ -89,12 +276,19 @@ def main():
             # Return empty dataframes as fallback
             return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), None, {}, {}
 
-    # Header
-    st.markdown('<div class="main-header">🏡 ImmoInsight Zürich</div>', unsafe_allow_html=True)
+    # Add a custom header with logo and tagline
     st.markdown("""
-    Diese App analysiert und prognostiziert die Immobilienpreise in Zürich auf der Basis von Nachbarschaft, 
- Anzahl Zimmer, Baujahr und Fahrzeiten zu wichtigen Zielen.
-    """)
+    <div class="header-container">
+        <div class="logo-container">
+            <div class="logo">📊</div>
+            <div class="logo-text">VALUESTATE<br>ZÜRICH</div>
+        </div>
+        <div class="header-text">
+            <div class="main-header">Smarter Real Estate Decisions Start Here.</div>
+            <div class="sub-tagline">Accurately predict real estate prices in Zurich using data-driven insights.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Load data and model
     df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords = load_data_and_model()
@@ -107,54 +301,77 @@ def main():
         st.info("Run: python scripts/model_training.py")
         return
     
+    # Add sidebar class for styling
+    st.markdown('<style>div[data-testid="stSidebarContent"] { background-color: white; }</style>', unsafe_allow_html=True)
+
     # Sidebar for filters and inputs
-    st.sidebar.markdown("## 🔍 Filters & Inputs")
+    with st.sidebar:
+        st.markdown('<div class="sidebar">', unsafe_allow_html=True)
+        
+        # Neighborhood selection
+        st.markdown("### Property Location")
+        
+        # Neighborhood selection with fallback if mapping is empty
+        if quartier_mapping and isinstance(quartier_mapping, dict) and len(quartier_mapping) > 0:
+            inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
+            quartier_options = sorted(inv_quartier_mapping.keys())
+        else:
+            # Fallback to neighborhoods from the data
+            quartier_options = sorted(df_quartier['Quartier'].unique()) if 'Quartier' in df_quartier.columns else ['Seefeld', 'City', 'Hottingen']
+            inv_quartier_mapping = {name: i for i, name in enumerate(quartier_options)}
+        
+        selected_quartier = st.selectbox(
+            "Select neighborhood",
+            options=quartier_options,
+            index=0,
+            help="Choose the Zurich neighborhood for your property"
+        )
+        
+        # Get quartier code with fallback
+        quartier_code = inv_quartier_mapping.get(selected_quartier, 0)
+        
+        # Add some space
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Number of rooms selection with icon
+        st.markdown("### 🚪 Number of Rooms")
+        selected_zimmer = st.select_slider(
+            "",
+            options=zimmer_options,
+            value=3
+        )
+        
+        # Add some space
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Construction year with icon
+        st.markdown("### 🏗️ Construction Year")
+        selected_baujahr = st.slider(
+            "",
+            min_value=min_baujahr,
+            max_value=max_baujahr,
+            value=2000,
+            step=5
+        )
+        
+        # Add some space
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Transportation mode with icon
+        st.markdown("### 🚌 Transportation Mode")
+        selected_transport = st.radio(
+            "",
+            options=["Public Transit", "Car"],
+            index=0,
+            horizontal=True
+        )
+        # Map selection values back to original keys
+        selected_transport = "transit" if selected_transport == "Public Transit" else "driving"
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Neighborhood selection with fallback if mapping is empty
-    if quartier_mapping and isinstance(quartier_mapping, dict) and len(quartier_mapping) > 0:
-        inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
-        quartier_options = sorted(inv_quartier_mapping.keys())
-    else:
-        # Fallback to neighborhoods from the data
-        quartier_options = sorted(df_quartier['Quartier'].unique()) if 'Quartier' in df_quartier.columns else ['Seefeld', 'City', 'Hottingen']
-        inv_quartier_mapping = {name: i for i, name in enumerate(quartier_options)}
-    
-    selected_quartier = st.sidebar.selectbox(
-        "Select neighborhood",
-        options=quartier_options,
-        index=0
-    )
-    
-    # Get quartier code with fallback
-    quartier_code = inv_quartier_mapping.get(selected_quartier, 0)
-    
-    # Number of rooms selection
-    zimmer_options = [1, 2, 3, 4, 5, 6]
-    selected_zimmer = st.sidebar.select_slider(
-        "Number of rooms",
-        options=zimmer_options,
-        value=3
-    )
-    
-    # Construction year selection
-    min_baujahr = 1900
-    max_baujahr = 2025
-    selected_baujahr = st.sidebar.slider(
-        "Construction year",
-        min_value=min_baujahr,
-        max_value=max_baujahr,
-        value=2000,
-        step=5
-    )
-    
-    # Transportation mode selection
-    transport_options = ["transit", "driving"]
-    selected_transport = st.sidebar.radio(
-        "Transportation mode",
-        options=transport_options,
-        index=0,
-        horizontal=True
-    )
+    # Wrap main content in a card
+    st.markdown('<div class="content-card">', unsafe_allow_html=True)
     
     # Get travel times for the selected neighborhood
     travel_times = get_travel_times_for_quartier(
@@ -174,66 +391,32 @@ def main():
     # Predict price
     predicted_price = predict_price(model, input_data)
     
-    # Tabs for different views
-    tab1, tab2, tab3 = st.tabs(["📊 Price Prediction", "🗺️ Maps", "📈 Comparison & Trends"])
+    # Improved tabs for different views
+    tab1, tab2, tab3 = st.tabs([
+        "📊 Property Valuation", 
+        "🗺️ Location Analysis", 
+        "📈 Market Trends"
+    ])
     
-    # Tab 1: Price Prediction
+    # Tab 1: Property Valuation (formerly Price Prediction)
     with tab1:
         # Two columns for layout
         col1, col2 = st.columns([2, 3])
         
         with col1:
-            st.markdown('<div class="sub-header">Estimated Property Price</div>', unsafe_allow_html=True)
+            st.markdown('<h3>Property Valuation</h3>', unsafe_allow_html=True)
             
-            # Price display
+            # Modern price display
             if predicted_price:
-                st.markdown(f'<div class="price-display">{predicted_price:,.0f} CHF</div>', unsafe_allow_html=True)
-            else:
-                st.warning("Price prediction could not be calculated.")
-            
-            # Neighborhood statistics
-            st.markdown('<div class="sub-header">Neighborhood Statistics</div>', unsafe_allow_html=True)
-            
-            quartier_stats = get_quartier_statistics(selected_quartier, df_quartier)
-            
-            # Display statistics in cards
-            stats_col1, stats_col2 = st.columns(2)
-            
-            with stats_col1:
                 st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-value">{quartier_stats['median_preis']:,.0f} CHF</div>
-                    <div class="metric-label">Median Price</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown(f"""
-                <div class="metric-card" style="margin-top: 1rem;">
-                    <div class="metric-value">{quartier_stats['preis_pro_qm']:,.0f} CHF</div>
-                    <div class="metric-label">Price per m²</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with stats_col2:
-                min_max_ratio = round((predicted_price / quartier_stats['median_preis'] - 1) * 100, 1) if quartier_stats['median_preis'] > 0 else 0
-                color = "green" if min_max_ratio < 0 else "red"
-                
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-value" style="color: {color};">{min_max_ratio:+.1f}%</div>
-                    <div class="metric-label">vs. Median</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown(f"""
-                <div class="metric-card" style="margin-top: 1rem;">
-                    <div class="metric-value">{quartier_stats['anzahl_objekte']}</div>
-                    <div class="metric-label">Data Points</div>
+                <div class="price-display-container">
+                    <div class="price-display">{predicted_price:,.0f} CHF</div>
+                    <div class="price-label">Estimated market value</div>
                 </div>
                 """, unsafe_allow_html=True)
         
         with col2:
-            st.markdown('<div class="sub-header">Travel Times</div>', unsafe_allow_html=True)
+            st.markdown('<h3>Travel Times</h3>', unsafe_allow_html=True)
             
             # Visualize travel times
             travel_times_data = [
@@ -241,22 +424,36 @@ def main():
             ]
             df_travel_viz = pd.DataFrame(travel_times_data)
             
-            # Travel times as bar chart
+            # Travel times as bar chart with improved styling
             if not df_travel_viz.empty:
                 fig = px.bar(
                     df_travel_viz,
                     x="Destination",
                     y="Minutes",
                     color="Minutes",
-                    color_continuous_scale="Viridis_r",
-                    title=f"Travel Times from {selected_quartier} ({selected_transport})"
+                    color_continuous_scale="Blues",  # Changed to match blue theme
+                    title=f"Travel Times from {selected_quartier}"
                 )
+                
+                # Improve figure styling
+                fig.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=40, b=20),
+                    coloraxis_colorbar=dict(
+                        title="Minutes",
+                        thicknessmode="pixels", thickness=20,
+                        lenmode="pixels", len=300,
+                    )
+                )
+                
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("No travel time data available for this neighborhood.")
             
             # Price trend for the neighborhood
-            st.markdown('<div class="sub-header">Price Development</div>', unsafe_allow_html=True)
+            st.markdown('<h3>Price Development</h3>', unsafe_allow_html=True)
             
             price_history = get_price_history(selected_quartier, df_quartier)
             
@@ -266,18 +463,29 @@ def main():
                     x="Jahr",
                     y="MedianPreis",
                     title=f"Price Development in {selected_quartier}",
-                    markers=True
+                    markers=True,
+                    color_discrete_sequence=["#1565C0"]  # Match the blue theme
                 )
-                fig.update_layout(yaxis_title="Median Price (CHF)")
+                
+                # Improve figure styling
+                fig.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=40, b=20),
+                    yaxis_title="Median Price (CHF)",
+                    xaxis_title="Year"
+                )
+                
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("No historical price data available for this neighborhood.")
     
-    # Tab 2: Maps
+    # Tab 2: Location Analysis (formerly Maps)
     with tab2:
-        st.markdown('<div class="sub-header">Interactive Maps</div>', unsafe_allow_html=True)
+        st.markdown('<h3>Interactive Maps</h3>', unsafe_allow_html=True)
         
-        # Map type selection
+        # Map type selection with better styling
         map_type = st.radio(
             "Map Type",
             options=["Property Prices", "Travel Times"],
@@ -303,6 +511,13 @@ def main():
                     quartier_coords, 
                     selected_year=selected_year, 
                     selected_zimmer=map_zimmer
+                )
+                
+                # Update map styling to match design
+                price_map.update_layout(
+                    mapbox_style="light",
+                    font=dict(family="Arial, sans-serif"),
+                    margin=dict(l=0, r=0, t=50, b=0),
                 )
                 
                 st.plotly_chart(price_map, use_container_width=True)
@@ -331,16 +546,23 @@ def main():
                     transportmittel=map_transport
                 )
                 
+                # Update map styling to match design
+                travel_map.update_layout(
+                    mapbox_style="light",
+                    font=dict(family="Arial, sans-serif"),
+                    margin=dict(l=0, r=0, t=50, b=0),
+                )
+                
                 st.plotly_chart(travel_map, use_container_width=True)
             except Exception as e:
                 st.error(f"Error creating travel time map: {str(e)}")
                 st.info("Make sure you have generated travel time data first.")
     
-    # Tab 3: Comparison & Trends
+    # Tab 3: Market Trends (formerly Comparison & Trends)
     with tab3:
-        st.markdown('<div class="sub-header">Neighborhood Comparison</div>', unsafe_allow_html=True)
+        st.markdown('<h3>Neighborhood Comparison</h3>', unsafe_allow_html=True)
         
-        # Select multiple neighborhoods for comparison
+        # Select multiple neighborhoods for comparison with better styling
         compare_quartiere = st.multiselect(
             "Select neighborhoods to compare",
             options=quartier_options,
@@ -356,17 +578,29 @@ def main():
             )
             
             try:
-                # Create price comparison
+                # Create price comparison with improved styling
                 price_comparison = create_price_comparison_chart(
                     df_quartier, 
                     compare_quartiere, 
                     selected_zimmer=compare_zimmer
                 )
                 
+                # Improve chart styling
+                price_comparison.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=50, b=20),
+                )
+                
+                price_comparison.update_traces(
+                    marker_color='#1565C0',
+                )
+                
                 st.plotly_chart(price_comparison, use_container_width=True)
                 
-                # Time series comparison
-                st.markdown('<div class="sub-header">Price Trends Comparison</div>', unsafe_allow_html=True)
+                # Time series comparison with improved styling
+                st.markdown('<h3>Price Trends Comparison</h3>', unsafe_allow_html=True)
                 
                 time_series = create_price_time_series(
                     df_quartier, 
@@ -374,13 +608,28 @@ def main():
                     selected_zimmer=compare_zimmer
                 )
                 
+                # Improve chart styling
+                time_series.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=50, b=20),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1
+                    )
+                )
+                
                 st.plotly_chart(time_series, use_container_width=True)
             except Exception as e:
                 st.error(f"Error creating comparison charts: {str(e)}")
                 st.info("Make sure you have properly processed data.")
             
-            # Feature Importance
-            st.markdown('<div class="sub-header">Price Influencing Factors</div>', unsafe_allow_html=True)
+            # Feature Importance with improved styling
+            st.markdown('<h3>Price Influencing Factors</h3>', unsafe_allow_html=True)
             
             # Simulated Feature Importance for the demo
             # In a real application, this would be extracted from the model
@@ -397,29 +646,89 @@ def main():
                 orientation='h',
                 title='Factors Influencing Property Prices',
                 color='Importance',
-                color_continuous_scale='Viridis'
+                color_continuous_scale='Blues'  # Changed to match theme
+            )
+            
+            # Improve chart styling
+            fig.update_layout(
+                plot_bgcolor="white",
+                paper_bgcolor="white",
+                font=dict(family="Arial, sans-serif", size=12),
+                margin=dict(l=40, r=20, t=50, b=20),
+                coloraxis_showscale=False
             )
             
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Please select at least one neighborhood for comparison.")
     
-    # Footer
-    st.markdown("---")
-    st.markdown(
-"Entwickelt im Rahmen des Kurses Introduction to Computer Science an der HSG | Datenquelle: [opendata.swiss (Quartiere)](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) / [opendata.swiss (Baualter)](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"    )
-
-if __name__ == "__main__":
-    # Import necessary libraries at the top level
-    import pandas as pd
-    import numpy as np
-    import plotly.express as px
-    import plotly.graph_objects as go
-    from datetime import datetime
+    # Close the content card
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    # Put our modules in the path
-    import sys
-    sys.path.append('app')
+    # Add a full-width Zurich map (similar to the one in the reference image)
+    st.markdown("""
+    <div class="map-container" style="height: 400px; border-radius: 12px; overflow: hidden; margin: 0 -1rem;">
+        <iframe 
+            width="100%" 
+            height="100%" 
+            frameborder="0" 
+            scrolling="no" 
+            marginheight="0" 
+            marginwidth="0" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d43088.17786248372!2d8.506833899999999!3d47.3774336!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47900a08cc0e6e11%3A0x9d0a9c357e599d0!2sZ%C3%BCrich%2C%20Switzerland!5e0!3m2!1sen!2sus!4v1683837657498!5m2!1sen!2sus"
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Run the main function
-    main()
+    # Custom footer
+    st.markdown("""
+    <div class="footer">
+        Developed for HSG Computer Science Project | Data Source: opendata.swiss | © 2025 ValueState Zürich
+    </div>
+    """, unsafe_allow_html=True)
+            else:
+                st.warning("Price prediction could not be calculated.")
+            
+            # CTA Button - could be used for some action
+            st.markdown(f"""
+            <div class="cta-button">
+                Get Detailed Report
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Neighborhood statistics with better styling
+            st.markdown('<h3>Neighborhood Statistics</h3>', unsafe_allow_html=True)
+            
+            quartier_stats = get_quartier_statistics(selected_quartier, df_quartier)
+            
+            # Calculate min_max_ratio for display
+            min_max_ratio = round((predicted_price / quartier_stats['median_preis'] - 1) * 100, 1) if quartier_stats['median_preis'] > 0 else 0
+            
+            # Display statistics in modern cards
+            st.markdown(f"""
+            <div class="stats-container">
+                <div class="metric-card">
+                    <div class="metric-value">{quartier_stats['median_preis']:,.0f} CHF</div>
+                    <div class="metric-label">Median Price</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{quartier_stats['preis_pro_qm']:,.0f} CHF</div>
+                    <div class="metric-label">Price per m²</div>
+                </div>
+            </div>
+            
+            <div class="stats-container" style="margin-top: 1rem;">
+                <div class="metric-card">
+                    <div class="metric-value" style="color: {'green' if min_max_ratio < 0 else 'red'};">{min_max_ratio:+.1f}%</div>
+                    <div class="metric-label">vs. Median</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{quartier_stats['anzahl_objekte']}</div>
+                    <div class="metric-label">Data Points</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
