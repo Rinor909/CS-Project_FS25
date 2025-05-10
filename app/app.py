@@ -407,7 +407,7 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown(
-"Entwickelt im Rahmen des Kurses Introduction to Computer Science an der HSG | Datenquelle: [opendata.swiss (Quartiere)](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) / [opendata.swiss (Baualter)](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3) | Letzte Aktualisierung: Mai 2025"    )
+"Entwickelt im Rahmen des Kurses Introduction to Computer Science an der HSG | Datenquelle: [opendata.swiss (Quartiere)](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) / [opendata.swiss (Baualter)](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"    )
 
 if __name__ == "__main__":
     # Import necessary libraries at the top level
