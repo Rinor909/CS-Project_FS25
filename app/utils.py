@@ -10,38 +10,66 @@ def load_processed_data():
         import requests
         from io import StringIO
         
-        # Define GitHub URLs
+        # Define GitHub URLs - make sure these are your actual URLs
         quartier_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv"
         baualter_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/baualter_processed.csv"
         travel_times_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/travel_times.csv"
+        
+        print("Loading data from GitHub URLs...")
         
         # Load quartier data
         response = requests.get(quartier_url)
         if response.status_code == 200:
             df_quartier = pd.read_csv(StringIO(response.text))
+            print(f"Successfully loaded quartier data: {len(df_quartier)} rows")
         else:
-            print(f"Error loading quartier data: {response.status_code}")
-            df_quartier = pd.DataFrame(columns=['Jahr', 'Quartier', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num'])
+            print(f"Error loading quartier data: HTTP {response.status_code}")
+            # Try loading from local file
+            if os.path.exists('data/processed/quartier_processed.csv'):
+                print("Trying to load quartier data from local file...")
+                df_quartier = pd.read_csv('data/processed/quartier_processed.csv')
+                print(f"Loaded quartier data from local file: {len(df_quartier)} rows")
+            else:
+                print("No quartier data found.")
+                df_quartier = pd.DataFrame(columns=['Jahr', 'Quartier', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num'])
+                df_quartier['Jahr'] = [2024]  # Add default year
         
         # Load baualter data
         response = requests.get(baualter_url)
         if response.status_code == 200:
             df_baualter = pd.read_csv(StringIO(response.text))
+            print(f"Successfully loaded baualter data: {len(df_baualter)} rows")
         else:
-            print(f"Error loading baualter data: {response.status_code}")
-            df_baualter = pd.DataFrame(columns=['Jahr', 'Baualter', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num', 'Baujahr'])
+            print(f"Error loading baualter data: HTTP {response.status_code}")
+            # Try loading from local file
+            if os.path.exists('data/processed/baualter_processed.csv'):
+                print("Trying to load baualter data from local file...")
+                df_baualter = pd.read_csv('data/processed/baualter_processed.csv')
+                print(f"Loaded baualter data from local file: {len(df_baualter)} rows")
+            else:
+                print("No baualter data found.")
+                df_baualter = pd.DataFrame(columns=['Jahr', 'Baualter', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num', 'Baujahr'])
         
         # Load travel times data
         response = requests.get(travel_times_url)
         if response.status_code == 200:
             df_travel_times = pd.read_csv(StringIO(response.text))
+            print(f"Successfully loaded travel times data: {len(df_travel_times)} rows")
         else:
-            print(f"Error loading travel times data: {response.status_code}")
-            df_travel_times = pd.DataFrame(columns=['Quartier', 'Zielort', 'Transportmittel', 'Reisezeit_Minuten'])
+            print(f"Error loading travel times data: HTTP {response.status_code}")
+            # Try loading from local file
+            if os.path.exists('data/processed/travel_times.csv'):
+                print("Trying to load travel times data from local file...")
+                df_travel_times = pd.read_csv('data/processed/travel_times.csv')
+                print(f"Loaded travel times data from local file: {len(df_travel_times)} rows")
+            else:
+                print("No travel times data found.")
+                df_travel_times = pd.DataFrame(columns=['Quartier', 'Zielort', 'Transportmittel', 'Reisezeit_Minuten'])
         
-        # Ensure Jahr column exists (for the missing Jahr error)
+        # Check for missing Jahr column and add if necessary
         if 'Jahr' not in df_quartier.columns:
-            df_quartier['Jahr'] = 2024  # Add default year
+            print("Adding missing Jahr column")
+            df_quartier['Jahr'] = 2024
             
         return df_quartier, df_baualter, df_travel_times
     except Exception as e:
@@ -54,15 +82,40 @@ def load_processed_data():
         return df_quartier, df_baualter, df_travel_times
 
 def load_model():
-    """Loads the trained price prediction model"""
+    """Loads the trained price prediction model from GitHub"""
     try:
-        if not os.path.exists('models/price_model.pkl'):
-            print("Warning: price_model.pkl not found")
+        # Try to load model from GitHub
+        import requests
+        import io
+        import pickle
+        
+        # GitHub URL to the model
+        model_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/models/price_model.pkl"
+        
+        # Download model file
+        print("Downloading model from GitHub...")
+        response = requests.get(model_url)
+        
+        if response.status_code == 200:
+            # Load the model from the response content
+            model_data = io.BytesIO(response.content)
+            model = pickle.load(model_data)
+            print("Successfully loaded model from GitHub!")
+            return model
+        else:
+            print(f"Failed to download model from GitHub: Status code {response.status_code}")
+            
+            # Try local file as fallback
+            if os.path.exists('models/price_model.pkl'):
+                print("Trying to load model from local file...")
+                with open('models/price_model.pkl', 'rb') as file:
+                    model = pickle.load(file)
+                print("Successfully loaded model from local file!")
+                return model
+            
+            print("Could not load model from GitHub or local file.")
             return None
             
-        with open('models/price_model.pkl', 'rb') as file:
-            model = pickle.load(file)
-        return model
     except Exception as e:
         print(f"Error loading model: {e}")
         return None
@@ -100,16 +153,33 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
     
     # Load neighborhood-specific statistics
     try:
-        if os.path.exists('data/processed/modell_input_final.csv'):
-            df_final = pd.read_csv('data/processed/modell_input_final.csv')
+        # Try to load from GitHub
+        import requests
+        from io import StringIO
+        
+        model_input_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/modell_input_final.csv"
+        
+        print("Loading model input data from GitHub...")
+        response = requests.get(model_input_url)
+        
+        if response.status_code == 200:
+            df_final = pd.read_csv(StringIO(response.text))
+            print(f"Successfully loaded model input data: {len(df_final)} rows")
         else:
-            print("Warning: modell_input_final.csv not found")
-            # Create a default DataFrame if file doesn't exist
-            df_final = pd.DataFrame({
-                'Quartier_Code': [0],
-                'Quartier_Preisniveau': [1.0],
-                'MedianPreis_Baualter': [1000000]
-            })
+            print(f"Error loading model input data: HTTP {response.status_code}")
+            # Try local file
+            if os.path.exists('data/processed/modell_input_final.csv'):
+                print("Trying to load model input data from local file...")
+                df_final = pd.read_csv('data/processed/modell_input_final.csv')
+                print(f"Loaded model input data from local file: {len(df_final)} rows")
+            else:
+                print("No model input data found.")
+                # Create a default DataFrame if file doesn't exist
+                df_final = pd.DataFrame({
+                    'Quartier_Code': [0],
+                    'Quartier_Preisniveau': [1.0],
+                    'MedianPreis_Baualter': [1000000]
+                })
     except Exception as e:
         print(f"Error loading model input data: {e}")
         # Create a default DataFrame
@@ -123,9 +193,11 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
     quartier_data = df_final[df_final['Quartier_Code'] == quartier_code] if 'Quartier_Code' in df_final.columns else pd.DataFrame()
     
     if len(quartier_data) > 0:
+        print(f"Found data for neighborhood code {quartier_code}")
         quartier_preisniveau = quartier_data['Quartier_Preisniveau'].mean() if 'Quartier_Preisniveau' in quartier_data.columns else 1.0
         mediapreis_baualter = quartier_data['MedianPreis_Baualter'].mean() if 'MedianPreis_Baualter' in quartier_data.columns else 1000000
     else:
+        print(f"No data found for neighborhood code {quartier_code}. Using average values.")
         # Fallback: Use average values across all neighborhoods
         quartier_preisniveau = df_final['Quartier_Preisniveau'].mean() if 'Quartier_Preisniveau' in df_final.columns else 1.0
         mediapreis_baualter = df_final['MedianPreis_Baualter'].mean() if 'MedianPreis_Baualter' in df_final.columns else 1000000
@@ -146,6 +218,9 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
         if key in ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']:
             input_data[f'Reisezeit_{key}'] = value
     
+    print(f"Input data prepared: {input_data.columns.tolist()}")
+    print(f"Input data sample: {input_data.iloc[0].to_dict()}")
+    
     return input_data
 
 def predict_price(model, input_data):
@@ -160,32 +235,54 @@ def predict_price(model, input_data):
         float: Predicted price
     """
     if model is None:
-        # Generate a realistic price instead of fixed 1,000,000
-        # This is based on the typical price range in Zurich
-        quartier_code = input_data['Quartier_Code'].values[0] if 'Quartier_Code' in input_data.columns else 0
+        print("No model available for prediction.")
+        
+        # Only if absolutely necessary, use this as a last resort
+        # This is needed to prevent the app from completely failing
+        # when the model cannot be loaded for any reason
+        quartier_preisniveau = input_data['Quartier_Preisniveau'].values[0] if 'Quartier_Preisniveau' in input_data.columns else 1.0
+        mediapreis_baualter = input_data['MedianPreis_Baualter'].values[0] if 'MedianPreis_Baualter' in input_data.columns else 1000000
         zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
         
-        # Base price for different areas (higher codes usually = nicer areas)
-        base_price = 1200000 + (quartier_code * 50000)
-        # Adjust for room count
-        room_factor = zimmeranzahl * 200000
+        # Use the median price directly from input data and adjust by room count
+        base_price = mediapreis_baualter
+        room_factor = 1.0 + ((zimmeranzahl - 3) * 0.15)  # 15% per room difference from 3
+        calculated_price = base_price * room_factor * quartier_preisniveau
         
-        # Calculate final price
-        calculated_price = base_price + room_factor
+        print(f"Using fallback calculation: {calculated_price:.2f} CHF")
         return calculated_price
     
     try:
+        # Make sure we have all required columns for prediction
+        print(f"Model features expected: {model.feature_names_in_ if hasattr(model, 'feature_names_in_') else 'Unknown'}")
+        print(f"Input data columns: {input_data.columns.tolist()}")
+        
+        # Make the prediction
         prediction = model.predict(input_data)[0]
+        print(f"Model predicted: {prediction:.2f} CHF")
+        
+        # Check if prediction is reasonable
+        if prediction <= 0 or prediction > 50000000:  # Sanity check
+            print(f"Warning: Prediction outside reasonable range. Using median price.")
+            return input_data['MedianPreis_Baualter'].values[0] if 'MedianPreis_Baualter' in input_data.columns else 1500000
+            
         return round(prediction, 2)
     except Exception as e:
         print(f"Error in price prediction: {e}")
-        # Generate a varied price instead of fixed 1,000,000
-        quartier_code = input_data['Quartier_Code'].values[0] if 'Quartier_Code' in input_data.columns else 0
-        zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
         
-        # Base price with variation
-        base_price = 1000000 + (quartier_code * 50000) + (zimmeranzahl * 200000)
-        return base_price
+        # Use some values from input_data to create a more reasonable fallback
+        try:
+            quartier_preisniveau = input_data['Quartier_Preisniveau'].values[0] if 'Quartier_Preisniveau' in input_data.columns else 1.0
+            mediapreis_baualter = input_data['MedianPreis_Baualter'].values[0] if 'MedianPreis_Baualter' in input_data.columns else 1000000
+            zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
+            
+            # Use the median price directly from input data
+            calculated_price = mediapreis_baualter * quartier_preisniveau * (1.0 + ((zimmeranzahl - 3) * 0.15))
+            print(f"Using calculated price: {calculated_price:.2f} CHF")
+            return calculated_price
+        except:
+            # Absolute last resort
+            return 1500000
 
 def get_travel_times_for_quartier(quartier, df_travel_times, transportmittel='transit'):
     """
