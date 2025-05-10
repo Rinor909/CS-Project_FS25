@@ -590,7 +590,7 @@ def main():
             
             # Try to load actual feature importance
             try:
-                feature_imp_df = pd.read_csv('https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/feature_importance.csv')
+                feature_imp_df = pd.read_csv('https://raw.githubusercontent.com/Rinor909/zurich-real-estate/main/data/processed/feature_importance.csv')
                 
                 # Map technical feature names to user-friendly names
                 feature_map = {
