@@ -435,8 +435,9 @@ def main():
             # Einführung in unseren Modell
             st.write("""
             Für die Vorhersage von Immobilienpreisen in Zürich haben wir mehrere maschinelle Lernmodelle 
-            evaluiert und uns für ein Gradient Boosting-Modell entschieden. Diese Entscheidung basiert auf 
-            der höheren Vorhersagegenauigkeit im Vergleich zu anderen Modellen wie lineare Regression oder Random Forest.
+            evaluiert und uns auf Empfehlung von Prof. Simon Mayer für ein Gradient Boosting-Modell entschieden. 
+            Diese Entscheidung basiert auf der höheren Vorhersagegenauigkeit im Vergleich zu anderen Modellen 
+            wie lineare Regression oder Random Forest.
             """)
             # Create columns for model metrics
             metrics_col1, metrics_col2 = st.columns(2)
