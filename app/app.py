@@ -68,8 +68,8 @@ def main():
     
     with header_col2:
         # Title and subtitle
-        st.title("Smarter Real Estate Decisions Start Here.")
-        st.caption("Accurately predict real estate prices in Zurich using data-driven insights.")
+        st.title("Zürcher Immobilien. Datenbasiert. Klar.")
+        st.caption("Immobilienpreise in Zürich datengetrieben prognostizieren.")
     
     # Add a separator
     st.divider()
