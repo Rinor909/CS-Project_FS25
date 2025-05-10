@@ -176,7 +176,7 @@ def main():
         tab1, tab2, tab3, tab4 = st.tabs([
             "📊 Immobilienanalyse", 
             "🗺️ Standort", 
-            "📈 Marktentwicklungen"
+            "📈 Marktentwicklungen",
             "🧠 Vorhersagemodell"
         ])
         
