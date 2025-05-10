@@ -605,6 +605,10 @@ def main():
                     'Reisezeit_Flughafen': 'Reisezeit zum Flughafen'
                 }
                 
+                # Filter out Quartier_Code features that start with 'Quartier_Code_'
+                feature_imp_df = feature_imp_df[~feature_imp_df['Feature'].str.contains('Quartier_Code_', na=False)]
+    
+
                 # Apply mapping where possible
                 feature_imp_df['Feature_Display'] = feature_imp_df['Feature'].apply(
                     lambda x: feature_map.get(x, x)
