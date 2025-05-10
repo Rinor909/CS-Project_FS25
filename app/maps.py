@@ -4,13 +4,6 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Define dark theme colors
-DARK_BG = "#121212"
-DARK_CARD_BG = "#1E1E1E"
-DARK_TEXT = "#FFFFFF"
-GRID_COLOR = "#333333"
-ZURICH_BLUE = "#0038A8"  # Deep blue from Zürich flag
-
 def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selected_zimmer=3):
     """
     Creates a heatmap of real estate prices in Zurich
@@ -30,13 +23,9 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         # Return empty figure with message
         fig = go.Figure()
         fig.update_layout(
-            title="Keine Daten verfügbar. Bitte führen Sie die Datenvorbereitungsskripte aus.",
+            title="No data available. Please run data preparation scripts first.",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -50,13 +39,9 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
     if df_filtered.empty:
         fig = go.Figure()
         fig.update_layout(
-            title=f"Keine Daten für Jahr {selected_year} und {selected_zimmer} Zimmer verfügbar",
+            title=f"No data available for year {selected_year} and {selected_zimmer} rooms",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -88,13 +73,9 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
     if df_map.empty:
         fig = go.Figure()
         fig.update_layout(
-            title="Keine kartierbaren Daten verfügbar. Überprüfen Sie die Quartierkoordinaten.",
+            title="No mappable data available. Check neighborhood coordinates.",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -117,26 +98,22 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
             size_max=20,
             hover_name='Quartier',
             hover_data=hover_data,
-            color_continuous_scale='Blues',  # Use blue for Zurich
+            color_continuous_scale='Viridis',
             range_color=[min_price, max_price],
             zoom=11,
             height=600,
             width=800,
-            title=f'Immobilienpreise in Zürich ({selected_year}, {selected_zimmer} Zimmer)'
+            title=f'Real Estate Prices in Zurich ({selected_year}, {selected_zimmer} rooms)'
         )
         
-        # Adjust layout with dark theme
+        # Adjust layout
         fig.update_layout(
-            mapbox_style='dark',  # Dark map style
+            mapbox_style='open-street-map',
             margin={"r":0, "t":50, "l":0, "b":0},
             coloraxis_colorbar=dict(
-                title='Preis (CHF)',
-                tickformat=',.0f',
-                titlefont=dict(color=DARK_TEXT),
-                tickfont=dict(color=DARK_TEXT)
-            ),
-            font=dict(color=DARK_TEXT),
-            paper_bgcolor=DARK_CARD_BG
+                title='Price (CHF)',
+                tickformat=',.0f'
+            )
         )
         
         return fig
@@ -145,13 +122,9 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
         # Return empty figure with error message
         fig = go.Figure()
         fig.update_layout(
-            title=f"Fehler bei der Kartenerstellung: {str(e)}",
+            title=f"Error creating map: {str(e)}",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
 
@@ -174,13 +147,9 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
         # Return empty figure with message
         fig = go.Figure()
         fig.update_layout(
-            title="Keine Reisezeitdaten verfügbar. Bitte führen Sie generate_travel_times.py aus.",
+            title="No travel time data available. Please run generate_travel_times.py first.",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -194,13 +163,9 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
     if df_filtered.empty:
         fig = go.Figure()
         fig.update_layout(
-            title=f"Keine Reisezeitdaten verfügbar für {zielort} mit {transportmittel}",
+            title=f"No travel time data available for {zielort} with {transportmittel}",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -222,13 +187,9 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
     if df_map.empty:
         fig = go.Figure()
         fig.update_layout(
-            title="Keine kartierbaren Reisezeitdaten verfügbar. Überprüfen Sie die Quartierkoordinaten.",
+            title="No mappable travel time data available. Check neighborhood coordinates.",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -247,25 +208,21 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
                 'lat': False,
                 'lon': False
             },
-            color_continuous_scale='Blues_r',  # Reversed blue color scale
+            color_continuous_scale='Cividis_r',  # Reversed color scale (dark = long travel time)
             zoom=11,
             height=600,
             width=800,
-            title=f'Reisezeit nach {zielort} ({transportmittel})'
+            title=f'Travel Time to {zielort} ({transportmittel})'
         )
         
-        # Adjust layout with dark theme
+        # Adjust layout
         fig.update_layout(
-            mapbox_style='dark',  # Dark map style
+            mapbox_style='open-street-map',
             margin={"r":0, "t":50, "l":0, "b":0},
             coloraxis_colorbar=dict(
-                title='Minuten',
-                tickformat=',.0f',
-                titlefont=dict(color=DARK_TEXT),
-                tickfont=dict(color=DARK_TEXT)
-            ),
-            font=dict(color=DARK_TEXT),
-            paper_bgcolor=DARK_CARD_BG
+                title='Minutes',
+                tickformat=',.0f'
+            )
         )
         
         return fig
@@ -274,13 +231,9 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
         # Return empty figure with error message
         fig = go.Figure()
         fig.update_layout(
-            title=f"Fehler bei der Kartenerstellung: {str(e)}",
+            title=f"Error creating map: {str(e)}",
             height=600,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
 
@@ -302,13 +255,9 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         # Return empty figure with message
         fig = go.Figure()
         fig.update_layout(
-            title="Keine Daten verfügbar. Bitte führen Sie die Datenvorbereitungsskripte aus.",
+            title="No data available. Please run data preparation scripts first.",
             height=400,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -325,13 +274,9 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         if df_filtered.empty:
             fig = go.Figure()
             fig.update_layout(
-                title=f"Keine Daten verfügbar für die ausgewählten Quartiere und {selected_zimmer} Zimmer",
+                title=f"No data available for the selected neighborhoods and {selected_zimmer} rooms",
                 height=400,
-                width=800,
-                # Add dark theme
-                plot_bgcolor=DARK_CARD_BG,
-                paper_bgcolor=DARK_CARD_BG,
-                font=dict(color=DARK_TEXT)
+                width=800
             )
             return fig
         
@@ -351,39 +296,21 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         fig.add_trace(go.Bar(
             x=df_grouped['Quartier'],
             y=df_grouped['MedianPreis'],
-            name='Median-Kaufpreis (CHF)',
-            marker_color=ZURICH_BLUE,
+            name='Median Purchase Price (CHF)',
+            marker_color='royalblue',
             text=df_grouped['MedianPreis'].apply(lambda x: f'{x:,.0f} CHF'),
-            textposition='auto',
-            textfont=dict(color=DARK_TEXT)
+            textposition='auto'
         ))
         
-        # Adjust layout with dark theme
+        # Adjust layout
         fig.update_layout(
-            title=f'Immobilienpreisvergleich ({neuestes_jahr}, {selected_zimmer} Zimmer)',
-            xaxis_title='Quartier',
-            yaxis_title='Preis (CHF)',
+            title=f'Real Estate Price Comparison ({neuestes_jahr}, {selected_zimmer} rooms)',
+            xaxis_title='Neighborhood',
+            yaxis_title='Price (CHF)',
             height=400,
             width=800,
             barmode='group',
-            xaxis={'categoryorder': 'total descending'},
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
-        )
-        
-        # Update axes with dark theme
-        fig.update_xaxes(
-            tickfont=dict(color=DARK_TEXT),
-            title_font=dict(color=DARK_TEXT),
-            gridcolor=GRID_COLOR
-        )
-        
-        fig.update_yaxes(
-            tickfont=dict(color=DARK_TEXT),
-            title_font=dict(color=DARK_TEXT),
-            gridcolor=GRID_COLOR
+            xaxis={'categoryorder': 'total descending'}
         )
         
         return fig
@@ -392,13 +319,9 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
         # Return empty figure with error message
         fig = go.Figure()
         fig.update_layout(
-            title=f"Fehler bei der Diagrammerstellung: {str(e)}",
+            title=f"Error creating chart: {str(e)}",
             height=400,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
 
@@ -420,13 +343,9 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
         # Return empty figure with message
         fig = go.Figure()
         fig.update_layout(
-            title="Keine Daten verfügbar. Bitte führen Sie die Datenvorbereitungsskripte aus.",
+            title="No data available. Please run data preparation scripts first.",
             height=400,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
     
@@ -441,13 +360,9 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
         if df_filtered.empty:
             fig = go.Figure()
             fig.update_layout(
-                title=f"Keine Daten verfügbar für die ausgewählten Quartiere und {selected_zimmer} Zimmer",
+                title=f"No data available for the selected neighborhoods and {selected_zimmer} rooms",
                 height=400,
-                width=800,
-                # Add dark theme
-                plot_bgcolor=DARK_CARD_BG,
-                paper_bgcolor=DARK_CARD_BG,
-                font=dict(color=DARK_TEXT)
+                width=800
             )
             return fig
         
@@ -458,56 +373,24 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
         }).reset_index()
         
         # Create plot
-        # Use blue color palette
-        blue_palette = px.colors.sequential.Blues[2:]  # Skip lightest blues for dark theme
-        if len(blue_palette) < len(selected_quartiere):
-            blue_palette = [ZURICH_BLUE] * len(selected_quartiere)  # Fallback to Zurich blue
-            
         fig = px.line(
             df_grouped, 
             x='Jahr', 
             y='MedianPreis', 
             color='Quartier',
             markers=True,
-            title=f'Preisentwicklung ({selected_zimmer} Zimmer)',
+            title=f'Price Development ({selected_zimmer} rooms)',
             height=400,
-            width=800,
-            color_discrete_sequence=blue_palette
+            width=800
         )
         
-        # Adjust layout with dark theme
+        # Adjust layout
         fig.update_layout(
-            xaxis_title='Jahr',
-            yaxis_title='Median-Kaufpreis (CHF)',
-            legend_title='Quartier',
+            xaxis_title='Year',
+            yaxis_title='Median Purchase Price (CHF)',
+            legend_title='Neighborhood',
             yaxis=dict(tickformat=',.0f'),
-            hovermode='x unified',
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
-        )
-        
-        # Update axes with dark theme
-        fig.update_xaxes(
-            tickfont=dict(color=DARK_TEXT),
-            title_font=dict(color=DARK_TEXT),
-            gridcolor=GRID_COLOR
-        )
-        
-        fig.update_yaxes(
-            tickfont=dict(color=DARK_TEXT),
-            title_font=dict(color=DARK_TEXT),
-            gridcolor=GRID_COLOR
-        )
-        
-        # Update legend with dark theme
-        fig.update_layout(
-            legend=dict(
-                font=dict(color=DARK_TEXT),
-                bgcolor=DARK_CARD_BG,
-                bordercolor=GRID_COLOR
-            )
+            hovermode='x unified'
         )
         
         return fig
@@ -516,12 +399,8 @@ def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3)
         # Return empty figure with error message
         fig = go.Figure()
         fig.update_layout(
-            title=f"Fehler bei der Diagrammerstellung: {str(e)}",
+            title=f"Error creating chart: {str(e)}",
             height=400,
-            width=800,
-            # Add dark theme
-            plot_bgcolor=DARK_CARD_BG,
-            paper_bgcolor=DARK_CARD_BG,
-            font=dict(color=DARK_TEXT)
+            width=800
         )
         return fig
