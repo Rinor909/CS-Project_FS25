@@ -6,6 +6,10 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
+import pandas as pd
 
 # Main app logic
 def main():
@@ -205,7 +209,7 @@ def main():
                     {"Destination": key, "Minutes": value} for key, value in travel_times.items()
                 ]
                 df_travel_viz = pd.DataFrame(travel_times_data)
-                    
+
                 if not df_travel_viz.empty:
                     fig = px.bar(
                         df_travel_viz,
@@ -430,15 +434,29 @@ def main():
     st.subheader("Zurich Map")
     
     # Get Zurich coordinates
-    zurich_coords = get_zurich_coordinates()
+    # zurich_coords = get_zurich_coordinates()
     
-    # Create a simple map using st.map
-    df_map = pd.DataFrame({
-        'lat': [zurich_coords['latitude']],
-        'lon': [zurich_coords['longitude']]
-    })
+    # # Create a simple map using st.map
+    # df_map = pd.DataFrame({
+    #     'lat': [zurich_coords['latitude']],
+    #     'lon': [zurich_coords['longitude']]
+    # })
     
-    st.map(df_map, zoom=12, use_container_width=True)
+    # st.map(df_map, zoom=12, use_container_width=True)
+    coords = get_zurich_coordinates()
+
+    # Créer la carte avec Folium
+    map_folium = folium.Map(location=[coords['latitude'], coords['longitude']], zoom_start=13, tiles='OpenStreetMap')
+
+    # Ajouter un marqueur
+    folium.Marker(
+        [coords['latitude'], coords['longitude']],
+        tooltip="Zurich",
+        popup="Centre de Zurich"
+    ).add_to(map_folium)
+
+    # Afficher la carte dans Streamlit
+    st_folium(map_folium, width=700, height=500)
     
     # ---- FOOTER ----
     st.caption("Developed for HSG Computer Science Project | Data Source: opendata.swiss | © 2025 ValueState Zürich")
