@@ -125,17 +125,7 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
             ),
             plot_bgcolor="#1E1E1E",
             paper_bgcolor="#1E1E1E",
-            font=dict(color="#FFFFFF")
-        )
-        fig.update_xaxes(
-            gridcolor="#333333",
-            tickfont=dict(color="#FFFFFF")
-            )
-
-        fig.update_yaxes(
-            gridcolor="#333333",
-            tickfont=dict(color="#FFFFFF")
-            )   
+            font=dict(color="#FFFFFF")   
         return fig
     except Exception as e:
         print(f"Error creating price heatmap: {e}")
