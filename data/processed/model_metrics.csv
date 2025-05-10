@@ -1,0 +1,4 @@
+Metrik,Gradient Boosting,Random Forest,Lineare Regression
+MAE (CHF),"136,208","174,885","360,459"
+RMSE (CHF),"303,631","405,427","496,903"
+R²,0.9198,0.8570,0.7851
