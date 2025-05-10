@@ -275,7 +275,6 @@ def main():
                 st.info("No historical price data available for this neighborhood.")
         
         # Tab 2: Location
-        # Tab 2: Location
     with tab2:
         st.subheader("Interactive Maps")
         
