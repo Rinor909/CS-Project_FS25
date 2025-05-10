@@ -407,7 +407,7 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown(
-        "Entwickelt im Rahmen des Kurses Grundlagen und Methoden der Informatik für Wirtschaftswissenschaften an der HSG  | Datenquelle: opendata.swiss | Last updated: May 2025"
+        "Entwickelt im Rahmen des Kurses Introduction to Computer Science an der HSG  | Datenquelle: opendata.swiss | Letzte Aktualisierung: Mai 2025"
     )
 
 if __name__ == "__main__":
