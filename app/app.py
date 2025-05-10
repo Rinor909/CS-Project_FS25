@@ -122,7 +122,6 @@ def main():
                 options=list(range(1900, 2026, 5)),
                 index=20,  # Default to 2000
                 format_func=lambda x: str(x),
-                use_container_width=True
             )
             # Transportation mode - Put this in its own container
         with st.container(border=True):
