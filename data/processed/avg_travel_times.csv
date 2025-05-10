@@ -1,0 +1,95 @@
+Quartier,Transportmittel,Durchschnitt_Minuten,Min_Minuten,Max_Minuten
+Affoltern,driving,16.174999999999997,9.6,21.9
+Affoltern,transit,32.7,24.1,36.2
+Albisrieden,driving,18.349999999999998,14.7,21.4
+Albisrieden,transit,32.9,25.8,41.4
+Alt-Wiedikon,driving,13.125,9.5,17.6
+Alt-Wiedikon,transit,25.225,20.1,30.5
+Altstetten,driving,20.2,17.2,23.5
+Altstetten,transit,23.4,13.3,30.5
+City,driving,7.625,3.3,13.9
+City,transit,9.0,3.1,18.1
+Enge,driving,11.75,7.1,19.0
+Enge,transit,19.55,13.1,30.7
+Escher Wyss,driving,5.425,0.3,9.9
+Escher Wyss,transit,8.525,0.8,17.6
+Fluntern,driving,11.05,6.2,14.5
+Fluntern,transit,23.224999999999998,14.1,35.9
+Friesenberg,driving,22.424999999999997,17.9,27.0
+Friesenberg,transit,37.45,31.3,46.9
+Ganze Stadt,driving,5.425,0.3,9.9
+Ganze Stadt,transit,8.525,0.8,17.6
+Gewerbeschule,driving,9.05,2.6,12.8
+Gewerbeschule,transit,13.8,3.9,22.2
+Hard,driving,14.424999999999999,11.2,17.2
+Hard,transit,22.05,14.9,29.8
+Hirslanden,driving,12.8,8.9,18.3
+Hirslanden,transit,23.75,17.5,34.0
+Hirzenbach,driving,13.4,10.4,17.4
+Hirzenbach,transit,28.200000000000003,24.1,31.1
+Hochschulen,driving,6.8,3.4,12.2
+Hochschulen,transit,16.025,5.6,35.1
+Hottingen,driving,9.925,5.9,15.6
+Hottingen,transit,17.95,11.8,28.3
+Höngg,driving,13.825,10.4,17.5
+Höngg,transit,26.1,16.6,34.5
+Kreis 1,driving,8.25,3.3,14.3
+Kreis 1,transit,11.85,4.9,23.3
+Kreis 10,driving,12.7,10.8,17.0
+Kreis 10,transit,28.425000000000004,22.1,34.2
+Kreis 11,driving,15.575000000000001,9.3,21.6
+Kreis 11,transit,20.75,15.1,26.1
+Kreis 12,driving,12.275,10.1,16.0
+Kreis 12,transit,32.15,28.1,36.3
+Kreis 2,driving,14.025,9.5,22.2
+Kreis 2,transit,23.0,16.9,32.5
+Kreis 3,driving,15.575,11.9,19.0
+Kreis 3,transit,24.6,18.1,33.7
+Kreis 4,driving,9.975,5.6,13.9
+Kreis 4,transit,16.675,10.2,26.6
+Kreis 5,driving,7.675000000000001,2.3,9.5
+Kreis 5,transit,15.325,6.5,22.4
+Kreis 6,driving,8.225,3.5,11.8
+Kreis 6,transit,17.325,7.2,28.9
+Kreis 7,driving,13.15,9.2,18.6
+Kreis 7,transit,23.775,17.2,34.6
+Kreis 8,driving,12.5,9.8,19.7
+Kreis 8,transit,22.1,18.3,30.4
+Kreis 9,driving,17.2,13.5,19.6
+Kreis 9,transit,33.175,25.8,41.4
+Langstrasse,driving,7.8,2.5,11.6
+Langstrasse,transit,14.9,5.8,21.2
+Leimbach,driving,21.8,16.0,30.3
+Leimbach,transit,35.925,24.9,47.7
+Lindenhof,driving,7.375,3.3,13.7
+Lindenhof,transit,11.7,3.8,23.5
+Mühlebach,driving,12.625,9.7,20.0
+Mühlebach,transit,15.7,11.4,21.9
+Oberstrass,driving,7.65,3.6,11.9
+Oberstrass,transit,18.575,9.1,28.2
+Oerlikon,driving,13.95,9.6,19.4
+Oerlikon,transit,18.5,9.2,26.8
+Rathaus,driving,6.975,3.1,12.3
+Rathaus,transit,13.900000000000002,4.6,37.2
+Saatlen,driving,13.15,8.8,17.6
+Saatlen,transit,27.224999999999998,24.4,30.4
+Schwamendingen-Mitte,driving,11.75,3.9,17.0
+Schwamendingen-Mitte,transit,24.175,20.6,27.1
+Seebach,driving,13.0,7.3,17.5
+Seebach,transit,32.175,22.8,38.8
+Seefeld,driving,12.45,9.5,19.4
+Seefeld,transit,17.125,10.9,28.4
+Sihlfeld,driving,15.7,12.5,18.7
+Sihlfeld,transit,29.475,21.5,43.1
+Unterstrass,driving,6.7,3.1,9.9
+Unterstrass,transit,15.8,9.2,33.1
+Weinegg,driving,5.425,0.3,9.9
+Weinegg,transit,8.525,0.8,17.6
+Werd,driving,5.425,0.3,9.9
+Werd,transit,8.525,0.8,17.6
+Wipkingen,driving,8.85,5.7,12.3
+Wipkingen,transit,21.0,14.2,33.9
+Witikon,driving,16.525,12.8,21.2
+Witikon,transit,31.475,24.8,42.7
+Wollishofen,driving,16.0,11.5,24.2
+Wollishofen,transit,26.25,19.6,33.7

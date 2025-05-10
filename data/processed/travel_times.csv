@@ -1,0 +1,377 @@
+Quartier,Zielort,Transportmittel,Reisezeit_Minuten
+Ganze Stadt,Hauptbahnhof,transit,0.8
+Ganze Stadt,Hauptbahnhof,driving,0.3
+Ganze Stadt,ETH,transit,9.2
+Ganze Stadt,ETH,driving,5.3
+Ganze Stadt,Flughafen,transit,17.6
+Ganze Stadt,Flughafen,driving,9.9
+Ganze Stadt,Bahnhofstrasse,transit,6.5
+Ganze Stadt,Bahnhofstrasse,driving,6.2
+Kreis 1,Hauptbahnhof,transit,7.4
+Kreis 1,Hauptbahnhof,driving,5.1
+Kreis 1,ETH,transit,11.8
+Kreis 1,ETH,driving,10.3
+Kreis 1,Flughafen,transit,23.3
+Kreis 1,Flughafen,driving,14.3
+Kreis 1,Bahnhofstrasse,transit,4.9
+Kreis 1,Bahnhofstrasse,driving,3.3
+Rathaus,Hauptbahnhof,transit,4.6
+Rathaus,Hauptbahnhof,driving,3.1
+Rathaus,ETH,transit,8.1
+Rathaus,ETH,driving,6.6
+Rathaus,Flughafen,transit,37.2
+Rathaus,Flughafen,driving,12.3
+Rathaus,Bahnhofstrasse,transit,5.7
+Rathaus,Bahnhofstrasse,driving,5.9
+Hochschulen,Hauptbahnhof,transit,7.8
+Hochschulen,Hauptbahnhof,driving,3.4
+Hochschulen,ETH,transit,5.6
+Hochschulen,ETH,driving,4.4
+Hochschulen,Flughafen,transit,35.1
+Hochschulen,Flughafen,driving,12.2
+Hochschulen,Bahnhofstrasse,transit,15.6
+Hochschulen,Bahnhofstrasse,driving,7.2
+Lindenhof,Hauptbahnhof,transit,7.6
+Lindenhof,Hauptbahnhof,driving,4.5
+Lindenhof,ETH,transit,11.9
+Lindenhof,ETH,driving,8.0
+Lindenhof,Flughafen,transit,23.5
+Lindenhof,Flughafen,driving,13.7
+Lindenhof,Bahnhofstrasse,transit,3.8
+Lindenhof,Bahnhofstrasse,driving,3.3
+City,Hauptbahnhof,transit,3.1
+City,Hauptbahnhof,driving,3.4
+City,ETH,transit,8.2
+City,ETH,driving,9.9
+City,Flughafen,transit,18.1
+City,Flughafen,driving,13.9
+City,Bahnhofstrasse,transit,6.6
+City,Bahnhofstrasse,driving,3.3
+Kreis 2,Hauptbahnhof,transit,17.2
+Kreis 2,Hauptbahnhof,driving,12.0
+Kreis 2,ETH,transit,25.4
+Kreis 2,ETH,driving,12.4
+Kreis 2,Flughafen,transit,32.5
+Kreis 2,Flughafen,driving,22.2
+Kreis 2,Bahnhofstrasse,transit,16.9
+Kreis 2,Bahnhofstrasse,driving,9.5
+Wollishofen,Hauptbahnhof,transit,19.9
+Wollishofen,Hauptbahnhof,driving,13.9
+Wollishofen,ETH,transit,31.8
+Wollishofen,ETH,driving,14.4
+Wollishofen,Flughafen,transit,33.7
+Wollishofen,Flughafen,driving,24.2
+Wollishofen,Bahnhofstrasse,transit,19.6
+Wollishofen,Bahnhofstrasse,driving,11.5
+Leimbach,Hauptbahnhof,transit,24.9
+Leimbach,Hauptbahnhof,driving,16.0
+Leimbach,ETH,transit,33.8
+Leimbach,ETH,driving,21.4
+Leimbach,Flughafen,transit,47.7
+Leimbach,Flughafen,driving,30.3
+Leimbach,Bahnhofstrasse,transit,37.3
+Leimbach,Bahnhofstrasse,driving,19.5
+Enge,Hauptbahnhof,transit,14.2
+Enge,Hauptbahnhof,driving,9.0
+Enge,ETH,transit,20.2
+Enge,ETH,driving,11.9
+Enge,Flughafen,transit,30.7
+Enge,Flughafen,driving,19.0
+Enge,Bahnhofstrasse,transit,13.1
+Enge,Bahnhofstrasse,driving,7.1
+Kreis 3,Hauptbahnhof,transit,18.1
+Kreis 3,Hauptbahnhof,driving,11.9
+Kreis 3,ETH,transit,27.5
+Kreis 3,ETH,driving,19.0
+Kreis 3,Flughafen,transit,33.7
+Kreis 3,Flughafen,driving,18.5
+Kreis 3,Bahnhofstrasse,transit,19.1
+Kreis 3,Bahnhofstrasse,driving,12.9
+Alt-Wiedikon,Hauptbahnhof,transit,20.1
+Alt-Wiedikon,Hauptbahnhof,driving,9.5
+Alt-Wiedikon,ETH,transit,30.5
+Alt-Wiedikon,ETH,driving,14.9
+Alt-Wiedikon,Flughafen,transit,28.2
+Alt-Wiedikon,Flughafen,driving,17.6
+Alt-Wiedikon,Bahnhofstrasse,transit,22.1
+Alt-Wiedikon,Bahnhofstrasse,driving,10.5
+Friesenberg,Hauptbahnhof,transit,31.6
+Friesenberg,Hauptbahnhof,driving,17.9
+Friesenberg,ETH,transit,40.0
+Friesenberg,ETH,driving,27.0
+Friesenberg,Flughafen,transit,46.9
+Friesenberg,Flughafen,driving,25.9
+Friesenberg,Bahnhofstrasse,transit,31.3
+Friesenberg,Bahnhofstrasse,driving,18.9
+Sihlfeld,Hauptbahnhof,transit,22.2
+Sihlfeld,Hauptbahnhof,driving,12.5
+Sihlfeld,ETH,transit,31.1
+Sihlfeld,ETH,driving,18.7
+Sihlfeld,Flughafen,transit,43.1
+Sihlfeld,Flughafen,driving,18.0
+Sihlfeld,Bahnhofstrasse,transit,21.5
+Sihlfeld,Bahnhofstrasse,driving,13.6
+Kreis 4,Hauptbahnhof,transit,10.2
+Kreis 4,Hauptbahnhof,driving,5.6
+Kreis 4,ETH,transit,19.6
+Kreis 4,ETH,driving,12.7
+Kreis 4,Flughafen,transit,26.6
+Kreis 4,Flughafen,driving,13.9
+Kreis 4,Bahnhofstrasse,transit,10.3
+Kreis 4,Bahnhofstrasse,driving,7.7
+Werd,Hauptbahnhof,transit,0.8
+Werd,Hauptbahnhof,driving,0.3
+Werd,ETH,transit,9.2
+Werd,ETH,driving,5.3
+Werd,Flughafen,transit,17.6
+Werd,Flughafen,driving,9.9
+Werd,Bahnhofstrasse,transit,6.5
+Werd,Bahnhofstrasse,driving,6.2
+Langstrasse,Hauptbahnhof,transit,5.8
+Langstrasse,Hauptbahnhof,driving,2.5
+Langstrasse,ETH,transit,17.6
+Langstrasse,ETH,driving,10.4
+Langstrasse,Flughafen,transit,21.2
+Langstrasse,Flughafen,driving,11.6
+Langstrasse,Bahnhofstrasse,transit,15.0
+Langstrasse,Bahnhofstrasse,driving,6.7
+Hard,Hauptbahnhof,transit,14.9
+Hard,Hauptbahnhof,driving,11.2
+Hard,ETH,transit,24.9
+Hard,ETH,driving,17.2
+Hard,Flughafen,transit,29.8
+Hard,Flughafen,driving,16.4
+Hard,Bahnhofstrasse,transit,18.6
+Hard,Bahnhofstrasse,driving,12.9
+Kreis 5,Hauptbahnhof,transit,6.5
+Kreis 5,Hauptbahnhof,driving,2.3
+Kreis 5,ETH,transit,18.8
+Kreis 5,ETH,driving,9.5
+Kreis 5,Flughafen,transit,22.4
+Kreis 5,Flughafen,driving,9.5
+Kreis 5,Bahnhofstrasse,transit,13.6
+Kreis 5,Bahnhofstrasse,driving,9.4
+Gewerbeschule,Hauptbahnhof,transit,3.9
+Gewerbeschule,Hauptbahnhof,driving,2.6
+Gewerbeschule,ETH,transit,17.8
+Gewerbeschule,ETH,driving,11.2
+Gewerbeschule,Flughafen,transit,22.2
+Gewerbeschule,Flughafen,driving,12.8
+Gewerbeschule,Bahnhofstrasse,transit,11.3
+Gewerbeschule,Bahnhofstrasse,driving,9.6
+Escher Wyss,Hauptbahnhof,transit,0.8
+Escher Wyss,Hauptbahnhof,driving,0.3
+Escher Wyss,ETH,transit,9.2
+Escher Wyss,ETH,driving,5.3
+Escher Wyss,Flughafen,transit,17.6
+Escher Wyss,Flughafen,driving,9.9
+Escher Wyss,Bahnhofstrasse,transit,6.5
+Escher Wyss,Bahnhofstrasse,driving,6.2
+Kreis 6,Hauptbahnhof,transit,12.8
+Kreis 6,Hauptbahnhof,driving,6.6
+Kreis 6,ETH,transit,7.2
+Kreis 6,ETH,driving,3.5
+Kreis 6,Flughafen,transit,28.9
+Kreis 6,Flughafen,driving,11.0
+Kreis 6,Bahnhofstrasse,transit,20.4
+Kreis 6,Bahnhofstrasse,driving,11.8
+Unterstrass,Hauptbahnhof,transit,9.2
+Unterstrass,Hauptbahnhof,driving,3.9
+Unterstrass,ETH,transit,9.3
+Unterstrass,ETH,driving,3.1
+Unterstrass,Flughafen,transit,33.1
+Unterstrass,Flughafen,driving,9.9
+Unterstrass,Bahnhofstrasse,transit,11.6
+Unterstrass,Bahnhofstrasse,driving,9.9
+Oberstrass,Hauptbahnhof,transit,14.7
+Oberstrass,Hauptbahnhof,driving,6.3
+Oberstrass,ETH,transit,9.1
+Oberstrass,ETH,driving,3.6
+Oberstrass,Flughafen,transit,28.2
+Oberstrass,Flughafen,driving,8.8
+Oberstrass,Bahnhofstrasse,transit,22.3
+Oberstrass,Bahnhofstrasse,driving,11.9
+Kreis 7,Hauptbahnhof,transit,17.2
+Kreis 7,Hauptbahnhof,driving,10.5
+Kreis 7,ETH,transit,20.7
+Kreis 7,ETH,driving,9.2
+Kreis 7,Flughafen,transit,34.6
+Kreis 7,Flughafen,driving,18.6
+Kreis 7,Bahnhofstrasse,transit,22.6
+Kreis 7,Bahnhofstrasse,driving,14.3
+Fluntern,Hauptbahnhof,transit,20.2
+Fluntern,Hauptbahnhof,driving,9.3
+Fluntern,ETH,transit,14.1
+Fluntern,ETH,driving,6.2
+Fluntern,Flughafen,transit,35.9
+Fluntern,Flughafen,driving,14.2
+Fluntern,Bahnhofstrasse,transit,22.7
+Fluntern,Bahnhofstrasse,driving,14.5
+Hottingen,Hauptbahnhof,transit,11.8
+Hottingen,Hauptbahnhof,driving,7.2
+Hottingen,ETH,transit,14.2
+Hottingen,ETH,driving,5.9
+Hottingen,Flughafen,transit,28.3
+Hottingen,Flughafen,driving,15.6
+Hottingen,Bahnhofstrasse,transit,17.5
+Hottingen,Bahnhofstrasse,driving,11.0
+Hirslanden,Hauptbahnhof,transit,17.5
+Hirslanden,Hauptbahnhof,driving,10.2
+Hirslanden,ETH,transit,19.9
+Hirslanden,ETH,driving,8.9
+Hirslanden,Flughafen,transit,34.0
+Hirslanden,Flughafen,driving,18.3
+Hirslanden,Bahnhofstrasse,transit,23.6
+Hirslanden,Bahnhofstrasse,driving,13.8
+Witikon,Hauptbahnhof,transit,24.8
+Witikon,Hauptbahnhof,driving,14.1
+Witikon,ETH,transit,28.3
+Witikon,ETH,driving,12.8
+Witikon,Flughafen,transit,42.7
+Witikon,Flughafen,driving,21.2
+Witikon,Bahnhofstrasse,transit,30.1
+Witikon,Bahnhofstrasse,driving,18.0
+Kreis 8,Hauptbahnhof,transit,18.3
+Kreis 8,Hauptbahnhof,driving,10.7
+Kreis 8,ETH,transit,20.3
+Kreis 8,ETH,driving,9.8
+Kreis 8,Flughafen,transit,30.4
+Kreis 8,Flughafen,driving,19.7
+Kreis 8,Bahnhofstrasse,transit,19.4
+Kreis 8,Bahnhofstrasse,driving,9.8
+Seefeld,Hauptbahnhof,transit,10.9
+Seefeld,Hauptbahnhof,driving,10.4
+Seefeld,ETH,transit,16.1
+Seefeld,ETH,driving,9.5
+Seefeld,Flughafen,transit,28.4
+Seefeld,Flughafen,driving,19.4
+Seefeld,Bahnhofstrasse,transit,13.1
+Seefeld,Bahnhofstrasse,driving,10.5
+Mühlebach,Hauptbahnhof,transit,11.4
+Mühlebach,Hauptbahnhof,driving,11.0
+Mühlebach,ETH,transit,14.2
+Mühlebach,ETH,driving,9.7
+Mühlebach,Flughafen,transit,21.9
+Mühlebach,Flughafen,driving,20.0
+Mühlebach,Bahnhofstrasse,transit,15.3
+Mühlebach,Bahnhofstrasse,driving,9.8
+Weinegg,Hauptbahnhof,transit,0.8
+Weinegg,Hauptbahnhof,driving,0.3
+Weinegg,ETH,transit,9.2
+Weinegg,ETH,driving,5.3
+Weinegg,Flughafen,transit,17.6
+Weinegg,Flughafen,driving,9.9
+Weinegg,Bahnhofstrasse,transit,6.5
+Weinegg,Bahnhofstrasse,driving,6.2
+Kreis 9,Hauptbahnhof,transit,25.8
+Kreis 9,Hauptbahnhof,driving,13.5
+Kreis 9,ETH,transit,36.5
+Kreis 9,ETH,driving,19.6
+Kreis 9,Flughafen,transit,41.4
+Kreis 9,Flughafen,driving,18.7
+Kreis 9,Bahnhofstrasse,transit,29.0
+Kreis 9,Bahnhofstrasse,driving,17.0
+Albisrieden,Hauptbahnhof,transit,25.8
+Albisrieden,Hauptbahnhof,driving,14.7
+Albisrieden,ETH,transit,36.4
+Albisrieden,ETH,driving,21.4
+Albisrieden,Flughafen,transit,41.4
+Albisrieden,Flughafen,driving,19.9
+Albisrieden,Bahnhofstrasse,transit,28.0
+Albisrieden,Bahnhofstrasse,driving,17.4
+Altstetten,Hauptbahnhof,transit,13.3
+Altstetten,Hauptbahnhof,driving,17.2
+Altstetten,ETH,transit,24.3
+Altstetten,ETH,driving,23.5
+Altstetten,Flughafen,transit,30.5
+Altstetten,Flughafen,driving,18.1
+Altstetten,Bahnhofstrasse,transit,25.5
+Altstetten,Bahnhofstrasse,driving,22.0
+Kreis 10,Hauptbahnhof,transit,22.1
+Kreis 10,Hauptbahnhof,driving,11.4
+Kreis 10,ETH,transit,29.3
+Kreis 10,ETH,driving,11.6
+Kreis 10,Flughafen,transit,34.2
+Kreis 10,Flughafen,driving,10.8
+Kreis 10,Bahnhofstrasse,transit,28.1
+Kreis 10,Bahnhofstrasse,driving,17.0
+Höngg,Hauptbahnhof,transit,16.6
+Höngg,Hauptbahnhof,driving,10.4
+Höngg,ETH,transit,29.3
+Höngg,ETH,driving,13.7
+Höngg,Flughafen,transit,34.5
+Höngg,Flughafen,driving,13.7
+Höngg,Bahnhofstrasse,transit,24.0
+Höngg,Bahnhofstrasse,driving,17.5
+Wipkingen,Hauptbahnhof,transit,14.2
+Wipkingen,Hauptbahnhof,driving,5.7
+Wipkingen,ETH,transit,17.7
+Wipkingen,ETH,driving,9.1
+Wipkingen,Flughafen,transit,33.9
+Wipkingen,Flughafen,driving,8.3
+Wipkingen,Bahnhofstrasse,transit,18.2
+Wipkingen,Bahnhofstrasse,driving,12.3
+Kreis 11,Hauptbahnhof,transit,18.9
+Kreis 11,Hauptbahnhof,driving,16.1
+Kreis 11,ETH,transit,22.9
+Kreis 11,ETH,driving,15.3
+Kreis 11,Flughafen,transit,15.1
+Kreis 11,Flughafen,driving,9.3
+Kreis 11,Bahnhofstrasse,transit,26.1
+Kreis 11,Bahnhofstrasse,driving,21.6
+Affoltern,Hauptbahnhof,transit,24.1
+Affoltern,Hauptbahnhof,driving,16.4
+Affoltern,ETH,transit,36.2
+Affoltern,ETH,driving,16.8
+Affoltern,Flughafen,transit,34.4
+Affoltern,Flughafen,driving,9.6
+Affoltern,Bahnhofstrasse,transit,36.1
+Affoltern,Bahnhofstrasse,driving,21.9
+Oerlikon,Hauptbahnhof,transit,14.3
+Oerlikon,Hauptbahnhof,driving,13.8
+Oerlikon,ETH,transit,23.7
+Oerlikon,ETH,driving,13.0
+Oerlikon,Flughafen,transit,9.2
+Oerlikon,Flughafen,driving,9.6
+Oerlikon,Bahnhofstrasse,transit,26.8
+Oerlikon,Bahnhofstrasse,driving,19.4
+Seebach,Hauptbahnhof,transit,31.6
+Seebach,Hauptbahnhof,driving,12.0
+Seebach,ETH,transit,35.5
+Seebach,ETH,driving,15.2
+Seebach,Flughafen,transit,22.8
+Seebach,Flughafen,driving,7.3
+Seebach,Bahnhofstrasse,transit,38.8
+Seebach,Bahnhofstrasse,driving,17.5
+Kreis 12,Hauptbahnhof,transit,30.8
+Kreis 12,Hauptbahnhof,driving,10.4
+Kreis 12,ETH,transit,28.1
+Kreis 12,ETH,driving,12.6
+Kreis 12,Flughafen,transit,36.3
+Kreis 12,Flughafen,driving,10.1
+Kreis 12,Bahnhofstrasse,transit,33.4
+Kreis 12,Bahnhofstrasse,driving,16.0
+Saatlen,Hauptbahnhof,transit,27.9
+Saatlen,Hauptbahnhof,driving,12.0
+Saatlen,ETH,transit,24.4
+Saatlen,ETH,driving,14.2
+Saatlen,Flughafen,transit,26.2
+Saatlen,Flughafen,driving,8.8
+Saatlen,Bahnhofstrasse,transit,30.4
+Saatlen,Bahnhofstrasse,driving,17.6
+Schwamendingen-Mitte,Hauptbahnhof,transit,23.3
+Schwamendingen-Mitte,Hauptbahnhof,driving,11.4
+Schwamendingen-Mitte,ETH,transit,20.6
+Schwamendingen-Mitte,ETH,driving,14.7
+Schwamendingen-Mitte,Flughafen,transit,27.1
+Schwamendingen-Mitte,Flughafen,driving,3.9
+Schwamendingen-Mitte,Bahnhofstrasse,transit,25.7
+Schwamendingen-Mitte,Bahnhofstrasse,driving,17.0
+Hirzenbach,Hauptbahnhof,transit,27.5
+Hirzenbach,Hauptbahnhof,driving,11.8
+Hirzenbach,ETH,transit,24.1
+Hirzenbach,ETH,driving,14.0
+Hirzenbach,Flughafen,transit,31.1
+Hirzenbach,Flughafen,driving,10.4
+Hirzenbach,Bahnhofstrasse,transit,30.1
+Hirzenbach,Bahnhofstrasse,driving,17.4
