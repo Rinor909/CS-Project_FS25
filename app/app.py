@@ -430,7 +430,7 @@ def main():
             else:
                 st.info("Bitte wählen Sie mindestens ein Stadtviertel zum Vergleich aus.")
         with tab4:
-            st.subheader("Machine Learning Modell")
+            st.subheader("Machine-Learning-Modell")
 
             # Einführung in unseren Modell
             st.write("""
