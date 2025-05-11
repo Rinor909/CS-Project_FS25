@@ -178,21 +178,3 @@ final_path = os.path.join(processed_dir, 'modell_input_final.csv')
 df_quartier_clean.to_csv(quartier_path, index=False)
 df_baualter_clean.to_csv(baualter_path, index=False)
 df_final.to_csv(final_path, index=False)
-
-print("Data preparation completed successfully!")
-print(f"Files saved to: {processed_dir}")
-
-# Verify files were created
-for path in [quartier_path, baualter_path, final_path]:
-    file_size = os.path.getsize(path) / 1024  # Size in KB
-    print(f"Created: {os.path.basename(path)} ({file_size:.2f} KB)")
-
-print("\nYou can find your files at:")
-print(processed_dir)
-
-# Try to open the folder in Windows Explorer
-try:
-    os.startfile(processed_dir)
-    print("Opening folder in Windows Explorer...")
-except Exception as e:
-    print(f"Could not open folder: {e}")
