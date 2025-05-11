@@ -1,13 +1,6 @@
 import pandas as pd
 import numpy as np
 import os
-import warnings
-
-# Suppress specific NumPy warnings about mean of empty slice
-warnings.filterwarnings("ignore", category=RuntimeWarning, message="Mean of empty slice")
-warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered in")
-# Suppress the FutureWarning about inplace
-warnings.filterwarnings("ignore", category=FutureWarning, message=".*inplace.*")
 
 # Define the specific output directory
 output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
@@ -16,9 +9,6 @@ processed_dir = os.path.join(output_dir, "processed")
 # Create directories if they don't exist
 os.makedirs(processed_dir, exist_ok=True)
 os.makedirs(os.path.join(output_dir, "models"), exist_ok=True)
-
-print(f"Output directory: {output_dir}")
-print(f"Processed data will be saved to: {processed_dir}")
 
 # Wir lesen die CSV-Dateien mit eine Raw-Datei von unser GitHub Repo (sonst ging das nicht)
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv'
