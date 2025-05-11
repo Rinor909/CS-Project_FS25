@@ -10,7 +10,8 @@ processed_dir = os.path.join(output_dir, "processed")
 
 # Ich stelle sicher, dass die Datenverzeichnisse existieren oder erstelle sie falls nicht
 # processed_dir: zum Speichern bereinigter/transformierter CSV-Datendateien
-# models-Verzeichnis: zum Speichern trainierter Machine-Learning-Modelldateienos.makedirs(processed_dir, exist_ok=True)
+# models-Verzeichnis: zum Speichern trainierter Machine-Learning-Modelldateien
+os.makedirs(processed_dir, exist_ok=True)
 os.makedirs(os.path.join(output_dir, "models"), exist_ok=True)
 
 # Die CSV-Dateien werden direkt von den Raw-URLs unseres GitHub-Repositories geladen,
