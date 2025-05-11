@@ -5,21 +5,21 @@ import os
 # Hier gebe ich ein lokales Ausgabeverzeichnis an, da ich nicht in der Lage war, 
 # sie direkt auf GitHub zu speichern (ich habe 2 Tage lang versucht, dies zu beheben, ohne Erfolg).
 # Ich speichere also die Exporte lokal und lade sie dann auf GitHub hoch, um sie später für die anderen Skripte zu verwenden.
-output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
-processed_dir = os.path.join(output_dir, "processed")
+output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data" # Ich lege fest, wo die Datei gespeichert werden soll
+processed_dir = os.path.join(output_dir, "processed") # Erzeugt einen Unterordner mit dem Namen „processed“
 
 # Ich stelle sicher, dass die Datenverzeichnisse existieren oder erstelle sie falls nicht
 # processed_dir: zum Speichern bereinigter/transformierter CSV-Datendateien
 # models-Verzeichnis: zum Speichern trainierter Machine-Learning-Modelldateien
-os.makedirs(processed_dir, exist_ok=True)
+os.makedirs(processed_dir, exist_ok=True) # Legt diese Ordner an, wenn sie nicht existieren (exist_ok=True verhindert Fehler, wenn die Ordner bereits existieren)
 os.makedirs(os.path.join(output_dir, "models"), exist_ok=True)
 
 # Die CSV-Dateien werden direkt von den Raw-URLs unseres GitHub-Repositories geladen,
 # da der lokale Dateizugriff auf verschiedenen Systemen Probleme verursachte
-url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv'
-url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv'
-df_quartier = pd.read_csv(url_quartier)
-df_baualter = pd.read_csv(url_baualter)
+url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv' # define first URL pointing to the first CSV file on GitHub
+url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv' # define second URL pointing to the second CSV file on GitHub
+df_quartier = pd.read_csv(url_quartier) # we use pandas to download and load these CSV files directly into dataframe
+df_baualter = pd.read_csv(url_baualter) # we use pandas to download and load these CSV files directly into dataframe
 
 # Wichtige Spalten aus dem Quartier-Datensatz auswählen und umbenennen
 # Diese Extraktion verbessert die Lesbarkeit und vereinfacht die Weiterverarbeitung
