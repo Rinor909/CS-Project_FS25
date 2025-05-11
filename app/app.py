@@ -123,8 +123,8 @@ def main():
             st.subheader("Baujahr")
             selected_baujahr = st.selectbox(
                 "",
-                options=list(range(2026, 1900, 5)),
-                index=10,  # Default to 2000
+                options=list(range(1900, 2026, 5)),
+                index=20,  # Default to 2000
                 format_func=lambda x: str(x),
             )
             # Transportation mode - Put this in its own container
