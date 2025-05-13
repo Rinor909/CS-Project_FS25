@@ -138,7 +138,7 @@ def get_travel_time(origin, destination, mode='transit'):
     """
     # Cache file path
     # I had to do add this functionality with the caching of the API results as I had a limited number of API calls I could make under the free plan
-    # Since I was not familiar with caching, AI was used to code lines 142 through 161
+    # Since I was not familiar with caching, AI was used to code lines 142 through 158
     cache_file = os.path.join(processed_dir, 'travel_time_cache.json') # we define a cache file path for storing previous API results
     # Cache laden, falls vorhanden
     if os.path.exists(cache_file):
@@ -162,19 +162,19 @@ def get_travel_time(origin, destination, mode='transit'):
     
     # Parameter für die Anfrage
     params = {
-        'origin': f"{origin['lat']},{origin['lng']}",
-        'destination': destination,
-        'mode': mode,
-        'key': GOOGLE_MAPS_API_KEY,
-        'departure_time': 'now',
-        'alternatives': 'false'
+        'origin': f"{origin['lat']},{origin['lng']}", # Start coordinates
+        'destination': destination, # End address
+        'mode': mode, # Transportation mode
+        'key': GOOGLE_MAPS_API_KEY, # API authentication
+        'departure_time': 'now', # Use current time
+        'alternatives': 'false' # Only return best route
     }
     
     # Anfrage senden
+    # Send request to Google Maps API and process the response
     try:
         response = requests.get(url, params=params)
         data = response.json()
-        
         # Prüfen, ob die Anfrage erfolgreich war
         if data['status'] == 'OK':
             # Reisezeit aus der ersten Route extrahieren
@@ -182,12 +182,10 @@ def get_travel_time(origin, destination, mode='transit'):
             leg = route['legs'][0]
             duration_seconds = leg['duration']['value']
             duration_minutes = duration_seconds / 60
-            
-            # Im Cache speichern
+            # Im Cache speichern # AI was used to code lines 186 to 188
             cache[cache_key] = duration_minutes
             with open(cache_file, 'w') as f:
                 json.dump(cache, f)
-                
             return duration_minutes
         else:
             print(f"API Error: {data['status']}")
