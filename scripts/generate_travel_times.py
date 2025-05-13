@@ -196,10 +196,6 @@ if __name__ == "__main__":
     if len(quartiere) > max_quartiere:
         print(f"Warning: Large number of neighborhoods ({len(quartiere)}). Processing the first {max_quartiere}.")
         quartiere = quartiere[:max_quartiere]
-
-    # Progress counter
-    total_calculations = len(quartiere) * len(zielorte) * 2  # 2 transport modes
-    processed = 0
     
     print(f"Starting travel time calculations for {len(quartiere)} neighborhoods to {len(zielorte)} destinations...")
     print(f"Total calculations to perform: {total_calculations}")
