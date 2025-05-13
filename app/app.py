@@ -455,7 +455,7 @@ def main():
                 st.markdown("""
                 **MAE**: Mittlerer absoluter Fehler - durschnittliche Abweichung in CHF  
                 **RMSE**: Wurzel des mittleren quadratischen Fehlers  
-                **R²**: Bestimmtheitsmaß (1.0 = perfekte Vorhersage)
+                **R²**: Bestimmtheitsmass (1.0 = perfekte Vorhersage)
                 """)
             with metrics_col2:
                 st.markdown("#### Modellvorhersagen vs. tatsächliche Preise")
