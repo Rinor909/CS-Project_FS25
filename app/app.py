@@ -123,7 +123,7 @@ def main():
             selected_baujahr = st.selectbox(
                 "",
                 options=list(range(1900, 2026, 5)),
-                index=22,  # Default Baujahr to 2010
+                index=25,  # Default Baujahr to 2010
                 format_func=lambda x: str(x),
             )
             # Transportation mode - Put this in its own container
