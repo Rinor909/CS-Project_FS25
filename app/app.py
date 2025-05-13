@@ -153,7 +153,7 @@ def main():
         travel_times
     )
     
-    # Predict price
+    # Predict price # remove this is useless
     predicted_price = predict_price(model, input_data)
     
     # ---- MAIN CONTENT ----
@@ -176,7 +176,7 @@ def main():
             "📊 Immobilienanalyse", 
             "🗺️ Standort", 
             "📈 Marktentwicklungen",
-            "🧠 Vorhersagemodell"
+            "🧠 Machine-Learning-Modell"
         ])
         
         # Tab 1: Property Analysis
