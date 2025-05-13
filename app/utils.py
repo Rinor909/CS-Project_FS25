@@ -2,332 +2,185 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
+import requests
+from io import StringIO
 
 def load_processed_data():
     """Loads the processed data for the app"""
+    # GitHub URLs for data sources
+    quartier_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv"
+    baualter_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/baualter_processed.csv"
+    travel_times_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/travel_times.csv"
+    
+    # Load quartier data
     try:
-        # Load data directly from GitHub URLs
-        import requests
-        from io import StringIO
-        
-        # Define GitHub URLs - make sure these are your actual URLs
-        quartier_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv"
-        baualter_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/baualter_processed.csv"
-        travel_times_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/travel_times.csv"
-        
-        print("Loading data from GitHub URLs...")
-        
-        # Load quartier data
-        response = requests.get(quartier_url)
-        if response.status_code == 200:
-            df_quartier = pd.read_csv(StringIO(response.text))
-            print(f"Successfully loaded quartier data: {len(df_quartier)} rows")
+        df_quartier = pd.read_csv(quartier_url)
+    except:
+        # Fallback to local file or create empty DataFrame
+        if os.path.exists('data/processed/quartier_processed.csv'):
+            df_quartier = pd.read_csv('data/processed/quartier_processed.csv')
         else:
-            print(f"Error loading quartier data: HTTP {response.status_code}")
-            # Try loading from local file
-            if os.path.exists('data/processed/quartier_processed.csv'):
-                print("Trying to load quartier data from local file...")
-                df_quartier = pd.read_csv('data/processed/quartier_processed.csv')
-                print(f"Loaded quartier data from local file: {len(df_quartier)} rows")
-            else:
-                print("No quartier data found.")
-                df_quartier = pd.DataFrame(columns=['Jahr', 'Quartier', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num'])
-                df_quartier['Jahr'] = [2024]  # Add default year
-        
-        # Load baualter data
-        response = requests.get(baualter_url)
-        if response.status_code == 200:
-            df_baualter = pd.read_csv(StringIO(response.text))
-            print(f"Successfully loaded baualter data: {len(df_baualter)} rows")
+            df_quartier = pd.DataFrame(columns=['Jahr', 'Quartier', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num'])
+            df_quartier['Jahr'] = [2024]  # Add default year
+    
+    # Load baualter data
+    try:
+        df_baualter = pd.read_csv(baualter_url)
+    except:
+        # Fallback to local file or create empty DataFrame
+        if os.path.exists('data/processed/baualter_processed.csv'):
+            df_baualter = pd.read_csv('data/processed/baualter_processed.csv')
         else:
-            print(f"Error loading baualter data: HTTP {response.status_code}")
-            # Try loading from local file
-            if os.path.exists('data/processed/baualter_processed.csv'):
-                print("Trying to load baualter data from local file...")
-                df_baualter = pd.read_csv('data/processed/baualter_processed.csv')
-                print(f"Loaded baualter data from local file: {len(df_baualter)} rows")
-            else:
-                print("No baualter data found.")
-                df_baualter = pd.DataFrame(columns=['Jahr', 'Baualter', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num', 'Baujahr'])
-        
-        # Load travel times data
-        response = requests.get(travel_times_url)
-        if response.status_code == 200:
-            df_travel_times = pd.read_csv(StringIO(response.text))
-            print(f"Successfully loaded travel times data: {len(df_travel_times)} rows")
+            df_baualter = pd.DataFrame(columns=['Jahr', 'Baualter', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num', 'Baujahr'])
+    
+    # Load travel times data
+    try:
+        df_travel_times = pd.read_csv(travel_times_url)
+    except:
+        # Fallback to local file or create empty DataFrame
+        if os.path.exists('data/processed/travel_times.csv'):
+            df_travel_times = pd.read_csv('data/processed/travel_times.csv')
         else:
-            print(f"Error loading travel times data: HTTP {response.status_code}")
-            # Try loading from local file
-            if os.path.exists('data/processed/travel_times.csv'):
-                print("Trying to load travel times data from local file...")
-                df_travel_times = pd.read_csv('data/processed/travel_times.csv')
-                print(f"Loaded travel times data from local file: {len(df_travel_times)} rows")
-            else:
-                print("No travel times data found.")
-                df_travel_times = pd.DataFrame(columns=['Quartier', 'Zielort', 'Transportmittel', 'Reisezeit_Minuten'])
+            df_travel_times = pd.DataFrame(columns=['Quartier', 'Zielort', 'Transportmittel', 'Reisezeit_Minuten'])
+    
+    # Ensure Jahr column exists
+    if 'Jahr' not in df_quartier.columns:
+        df_quartier['Jahr'] = 2024
         
-        # Check for missing Jahr column and add if necessary
-        if 'Jahr' not in df_quartier.columns:
-            print("Adding missing Jahr column")
-            df_quartier['Jahr'] = 2024
-            
-        return df_quartier, df_baualter, df_travel_times
-    except Exception as e:
-        print(f"Error loading data: {e}")
-        # Create empty DataFrames with expected columns as fallback
-        df_quartier = pd.DataFrame(columns=['Jahr', 'Quartier', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num'])
-        df_quartier['Jahr'] = [2024]  # Add default year to avoid the Jahr error
-        df_baualter = pd.DataFrame(columns=['Jahr', 'Baualter', 'Zimmeranzahl', 'MedianPreis', 'PreisProQm', 'Zimmeranzahl_num', 'Baujahr'])
-        df_travel_times = pd.DataFrame(columns=['Quartier', 'Zielort', 'Transportmittel', 'Reisezeit_Minuten'])
-        return df_quartier, df_baualter, df_travel_times
+    return df_quartier, df_baualter, df_travel_times
 
 def load_model():
-    """Loads the trained price prediction model from GitHub"""
+    """Loads the trained price prediction model"""
+    model_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/models/price_model.pkl"
+    
     try:
         # Try to load model from GitHub
-        import requests
-        import io
-        import pickle
-        
-        # GitHub URL to the model
-        model_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/models/price_model.pkl"
-        
-        # Download model file
-        print("Downloading model from GitHub...")
         response = requests.get(model_url)
-        
         if response.status_code == 200:
-            # Load the model from the response content
-            model_data = io.BytesIO(response.content)
+            model_data = StringIO(response.content.decode('latin1'))
             model = pickle.load(model_data)
-            print("Successfully loaded model from GitHub!")
             return model
-        else:
-            print(f"Failed to download model from GitHub: Status code {response.status_code}")
-            
-            # Try local file as fallback
-            if os.path.exists('models/price_model.pkl'):
-                print("Trying to load model from local file...")
-                with open('models/price_model.pkl', 'rb') as file:
-                    model = pickle.load(file)
-                print("Successfully loaded model from local file!")
-                return model
-            
-            print("Could not load model from GitHub or local file.")
-            return None
-            
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        return None
+        
+        # Fallback to local file
+        if os.path.exists('models/price_model.pkl'):
+            with open('models/price_model.pkl', 'rb') as file:
+                model = pickle.load(file)
+            return model
+    except:
+        pass
+    
+    # If model loading fails, return None (will use fallback calculation)
+    return None
 
 def load_quartier_mapping():
     """Loads the neighborhood mapping data"""
     try:
-        if not os.path.exists('models/quartier_mapping.pkl'):
-            print("Warning: quartier_mapping.pkl not found")
-            return {}
-            
-        with open('models/quartier_mapping.pkl', 'rb') as file:
-            quartier_mapping = pickle.load(file)
-        return quartier_mapping
-    except Exception as e:
-        print(f"Error loading quartier mapping: {e}")
-        return {}
+        if os.path.exists('models/quartier_mapping.pkl'):
+            with open('models/quartier_mapping.pkl', 'rb') as file:
+                return pickle.load(file)
+    except:
+        pass
+    
+    # Default empty mapping if loading fails
+    return {}
 
 def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
-    """
-    Prepares input data for the model with proper handling of construction year
-    
-    Args:
-        quartier_code (int): Neighborhood code
-        zimmeranzahl (int): Number of rooms
-        baujahr (int): Construction year
-        travel_times_dict (dict): Travel times to important locations
-        
-    Returns:
-        pd.DataFrame: Preprocessed data for prediction
-    """
-    # Calculate average age in years
-    aktuelles_jahr = 2025  # Current year
-    alter = aktuelles_jahr - baujahr
-    
-    print(f"Processing input: Quartier={quartier_code}, Zimmer={zimmeranzahl}, Baujahr={baujahr}")
-    
-    # Load neighborhood-specific statistics
+    """Prepares input data for the model"""
+    # Load model input data
     try:
-        # Try to load from GitHub
-        import requests
-        from io import StringIO
-        
         model_input_url = "https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/modell_input_final.csv"
-        
-        print("Loading model input data...")
-        response = requests.get(model_input_url)
-        
-        if response.status_code == 200:
-            df_final = pd.read_csv(StringIO(response.text))
-            print(f"Loaded model input data: {len(df_final)} rows")
-        else:
-            print(f"Error loading model input data: HTTP {response.status_code}")
-            # Try local file
+        df_final = pd.read_csv(model_input_url)
+    except:
+        # Try local file
+        try:
             if os.path.exists('data/processed/modell_input_final.csv'):
                 df_final = pd.read_csv('data/processed/modell_input_final.csv')
             else:
-                # Create a default DataFrame if file doesn't exist
-                df_final = pd.DataFrame({
-                    'Quartier_Code': [0],
-                    'Quartier_Preisniveau': [1.0],
-                    'MedianPreis_Baualter': [1000000]
-                })
-    except Exception as e:
-        print(f"Error loading model input data: {e}")
-        # Create a default DataFrame
-        df_final = pd.DataFrame({
-            'Quartier_Code': [0],
-            'Quartier_Preisniveau': [1.0],
-            'MedianPreis_Baualter': [1000000]
-        })
+                raise Exception()
+        except:
+            # Default values if loading fails
+            df_final = pd.DataFrame({
+                'Quartier_Code': [0],
+                'Quartier_Preisniveau': [1.0],
+                'MedianPreis_Baualter': [1000000]
+            })
     
-    # Find average values for the selected neighborhood
+    # Find values for the selected neighborhood
     quartier_data = df_final[df_final['Quartier_Code'] == quartier_code] if 'Quartier_Code' in df_final.columns else pd.DataFrame()
     
     if len(quartier_data) > 0:
         quartier_preisniveau = quartier_data['Quartier_Preisniveau'].mean() if 'Quartier_Preisniveau' in quartier_data.columns else 1.0
         mediapreis_baualter = quartier_data['MedianPreis_Baualter'].mean() if 'MedianPreis_Baualter' in quartier_data.columns else 1000000
     else:
-        # Fallback: Use average values across all neighborhoods
+        # Fallback: Use average values or defaults
         quartier_preisniveau = df_final['Quartier_Preisniveau'].mean() if 'Quartier_Preisniveau' in df_final.columns else 1.0
         mediapreis_baualter = df_final['MedianPreis_Baualter'].mean() if 'MedianPreis_Baualter' in df_final.columns else 1000000
     
-    # Create input data as DataFrame
+    # Create input data
     input_data = pd.DataFrame({
         'Quartier_Code': [quartier_code],
         'Zimmeranzahl_num': [zimmeranzahl],
         'PreisProQm': [quartier_preisniveau * 10000],  # Approximation
         'MedianPreis_Baualter': [mediapreis_baualter],
-        'Durchschnitt_Baujahr': [baujahr],  # Make sure baujahr is used properly
+        'Durchschnitt_Baujahr': [baujahr],
         'Preis_Verhältnis': [1.0],  # Default value
         'Quartier_Preisniveau': [quartier_preisniveau]
     })
     
-    # Add travel times if available
+    # Add travel times
     for key, value in travel_times_dict.items():
         if key in ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']:
             input_data[f'Reisezeit_{key}'] = value
     
-    print(f"Prepared input data: {input_data.to_dict('records')[0]}")
-    
     return input_data
 
 def predict_price(model, input_data):
-    """
-    Predicts price based on input data with proper handling of construction year
-    
-    Args:
-        model: Trained ML model
-        input_data (pd.DataFrame): Preprocessed input data
-        
-    Returns:
-        float: Predicted price
-    """
-    # Extract key values from input data for logging and fallback calculations
+    """Predicts price based on input data"""
+    # Extract key values for fallback calculations
     quartier_code = input_data['Quartier_Code'].values[0] if 'Quartier_Code' in input_data.columns else 0
     zimmeranzahl = input_data['Zimmeranzahl_num'].values[0] if 'Zimmeranzahl_num' in input_data.columns else 3
     baujahr = input_data['Durchschnitt_Baujahr'].values[0] if 'Durchschnitt_Baujahr' in input_data.columns else 2000
     quartier_preisniveau = input_data['Quartier_Preisniveau'].values[0] if 'Quartier_Preisniveau' in input_data.columns else 1.0
     
-    print(f"Predicting price for: Code={quartier_code}, Zimmer={zimmeranzahl}, Baujahr={baujahr}")
-    
-    if model is None:
-        print("No model available for prediction. Using fallback calculation.")
-        
-        # Use a fallback calculation that considers construction year
+    # Fallback calculation function
+    def calculate_fallback_price():
+        # Base price based on neighborhood price level
         base_price = 1000000 * quartier_preisniveau
         
         # Room factor: each room adds 15% to base price
         room_factor = 1.0 + ((zimmeranzahl - 3) * 0.15)
         
         # Age factor: newer buildings are more expensive
-        # 2025 (current) - 1925 (100 years old) = 100 year range
-        # Map this to a factor between 0.7 and 1.3 (±30%)
         aktuelles_jahr = 2025
         max_age = 100
         age = max(0, min(max_age, aktuelles_jahr - baujahr))
         age_factor = 1.3 - (age / max_age * 0.6)  # Ranges from 0.7 to 1.3
         
-        calculated_price = base_price * room_factor * age_factor
-        
-        print(f"Fallback calculation: Base={base_price:.0f}, Room factor={room_factor:.2f}, Age factor={age_factor:.2f}")
-        print(f"Calculated price: {calculated_price:.2f} CHF")
-        
-        return calculated_price
+        return base_price * room_factor * age_factor
+    
+    # If no model, use fallback calculation
+    if model is None:
+        return calculate_fallback_price()
     
     try:
-        # Check if model has feature names
-        expected_features = []
-        if hasattr(model, 'feature_names_in_'):
-            expected_features = model.feature_names_in_
-            print(f"Model expects features: {expected_features}")
-            
-            # Check if any expected features are missing
-            missing_features = [f for f in expected_features if f not in input_data.columns]
-            if missing_features:
-                print(f"Warning: Missing features for model: {missing_features}")
-        
-        # Make the prediction
-        print("Making prediction with model...")
+        # Make prediction using model
         prediction = model.predict(input_data)[0]
-        print(f"Raw model prediction: {prediction:.2f} CHF")
         
-        # If prediction seems unreasonable, apply additional adjustment for construction year
+        # Apply sanity check - if prediction seems unreasonable, adjust based on construction year
         if prediction < 500000 or prediction > 10000000:
-            print("Prediction outside reasonable range, applying adjustment.")
-            
-            # Calculate age adjustment
             aktuelles_jahr = 2025
             max_age = 100
             age = max(0, min(max_age, aktuelles_jahr - baujahr))
-            age_factor = 1.3 - (age / max_age * 0.6)  # Ranges from 0.7 to 1.3
-            
-            # Adjust prediction by age factor
-            adjusted_prediction = prediction * age_factor
-            print(f"Age-adjusted prediction: {adjusted_prediction:.2f} CHF (factor={age_factor:.2f})")
-            
-            return round(adjusted_prediction, 2)
+            age_factor = 1.3 - (age / max_age * 0.6)
+            prediction = prediction * age_factor
         
         return round(prediction, 2)
-    except Exception as e:
-        print(f"Error in price prediction: {e}")
-        
-        # Use a fallback calculation that considers construction year
-        base_price = 1000000 * quartier_preisniveau
-        
-        # Room factor: each room adds 15% to base price
-        room_factor = 1.0 + ((zimmeranzahl - 3) * 0.15)
-        
-        # Age factor: newer buildings are more expensive
-        aktuelles_jahr = 2025
-        max_age = 100
-        age = max(0, min(max_age, aktuelles_jahr - baujahr))
-        age_factor = 1.3 - (age / max_age * 0.6)  # Ranges from 0.7 to 1.3
-        
-        calculated_price = base_price * room_factor * age_factor
-        
-        print(f"Error fallback calculation: {calculated_price:.2f} CHF")
-        return calculated_price
+    except:
+        # If prediction fails, use fallback calculation
+        return calculate_fallback_price()
 
 def get_travel_times_for_quartier(quartier, df_travel_times, transportmittel='transit'):
-    """
-    Returns travel times for a specific neighborhood
-    
-    Args:
-        quartier (str): Neighborhood name
-        df_travel_times (pd.DataFrame): DataFrame with travel time data
-        transportmittel (str): 'transit' or 'driving'
-        
-    Returns:
-        dict: Travel times to different destinations
-    """
+    """Returns travel times for a specific neighborhood"""
     # Default travel times as fallback
     default_times = {
         'Hauptbahnhof': 20,
@@ -336,9 +189,8 @@ def get_travel_times_for_quartier(quartier, df_travel_times, transportmittel='tr
         'Bahnhofstrasse': 22
     }
     
-    # Check if necessary columns exist
-    required_columns = ['Quartier', 'Zielort', 'Transportmittel', 'Reisezeit_Minuten']
-    if any(col not in df_travel_times.columns for col in required_columns) or df_travel_times.empty:
+    # Return defaults if data is missing or empty
+    if df_travel_times.empty or 'Quartier' not in df_travel_times.columns:
         return default_times
     
     # Filter data for the selected neighborhood and transport mode
@@ -347,29 +199,17 @@ def get_travel_times_for_quartier(quartier, df_travel_times, transportmittel='tr
         (df_travel_times['Transportmittel'] == transportmittel)
     ]
     
-    # Group travel times by destination
+    # Create travel times dictionary
     travel_times = {}
     for _, row in filtered_data.iterrows():
         travel_times[row['Zielort']] = row['Reisezeit_Minuten']
     
-    # If no data available, return default values
-    if not travel_times:
-        return default_times
-    
-    return travel_times
+    # Return defaults if no matching data found
+    return travel_times if travel_times else default_times
 
 def get_quartier_statistics(quartier, df_quartier):
-    """
-    Calculates statistics for a specific neighborhood
-    
-    Args:
-        quartier (str): Neighborhood name
-        df_quartier (pd.DataFrame): DataFrame with neighborhood data
-        
-    Returns:
-        dict: Statistics for the neighborhood
-    """
-    # Default statistics as fallback
+    """Calculates statistics for a specific neighborhood"""
+    # Default statistics
     default_stats = {
         'median_preis': 1000000,
         'min_preis': 800000,
@@ -378,65 +218,46 @@ def get_quartier_statistics(quartier, df_quartier):
         'anzahl_objekte': 0
     }
     
-    # Check if necessary columns exist
+    # Return defaults if data is missing
     if 'Quartier' not in df_quartier.columns or df_quartier.empty:
         return default_stats
     
-    # Filter data for the selected neighborhood
+    # Filter data for selected neighborhood
     quartier_data = df_quartier[df_quartier['Quartier'] == quartier]
     
-    # If no data available, return default values
+    # Return defaults if no matching data found
     if quartier_data.empty:
         return default_stats
     
     # Calculate statistics
-    try:
-        stats = {
-            'median_preis': quartier_data['MedianPreis'].median() if 'MedianPreis' in quartier_data.columns else default_stats['median_preis'],
-            'min_preis': quartier_data['MedianPreis'].min() if 'MedianPreis' in quartier_data.columns else default_stats['min_preis'],
-            'max_preis': quartier_data['MedianPreis'].max() if 'MedianPreis' in quartier_data.columns else default_stats['max_preis'],
-            'preis_pro_qm': quartier_data['PreisProQm'].median() if 'PreisProQm' in quartier_data.columns else default_stats['preis_pro_qm'],
-            'anzahl_objekte': len(quartier_data)
-        }
-        return stats
-    except Exception as e:
-        print(f"Error calculating statistics: {e}")
-        return default_stats
+    return {
+        'median_preis': quartier_data['MedianPreis'].median() if 'MedianPreis' in quartier_data.columns else default_stats['median_preis'],
+        'min_preis': quartier_data['MedianPreis'].min() if 'MedianPreis' in quartier_data.columns else default_stats['min_preis'],
+        'max_preis': quartier_data['MedianPreis'].max() if 'MedianPreis' in quartier_data.columns else default_stats['max_preis'],
+        'preis_pro_qm': quartier_data['PreisProQm'].median() if 'PreisProQm' in quartier_data.columns else default_stats['preis_pro_qm'],
+        'anzahl_objekte': len(quartier_data)
+    }
 
 def get_price_history(quartier, df_quartier):
-    """
-    Returns price development for a specific neighborhood
-    
-    Args:
-        quartier (str): Neighborhood name
-        df_quartier (pd.DataFrame): DataFrame with neighborhood data
-        
-    Returns:
-        pd.DataFrame: Price development by year
-    """
-    # Check if necessary columns exist
-    required_columns = ['Quartier', 'Jahr', 'MedianPreis']
-    if any(col not in df_quartier.columns for col in required_columns) or df_quartier.empty:
+    """Returns price development for a specific neighborhood"""
+    # Return empty DataFrame if data is missing
+    if 'Quartier' not in df_quartier.columns or 'Jahr' not in df_quartier.columns or df_quartier.empty:
         return pd.DataFrame()
     
-    # Filter data for the selected neighborhood
+    # Filter data for selected neighborhood
     quartier_data = df_quartier[df_quartier['Quartier'] == quartier]
     
-    # If no data available, return empty DataFrame
+    # Return empty DataFrame if no matching data found
     if quartier_data.empty:
         return pd.DataFrame()
     
-    try:
-        # Group by year and calculate average prices
-        price_history = quartier_data.groupby('Jahr').agg({
-            'MedianPreis': 'median',
-            'PreisProQm': 'median' if 'PreisProQm' in quartier_data.columns else lambda x: None
-        }).reset_index()
-        
-        return price_history
-    except Exception as e:
-        print(f"Error creating price history: {e}")
-        return pd.DataFrame()
+    # Group by year and calculate median prices
+    price_history = quartier_data.groupby('Jahr').agg({
+        'MedianPreis': 'median',
+        'PreisProQm': 'median' if 'PreisProQm' in quartier_data.columns else lambda x: None
+    }).reset_index()
+    
+    return price_history
 
 def get_zurich_coordinates():
     """Returns coordinates for Zurich"""
@@ -447,12 +268,7 @@ def get_zurich_coordinates():
     }
 
 def get_quartier_coordinates():
-    """
-    Returns coordinates for all neighborhoods in Zurich
-    In a real application, these would be loaded from a geodatabase or GeoJSON
-    """
-    # These values are approximations - in a real application, 
-    # the exact polygons or centroids of the neighborhoods would be used
+    """Returns coordinates for all neighborhoods in Zurich"""
     return {
         'Hottingen': {'lat': 47.3692, 'lng': 8.5631},
         'Fluntern': {'lat': 47.3809, 'lng': 8.5629},
