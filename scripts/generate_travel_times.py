@@ -6,6 +6,9 @@ import time
 import requests
 import sys
 
+# In order to read the API key, I had to use a secrets.toml file on GitHub, as when I tried to do it the normal way
+# GitHub said my API key was exposed and that posed a security threat, I was not familiar with this way of reading the API key
+# So this part from line 13 to 42 was generated with AI (ChatGPT)
 # Function to read API key directly from GitHub
 def get_api_key_from_github():
     secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml'
@@ -22,16 +25,13 @@ def get_api_key_from_github():
     except Exception as e:
         print(f"Error getting API key from GitHub: {e}")
     return None
-
 # Try to get API key from GitHub
 print("Loading API key from GitHub...")
 GOOGLE_MAPS_API_KEY = get_api_key_from_github()
-
 # Fallback to environment variable if GitHub fails
 if not GOOGLE_MAPS_API_KEY:
     print("Trying environment variable...")
     GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
-
 # Check if we have a key
 if not GOOGLE_MAPS_API_KEY:
     print("ERROR: No Google Maps API key found.")
@@ -41,7 +41,8 @@ if not GOOGLE_MAPS_API_KEY:
 else:
     print(f"Successfully loaded API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:]}")
 
-# Use direct GitHub URLs for data loading
+
+# We again use direct GitHub URLs to load our data
 print("Loading quartier data from GitHub...")
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv'
 
