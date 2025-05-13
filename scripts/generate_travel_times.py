@@ -308,10 +308,3 @@ if __name__ == "__main__":
     print(f"Average travel times (driving): {df_travel_times[df_travel_times['Transportmittel'] == 'driving']['Reisezeit_Minuten'].mean():.1f} minutes")
     
     print("\nTravel time generation completed successfully!")
-    
-    # Try to open the folder in Windows Explorer
-    try:
-        os.startfile(processed_dir)
-        print("Opening folder in Windows Explorer...")
-    except Exception as e:
-        print(f"Could not open folder: {e}")
