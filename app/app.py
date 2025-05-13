@@ -6,10 +6,10 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Importiere Komponenten
-from app.components.header import create_header
-from app.components.sidebar import create_sidebar
-from app.components.tabs import create_tabs
-from app.utils.styling import apply_chart_styling
+from components.header import create_header
+from components.sidebar import create_sidebar
+from components.tabs import create_tabs
+from utils.styling import apply_chart_styling
 
 # Importiere Datendienstprogramme
 from utils import (
@@ -48,9 +48,6 @@ def main():
 
     # Lädt Daten und Modell - dies wird dank Caching nur einmal ausgeführt
     df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords = load_data_and_model()
-    
-    # Erstellt inverse Mapping (Quartier-Name → Quartier-Code)
-    inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
     
     # Überprüft, ob Daten verfügbar sind
     # Zeigt Anweisungen, falls die Basisdaten fehlen
@@ -112,7 +109,7 @@ def main():
             selected_baujahr,                 # Ausgewähltes Baujahr
             predicted_price,                  # Vorhergesagter Preis
             travel_times,                     # Reisezeiten
-            quartier_options=sorted(list(inv_quartier_mapping.keys())),  # Alle verfügbaren Quartiere (mit list() konvertiert)
+            quartier_options=sorted(inv_quartier_mapping.keys()),  # Alle verfügbaren Quartiere
             apply_chart_styling=apply_chart_styling  # Styling-Funktion
         )
     
