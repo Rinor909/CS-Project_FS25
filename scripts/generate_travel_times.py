@@ -11,51 +11,45 @@ import sys
 # So this part from line 13 to 42 was generated with AI (ChatGPT)
 # Function to read API key directly from GitHub
 def get_api_key_from_github():
-    secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml'
+    secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml' # URL to the raw secrets.toml file in the GitHub repository
+
     try:
-        response = requests.get(secrets_url)
-        if response.status_code == 200:
-            content = response.text
-            for line in content.split('\n'):
-                if line.startswith('GOOGLE_MAPS_API_KEY'):
-                    api_key = line.split('=')[1].strip().strip('"').strip("'")
-                    return api_key
+        response = requests.get(secrets_url) # Attempt to download the secrets file
+        if response.status_code == 200: # Check if the request was successful i.e. 200 Response
+            content = response.text # get the content of the file
+            for line in content.split('\n'): # parse the file line by line to find the key
+                if line.startswith('GOOGLE_MAPS_API_KEY'): # look for the line that defines the Google Maps API Key
+                    api_key = line.split('=')[1].strip().strip('"').strip("'") # extract the value part 
+                    return api_key 
         else:
-            print(f"Failed to get secrets file: HTTP {response.status_code}")
+            print(f"Failed to get secrets file: HTTP {response.status_code}") # http request failed
     except Exception as e:
-        print(f"Error getting API key from GitHub: {e}")
+        print(f"Error getting API key from GitHub: {e}") # handle any exceptions that may happen during the request
     return None
 # Try to get API key from GitHub
 print("Loading API key from GitHub...")
-GOOGLE_MAPS_API_KEY = get_api_key_from_github()
+GOOGLE_MAPS_API_KEY = get_api_key_from_github() # first attempt in trying to get the API key from GitHub
 # Fallback to environment variable if GitHub fails
-if not GOOGLE_MAPS_API_KEY:
+if not GOOGLE_MAPS_API_KEY: # second attempt if getting the api key from github failed
     print("Trying environment variable...")
-    GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+    GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY") # look for the API key in environment variables
 # Check if we have a key
-if not GOOGLE_MAPS_API_KEY:
+if not GOOGLE_MAPS_API_KEY: # if both methods fail, display an error message
     print("ERROR: No Google Maps API key found.")
     print("Please make sure your API key is correctly set in:")
     print("https://github.com/Rinor909/zurich-real-estate/blob/main/.streamlit/secrets.toml")
-    sys.exit(1)
+    sys.exit(1) # exit the program as the API key is required for core functionality
 else:
-    print(f"Successfully loaded API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:]}")
+    print(f"Successfully loaded API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:]}") # success message with masked API key # prevents accidental exposure of the full key in logs
 
 
 # We again use direct GitHub URLs to load our data
-print("Loading quartier data from GitHub...")
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv'
 
-try:
-    df_quartier = pd.read_csv(url_quartier)
-    quartiere = df_quartier['Quartier'].unique()
-    print(f"Loaded {len(quartiere)} unique neighborhoods.")
-except Exception as e:
-    print(f"Error loading quartier data from GitHub: {e}")
-    print("ERROR: Could not load quartier data.")
-    sys.exit(1)
+df_quartier = pd.read_csv(url_quartier) # read the CSV file from a URL into a panda DataFrame
+quartiere = df_quartier['Quartier'].unique() # extracts a unique list of neighborhood names from the 'Quartier' column
 
-# Define output directory
+# Here again we define a local output directory for saving at the end, we are then going to upload the output on GitHub to use it further in the code
 output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
 processed_dir = os.path.join(output_dir, "processed")
 os.makedirs(processed_dir, exist_ok=True)
