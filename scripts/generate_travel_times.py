@@ -191,11 +191,6 @@ if __name__ == "__main__":
     # DataFrame for travel times
     travel_times = []
 
-    # Limit the number of neighborhoods if too many
-    max_quartiere = 100
-    if len(quartiere) > max_quartiere:
-        quartiere = quartiere[:max_quartiere]
-
     # Quick API test
     if get_travel_time(quartier_koordinaten.get(quartiere[0]), zielorte['Hauptbahnhof'], 'transit') is None:
         sys.exit(1)
