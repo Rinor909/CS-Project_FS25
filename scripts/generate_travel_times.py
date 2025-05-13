@@ -50,11 +50,12 @@ df_quartier = pd.read_csv(url_quartier) # read the CSV file from a URL into a pa
 quartiere = df_quartier['Quartier'].unique() # extracts a unique list of neighborhood names from the 'Quartier' column
 
 # Here again we define a local output directory for saving at the end, we are then going to upload the output on GitHub to use it further in the code
-output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
-processed_dir = os.path.join(output_dir, "processed")
+output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data" 
+processed_dir = os.path.join(output_dir, "processed") 
 os.makedirs(processed_dir, exist_ok=True)
 
 # Wichtige Zielorte in Zürich
+# Each destination is mapped to its address for API queries
 zielorte = {
     'Hauptbahnhof': 'Zürich Hauptbahnhof, Zürich, Schweiz',
     'ETH': 'ETH Zürich, Rämistrasse 101, 8092 Zürich, Schweiz',
@@ -63,6 +64,7 @@ zielorte = {
 }
 
 # Tatsächliche zentrale Koordinaten für jedes Quartier
+# These coordinates represent the approximate center point of each area
 quartier_koordinaten = {
     'Hottingen': {'lat': 47.3692, 'lng': 8.5631},
     'Fluntern': {'lat': 47.3809, 'lng': 8.5629},
@@ -113,15 +115,13 @@ quartier_koordinaten = {
 }
 
 # Für fehlende Quartiere Standardwerte hinzufügen
+# for handling neighborhood that might be in our dataset but not in our coodinates dictionary, by assigning a default value (Zentrum)
 missing_quartiers = []
 for quartier in quartiere:
     if quartier not in quartier_koordinaten:
         missing_quartiers.append(quartier)
         # Setze Default-Koordinaten für Zürich Zentrum
         quartier_koordinaten[quartier] = {'lat': 47.3769, 'lng': 8.5417}
-
-if missing_quartiers:
-    print(f"Warning: Used default coordinates for {len(missing_quartiers)} neighborhoods: {', '.join(missing_quartiers[:5])}{' and more...' if len(missing_quartiers) > 5 else ''}")
 
 # Funktion zur Berechnung der Reisezeit mit Google Maps API
 def get_travel_time(origin, destination, mode='transit'):
