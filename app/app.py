@@ -6,10 +6,10 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Importiere Komponenten
-from components.header import create_header
-from components.sidebar import create_sidebar
-from components.tabs import create_tabs
-from utils.styling import apply_chart_styling
+from app.components.header import create_header
+from app.components.sidebar import create_sidebar
+from app.components.tabs import create_tabs
+from app.utils.styling import apply_chart_styling
 
 # Importiere Datendienstprogramme
 from utils import (

@@ -2,11 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from maps import (  
-    create_price_heatmap, create_travel_time_map,
-    create_price_comparison_chart, create_price_time_series
-)
-from utils import get_quartier_statistics, get_price_history
+from app.maps import (create_price_heatmap, create_travel_time_map,
+                     create_price_comparison_chart, create_price_time_series)
 
 def create_tabs(df_quartier, df_travel_times, quartier_coords, selected_quartier, 
                 selected_zimmer, selected_baujahr, predicted_price, travel_times, 
