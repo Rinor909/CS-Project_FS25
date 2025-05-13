@@ -20,7 +20,7 @@ def main():
         get_quartier_coordinates
     )
     
-    from maps import (
+    from maps import (  
         create_price_heatmap, create_travel_time_map,
         create_price_comparison_chart, create_price_time_series
     )
