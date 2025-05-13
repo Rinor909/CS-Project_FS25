@@ -49,6 +49,9 @@ def main():
     # Lädt Daten und Modell - dies wird dank Caching nur einmal ausgeführt
     df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords = load_data_and_model()
     
+    # Erstellt inverse Mapping (Quartier-Name → Quartier-Code)
+    inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
+    
     # Überprüft, ob Daten verfügbar sind
     # Zeigt Anweisungen, falls die Basisdaten fehlen
     if df_quartier.empty or 'Quartier' not in df_quartier.columns:
@@ -109,7 +112,7 @@ def main():
             selected_baujahr,                 # Ausgewähltes Baujahr
             predicted_price,                  # Vorhergesagter Preis
             travel_times,                     # Reisezeiten
-            quartier_options=sorted(inv_quartier_mapping.keys()),  # Alle verfügbaren Quartiere
+            quartier_options=sorted(list(inv_quartier_mapping.keys())),  # Alle verfügbaren Quartiere (mit list() konvertiert)
             apply_chart_styling=apply_chart_styling  # Styling-Funktion
         )
     
