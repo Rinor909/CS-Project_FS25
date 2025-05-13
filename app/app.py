@@ -91,7 +91,7 @@ def main():
    
    with header_col1:
        # Logo-Bereich - Lädt das Logo von einer externen URL
-       st.image("https://i.ibb.co/Fb2X2QRB/Logo-Immo-Insight-ZH-w-bg.png", width=300)
+       st.image("https://i.ibb.co/999Nhq1B/Logo-Immo-Insight-ZH-w-bg.png", width=300)
    
    with header_col2:
        # Titel und Untertitel der Anwendung
