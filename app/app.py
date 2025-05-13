@@ -39,8 +39,7 @@ def main():
         model = load_model()
         quartier_mapping = load_quartier_mapping()
         quartier_coords = get_quartier_coordinates()
-    
-    return df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords
+        return df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords
 
     # Load data and model
     df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords = load_data_and_model()
