@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 from datetime import datetime
 import folium
 from streamlit_folium import st_folium
-import pandas as pd
 
 # Main app logic 
 def main():
