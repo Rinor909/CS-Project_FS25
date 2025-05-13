@@ -96,7 +96,7 @@ def main():
             selected_quartier = st.selectbox(
                 "Der Immobilienstandort geht hier hin:",
                 options=quartier_options,
-                index=0
+                index=5
             )
             
             # Get quartier code with fallback
