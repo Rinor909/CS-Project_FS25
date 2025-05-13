@@ -153,9 +153,6 @@ def main():
         travel_times
     )
     
-    # Predict price # remove this is useless
-    predicted_price = predict_price(model, input_data)
-    
     # ---- MAIN CONTENT ----
     # Put main content in a container
     with st.container(border=True):
