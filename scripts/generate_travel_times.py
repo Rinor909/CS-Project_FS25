@@ -171,43 +171,25 @@ def get_travel_time(origin, destination, mode='transit'):
     
     # Anfrage senden
     # Send request to Google Maps API and process the response
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-        # Prüfen, ob die Anfrage erfolgreich war
-        if data['status'] == 'OK':
-            # Reisezeit aus der ersten Route extrahieren
-            route = data['routes'][0]
-            leg = route['legs'][0]
-            duration_seconds = leg['duration']['value']
-            duration_minutes = duration_seconds / 60
-            # Im Cache speichern # AI was used to code lines 186 to 188
-            cache[cache_key] = duration_minutes
-            with open(cache_file, 'w') as f:
-                json.dump(cache, f)
-            return duration_minutes
-        else: # AI was used to help me code these these Error messages for the API requests (lines 191 to 203)
-            print(f"API Error: {data['status']}")
-            if 'error_message' in data:
-                print(f"Error details: {data['error_message']}")
-            
-            if data['status'] == 'REQUEST_DENIED':
-                print("ERROR: API request denied. Check your API key.")
-                sys.exit(1)
-                
-            print("ERROR: Failed to get travel time from API.")
-            return None
-    except Exception as e:
-        print(f"ERROR: Could not get travel time data: {e}")
-        return None
+    response = requests.get(url, params=params)
+    data = response.json()
+    # Prüfen, ob die Anfrage erfolgreich war
+    if data['status'] == 'OK':
+        # Reisezeit aus der ersten Route extrahieren
+        route = data['routes'][0]
+        leg = route['legs'][0]
+        duration_seconds = leg['duration']['value']
+        duration_minutes = duration_seconds / 60
+        # Im Cache speichern # AI was used to code lines 186 to 188
+        cache[cache_key] = duration_minutes
+        with open(cache_file, 'w') as f:
+            json.dump(cache, f)
+        return duration_minutes
+    return None
 
 if __name__ == "__main__":
     # DataFrame für Reisezeiten erstellen
     travel_times = []
-    
-    if len(quartiere) == 0:
-        print("ERROR: No neighborhoods found.")
-        sys.exit(1)
 
     # Limit the number of neighborhoods to process if too many
     max_quartiere = 100  # Set a reasonable limit
