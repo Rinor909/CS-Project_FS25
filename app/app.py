@@ -714,39 +714,19 @@ def main():
             - Faktoren wie Ausstattungsqualität oder Grundriss der Wohnung werden nicht berücksichtigt
             - Mikro-Standortfaktoren wie Aussicht oder Lärmbelastung können den tatsächlichen Preis beeinflussen
             """)
-    
-            # ---- MAP SECTION ----
-            # Create a map of Zurich
-            st.subheader("Zürich Karte")
             
-            # Get Zurich coordinates
-            coords = get_zurich_coordinates()
+# ---- FOOTER ----
+st.caption(
+    "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
+    "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
+    "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
+)
 
-            # Create interactive map
-            map_folium = folium.Map(location=[coords['latitude'], coords['longitude']], zoom_start=13, tiles='OpenStreetMap')
+# Completely outside main() function
+if __name__ == "__main__":
+    # Put our modules in the path
+    import sys
+    sys.path.append('app')
 
-            # Add marker for Zurich city center
-            folium.Marker(
-                [coords['latitude'], coords['longitude']],
-                tooltip="Zurich",
-                popup="City (Kreis 1)"
-            ).add_to(map_folium)
-
-            # Display the map
-            st_folium(map_folium, width=1400, height=500)
-            
-            # ---- FOOTER ----
-            st.caption(
-                "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
-                "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
-                "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
-            )
-
-    # Completely outside main() function
-    if __name__ == "__main__":
-        # Put our modules in the path
-        import sys
-        sys.path.append('app')
-        
-        # Run the main function
-        main()
+    # Run the main function
+    main()
