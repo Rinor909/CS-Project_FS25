@@ -167,7 +167,6 @@ def get_travel_time(origin, destination, mode='transit'):
         'mode': mode, # Transportation mode
         'key': GOOGLE_MAPS_API_KEY, # API authentication
         'departure_time': 'now', # Use current time
-        'alternatives': 'false' # Only return best route
     }
     
     # Anfrage senden
