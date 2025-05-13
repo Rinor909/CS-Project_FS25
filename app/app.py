@@ -95,8 +95,8 @@ def main():
    
    with header_col2:
        # Titel und Untertitel der Anwendung
-       st.title("Zürcher Immobilien. Datenbasiert. Klar.")
-       st.caption("Immobilienpreise in Zürich datengetrieben prognostizieren.")
+       st.title("Zürcher Immobilien. Präzise Prognosen. Klare Entscheidungen.")
+       st.caption("Mit datengetriebenen Analysen den Immobilienmarkt in Zürich verstehen und vorausdenken.")
    
    # Trennlinie hinzufügen - für visuelle Trennung zwischen Header und Inhalt
    st.divider()
