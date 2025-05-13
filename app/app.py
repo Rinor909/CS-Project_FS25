@@ -193,7 +193,7 @@ def main():
        # Zeigt den vorhergesagten Preis prominent an
        price_container = st.container(border=False)
        price_container.metric(
-           label="Geschätzer Immobilienwert",
+           label="Aktueller Schätzwert",
            value=f"{predicted_price:,.0f} CHF" if predicted_price else "N/A",  # Formatiert Preis mit Tausendertrennzeichen
            delta=f"{round((predicted_price / 1000000 - 1) * 100, 1):+.1f}%" if predicted_price else None,  # Prozentuale Abweichung von 1 Mio.
            delta_color="inverse"  # Rote Farbe bei positiver Abweichung (teurer)
@@ -205,7 +205,7 @@ def main():
            "📊 Immobilienanalyse",       # Grundlegende Analysen
            "🗺️ Standort",                # Kartendarstellungen
            "📈 Marktentwicklungen",       # Vergleichende Analysen
-           "🧠 Machine-Learning-Modell"   # Technische Details zum Modell
+           "🧠 ML-Modell"   # Technische Details zum Modell
        ])
        
        # Tab 1: Immobilienanalyse - Detaillierte Informationen zum ausgewählten Objekt
