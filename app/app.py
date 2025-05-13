@@ -109,7 +109,7 @@ def main():
             selected_baujahr,                 # Ausgewähltes Baujahr
             predicted_price,                  # Vorhergesagter Preis
             travel_times,                     # Reisezeiten
-            quartier_options=sorted(inv_quartier_mapping.keys()),  # Alle verfügbaren Quartiere
+            quartier_options=sorted(list(inv_quartier_mapping.keys())), # Alle verfügbaren Quartiere # type: ignore
             apply_chart_styling=apply_chart_styling  # Styling-Funktion
         )
     
