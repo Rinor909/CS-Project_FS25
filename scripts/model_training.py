@@ -43,6 +43,7 @@ preprocessor = ColumnTransformer(
         ('cat', OneHotEncoder(handle_unknown='ignore'), cat_features) # one hot-encoded (converted to binary columns) # handle_unknown used to handle new categories at prediction time
     ])
 
+# Due to the course's limited explanation of random forests and gradient boosting regressors, I had to code this part with AI assistance
 # Define models
 # Random Forest Regressor # an ensemble of decision trees trained on random subsets of data
 rf_model = Pipeline([
