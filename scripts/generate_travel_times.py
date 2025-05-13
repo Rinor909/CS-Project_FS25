@@ -187,7 +187,7 @@ def get_travel_time(origin, destination, mode='transit'):
             with open(cache_file, 'w') as f:
                 json.dump(cache, f)
             return duration_minutes
-        else:
+        else: # AI was used to help me code these these Error messages for the API requests (lines 191 to 203)
             print(f"API Error: {data['status']}")
             if 'error_message' in data:
                 print(f"Error details: {data['error_message']}")
@@ -291,12 +291,3 @@ if __name__ == "__main__":
     avg_travel_times_path = os.path.join(processed_dir, 'avg_travel_times.csv')
     df_avg_times.to_csv(avg_travel_times_path, index=False)
     print(f"Average travel times saved to: {avg_travel_times_path}")
-    
-    # Print some summary statistics
-    print("\nSummary Statistics:")
-    print(f"Total neighborhoods processed: {len(df_travel_times['Quartier'].unique())}")
-    print(f"Total travel time calculations: {len(df_travel_times)}")
-    print(f"Average travel times (transit): {df_travel_times[df_travel_times['Transportmittel'] == 'transit']['Reisezeit_Minuten'].mean():.1f} minutes")
-    print(f"Average travel times (driving): {df_travel_times[df_travel_times['Transportmittel'] == 'driving']['Reisezeit_Minuten'].mean():.1f} minutes")
-    
-    print("\nTravel time generation completed successfully!")
