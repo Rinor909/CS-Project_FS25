@@ -137,8 +137,9 @@ def get_travel_time(origin, destination, mode='transit'):
         float: Reisezeit in Minuten
     """
     # Cache file path
-    cache_file = os.path.join(processed_dir, 'travel_time_cache.json')
-    
+    # I had to do add this functionality with the caching of the API results as I had a limited number of API calls I could make under the free plan
+    # Since I was not familiar with caching, AI was used to code lines 142 through 161
+    cache_file = os.path.join(processed_dir, 'travel_time_cache.json') # we define a cache file path for storing previous API results
     # Cache laden, falls vorhanden
     if os.path.exists(cache_file):
         try:
@@ -150,10 +151,8 @@ def get_travel_time(origin, destination, mode='transit'):
             cache = {}
     else:
         cache = {}
-    
     # Cache-Key erstellen
     cache_key = f"{origin['lat']},{origin['lng']}_TO_{destination}_{mode}"
-    
     # Wenn Ergebnis im Cache, aus Cache zurückgeben
     if cache_key in cache:
         return cache[cache_key]
