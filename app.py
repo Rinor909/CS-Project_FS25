@@ -2,24 +2,33 @@ import streamlit as st
 import os
 import sys
 
-# Add the current directory to Python path
+# Add the current directory to the Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
-# Add app directory to Python path
+# Add the app directory to the Python path
 app_dir = os.path.join(current_dir, "app")
-sys.path.append(app_dir)
+if os.path.exists(app_dir) and app_dir not in sys.path:
+    sys.path.append(app_dir)
 
-# For direct app import
+# Import the main function from the app module
 try:
     from app.app import main
-except ImportError:
-    st.error("Could not import main function from app module. Check your directory structure.")
+except ImportError as e:
+    st.error("Could not import the main function from the 'app' module.")
+    st.write("Ensure that your directory structure is correct and that the 'app.py' file exists in the 'app' folder.")
+    st.write(f"Detailed error: {str(e)}")
     st.stop()
 
+# Run the main function
 if __name__ == "__main__":
     try:
         main()
+    except FileNotFoundError as e:
+        st.error(f"File not found: {str(e)}")
+        st.write("Please ensure that all necessary data files are available.")
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        st.write("Please make sure you've run all the data preparation scripts first.")
+        st.error("An unexpected error occurred.")
+        st.write(f"Detailed error: {str(e)}")
+        st.write("Please make sure you've run all the necessary data preparation scripts.")
