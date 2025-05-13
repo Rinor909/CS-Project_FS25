@@ -35,17 +35,12 @@ def main():
     @st.cache_resource
     def load_data_and_model():
         """Loads all data and models (with caching for performance)"""
-        try:
-            df_quartier, df_baualter, df_travel_times = load_processed_data()
-            model = load_model()
-            quartier_mapping = load_quartier_mapping()
-            quartier_coords = get_quartier_coordinates()
-            
-            return df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords
-        except Exception as e:
-            st.error(f"Error loading data: {str(e)}")
-            # Return empty dataframes as fallback
-            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), None, {}, {}
+        df_quartier, df_baualter, df_travel_times = load_processed_data()
+        model = load_model()
+        quartier_mapping = load_quartier_mapping()
+        quartier_coords = get_quartier_coordinates()
+    
+    return df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords
 
     # Load data and model
     df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords = load_data_and_model()
