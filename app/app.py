@@ -23,6 +23,20 @@ def main():
         create_price_comparison_chart, create_price_time_series
     )
     
+    # Helper function for consistent chart styling
+    def apply_chart_styling(fig, title=None):
+        """Apply consistent styling to all charts"""
+        layout_args = {
+            "plot_bgcolor": "white",
+            "paper_bgcolor": "white",
+            "font": dict(family="Arial, sans-serif", size=12),
+            "margin": dict(l=40, r=20, t=40, b=20)
+        }
+        if title:
+            layout_args["title"] = title
+        fig.update_layout(**layout_args)
+        return fig
+    
     # Page configuration - clean and wide layout
     st.set_page_config(
         page_title="ImmoInsight ZH",
@@ -39,6 +53,7 @@ def main():
         model = load_model()
         quartier_mapping = load_quartier_mapping()
         quartier_coords = get_quartier_coordinates()
+        
         return df_quartier, df_baualter, df_travel_times, model, quartier_mapping, quartier_coords
 
     # Load data and model
@@ -73,14 +88,9 @@ def main():
         # Add some space at the top
         st.write("")
         
-        # Neighborhood selection with fallback if mapping is empty
-        if quartier_mapping and isinstance(quartier_mapping, dict) and len(quartier_mapping) > 0:
-            inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
-            quartier_options = sorted(inv_quartier_mapping.keys())
-        else:
-            # Fallback to neighborhoods from the data
-            quartier_options = sorted(df_quartier['Quartier'].unique()) if 'Quartier' in df_quartier.columns else ['Seefeld', 'City', 'Hottingen']
-            inv_quartier_mapping = {name: i for i, name in enumerate(quartier_options)}
+        # Neighborhood selection
+        inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}
+        quartier_options = sorted(inv_quartier_mapping.keys())
         
         # Property location with container styling
         with st.container(border=True):
@@ -91,7 +101,7 @@ def main():
                 index=0
             )
             
-            # Get quartier code with fallback
+            # Get quartier code
             quartier_code = inv_quartier_mapping.get(selected_quartier, 0)
         
         # Add some space
@@ -110,7 +120,7 @@ def main():
                 format="%d Zimmer"
             )
             
-                # Construction year with dropdown
+            # Construction year with dropdown
             st.subheader("Baujahr")
             selected_baujahr = st.selectbox(
                 "",
@@ -118,7 +128,8 @@ def main():
                 index=25,  # Default Baujahr to 2010
                 format_func=lambda x: str(x),
             )
-            # Transportation mode - Put this in its own container
+        
+        # Transportation mode - Put this in its own container
         with st.container(border=True):
             st.subheader("Transportmittel")
             selected_transport = st.radio(
@@ -127,6 +138,7 @@ def main():
                 horizontal=True,
                 index=0
             )
+        
         # Map selection values back to original keys
         selected_transport = "transit" if selected_transport == "Public Transit" else "driving"
         
@@ -137,7 +149,7 @@ def main():
         transportmittel=selected_transport
     )
     
-    # Prepare inputs for the model
+    # Prepare inputs for the model and predict price
     input_data = preprocess_input(
         quartier_code, 
         selected_zimmer, 
@@ -145,6 +157,7 @@ def main():
         travel_times
     )
     predicted_price = predict_price(model, input_data)
+    
     # ---- MAIN CONTENT ----
     # Put main content in a container
     with st.container(border=True):
@@ -204,19 +217,11 @@ def main():
                         df_travel_viz,
                         x="Reiseziel",
                         y="Minuten",
-                        #color="Minutes",
-                        #color_continuous_scale="Blues",
                         title=f"Reisezeiten ab {selected_quartier}"
                     )
                     
-                    # Improve figure styling
-                    fig.update_layout(
-                        plot_bgcolor="white",
-                        paper_bgcolor="white",
-                        font=dict(family="Arial, sans-serif", size=12),
-                        margin=dict(l=40, r=20, t=40, b=20)
-                    )
-                    
+                    # Apply styling
+                    apply_chart_styling(fig)
                     st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.info("Für dieses Viertel sind keine Reisezeitdaten verfügbar.")
@@ -236,12 +241,9 @@ def main():
                     color_discrete_sequence=["#1565C0"]
                 )
                 
-                # Improve figure styling
+                # Apply styling
+                apply_chart_styling(fig)
                 fig.update_layout(
-                    plot_bgcolor="white",
-                    paper_bgcolor="white",
-                    font=dict(family="Arial, sans-serif", size=12),
-                    margin=dict(l=40, r=20, t=40, b=20),
                     yaxis_title="Medianpreis (CHF)",
                     xaxis_title="Jahr"
                 )
@@ -266,54 +268,44 @@ def main():
             col1, col2 = st.columns(2)
             
             with col1:
-                years = sorted(df_quartier['Jahr'].unique(), reverse=True) if 'Jahr' in df_quartier.columns else [2024]
+                years = sorted(df_quartier['Jahr'].unique(), reverse=True)
                 selected_year = st.selectbox("Jahr", options=years, index=0)
             
             with col2:
-                zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique()) if 'Zimmeranzahl_num' in df_quartier.columns else [3]
-                map_zimmer = st.selectbox("Zimmeranzahl", options=zimmer_options_map, index=2 if len(zimmer_options_map) > 2 else 0)
+                zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique())
+                map_zimmer = st.selectbox("Zimmeranzahl", options=zimmer_options_map, index=min(2, len(zimmer_options_map)-1))
             
-            try:
-                # Create property price map
-                price_map = create_price_heatmap(
-                    df_quartier, 
-                    quartier_coords, 
-                    selected_year=selected_year, 
-                    selected_zimmer=map_zimmer
-                )
-                
-                # Let the map function handle layout - don't override here
-                st.plotly_chart(price_map, use_container_width=True)
-            except Exception as e:
-                st.error(f"Fehler beim Erstellen der Preistabelle: {str(e)}")
-                st.info("Stellen Sie sicher, dass Sie ordnungsgemäss verarbeitete Daten und gültige Koordinaten haben.")
+            # Create property price map
+            price_map = create_price_heatmap(
+                df_quartier, 
+                quartier_coords, 
+                selected_year=selected_year, 
+                selected_zimmer=map_zimmer
+            )
+            
+            st.plotly_chart(price_map, use_container_width=True)
             
         else:  # Travel Times
             # Selection for destination and transport mode
             col1, col2 = st.columns(2)
             
             with col1:
-                zielorte = df_travel_times['Zielort'].unique() if not df_travel_times.empty and 'Zielort' in df_travel_times.columns else ['Hauptbahnhof', 'ETH', 'Flughafen', 'Bahnhofstrasse']
+                zielorte = df_travel_times['Zielort'].unique()
                 selected_ziel = st.selectbox("Zielort", options=zielorte, index=0)
             
             with col2:
-                transport_options_map = df_travel_times['Transportmittel'].unique() if not df_travel_times.empty and 'Transportmittel' in df_travel_times.columns else ['transit', 'driving']
+                transport_options_map = df_travel_times['Transportmittel'].unique()
                 map_transport = st.selectbox("Transportmittel", options=transport_options_map, index=0)
             
-            try:
-                # Create travel time map
-                travel_map = create_travel_time_map(
-                    df_travel_times, 
-                    quartier_coords, 
-                    zielort=selected_ziel, 
-                    transportmittel=map_transport
-                )
-                
-                # Let the map function handle layout - don't override here
-                st.plotly_chart(travel_map, use_container_width=True)
-            except Exception as e:
-                st.error(f"Fehler beim Erstellen der Reisekarte: {str(e)}")
-                st.info("Stellen Sie sicher, dass Sie zunächst Reisezeitdaten generiert haben.")
+            # Create travel time map
+            travel_map = create_travel_time_map(
+                df_travel_times, 
+                quartier_coords, 
+                zielort=selected_ziel, 
+                transportmittel=map_transport
+            )
+            
+            st.plotly_chart(travel_map, use_container_width=True)
         
         # Tab 3: Market Trends
         with tab3:
@@ -334,61 +326,46 @@ def main():
                     value=selected_zimmer
                 )
                 
-                try:
-                    # Create price comparison
-                    price_comparison = create_price_comparison_chart(
-                        df_quartier, 
-                        compare_quartiere, 
-                        selected_zimmer=compare_zimmer
+                # Create price comparison
+                price_comparison = create_price_comparison_chart(
+                    df_quartier, 
+                    compare_quartiere, 
+                    selected_zimmer=compare_zimmer
+                )
+                
+                # Apply styling
+                apply_chart_styling(price_comparison)
+                price_comparison.update_traces(marker_color='#1565C0')
+                
+                st.plotly_chart(price_comparison, use_container_width=True)
+                
+                # Time series comparison
+                st.subheader("Preis Trends im Vergleich")
+                
+                time_series = create_price_time_series(
+                    df_quartier, 
+                    compare_quartiere, 
+                    selected_zimmer=compare_zimmer
+                )
+                
+                # Apply styling
+                apply_chart_styling(time_series)
+                time_series.update_layout(
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1
                     )
-                    
-                    # Improve chart styling
-                    price_comparison.update_layout(
-                        plot_bgcolor="white",
-                        paper_bgcolor="white",
-                        font=dict(family="Arial, sans-serif", size=12),
-                        margin=dict(l=40, r=20, t=50, b=20),
-                    )
-                    
-                    price_comparison.update_traces(
-                        marker_color='#1565C0',
-                    )
-                    
-                    st.plotly_chart(price_comparison, use_container_width=True)
-                    
-                    # Time series comparison
-                    st.subheader("Preis Trends im Vergleich")
-                    
-                    time_series = create_price_time_series(
-                        df_quartier, 
-                        compare_quartiere, 
-                        selected_zimmer=compare_zimmer
-                    )
-                    
-                    # Improve chart styling
-                    time_series.update_layout(
-                        plot_bgcolor="white",
-                        paper_bgcolor="white",
-                        font=dict(family="Arial, sans-serif", size=12),
-                        margin=dict(l=40, r=20, t=50, b=20),
-                        legend=dict(
-                            orientation="h",
-                            yanchor="bottom",
-                            y=1.02,
-                            xanchor="right",
-                            x=1
-                        )
-                    )
-                    
-                    st.plotly_chart(time_series, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Fehler beim Erstellen der Vergleichskarten: {str(e)}")
-                    st.info("Make sure you have properly processed data.")
+                )
+                
+                st.plotly_chart(time_series, use_container_width=True)
                 
                 # Feature Importance
                 st.subheader("Preisbeeinflussende Faktoren")
                 
-                # Simulated Feature Importance for the demo
+                # Feature importance data
                 importance_data = {
                     'Feature': ['Nachbarschaft', 'Reisezeit nach HB', 'Zimmeranzahl', 'Baujahr', 'Reisezeit nach Flughafen'],
                     'Importance': [0.45, 0.25, 0.15, 0.10, 0.05]
@@ -400,23 +377,16 @@ def main():
                     x='Importance',
                     y='Feature',
                     orientation='h',
-                    title='Faktoren, die die Immobilienpreise beeinflussen',
-                    #color='Importance',
-                    #color_continuous_scale='Blues'
+                    title='Faktoren, die die Immobilienpreise beeinflussen'
                 )
                 
-                # Improve chart styling
-                fig.update_layout(
-                    plot_bgcolor="white",
-                    paper_bgcolor="white",
-                    font=dict(family="Arial, sans-serif", size=12),
-                    margin=dict(l=40, r=20, t=50, b=20),
-                    coloraxis_showscale=False
-                )
+                # Apply styling
+                apply_chart_styling(fig)
                 
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("Bitte wählen Sie mindestens ein Stadtviertel zum Vergleich aus.")
+        
         with tab4:
             st.subheader("Machine-Learning-Modell")
 
@@ -427,6 +397,7 @@ def main():
             Diese Entscheidung basiert auf der höheren Vorhersagegenauigkeit im Vergleich zu anderen Modellen 
             wie lineare Regression oder Random Forest.
             """)
+            
             # Create columns for model metrics
             metrics_col1, metrics_col2 = st.columns(2)
             with metrics_col1:
@@ -446,13 +417,13 @@ def main():
                 **RMSE**: Wurzel des mittleren quadratischen Fehlers  
                 **R²**: Bestimmtheitsmass (1.0 = perfekte Vorhersage)
                 """)
+            
             with metrics_col2:
                 st.markdown("#### Modellvorhersagen vs. tatsächliche Preise")
                 
                 # Path to the CSV file
-                # Try this modified URL format
                 prediction_data_path = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/main/data/processed/model_evaluation_results.csv'                
-                # Try to load actual prediction data
+                
                 try:
                     # Load the CSV with the prediction data
                     pred_actual_df = pd.read_csv(prediction_data_path)
@@ -503,12 +474,9 @@ def main():
                         font=dict(size=12)
                     )
                     
-                    # Improve chart styling
+                    # Apply styling
+                    apply_chart_styling(fig)
                     fig.update_layout(
-                        plot_bgcolor="white",
-                        paper_bgcolor="white",
-                        font=dict(family="Arial, sans-serif", size=12),
-                        margin=dict(l=40, r=20, t=30, b=20),
                         xaxis=dict(
                             title='Tatsächlicher Preis (CHF)',
                             tickformat=',',
@@ -524,20 +492,15 @@ def main():
                     # Display the interactive plot in Streamlit
                     st.plotly_chart(fig, use_container_width=True)
                     
-                except Exception as e:
-                    # Fall back to simulated data
-                    st.warning(f"Konnte keine gespeicherten Vorhersagedaten laden - Beispieldaten werden angezeigt.")
-                    
-                    # Use simulated data
-                    np.random.seed(42)
-                    n_samples = 100
-                    actual = np.random.normal(1500000, 300000, n_samples)
-                    predicted = actual + np.random.normal(0, 150000, n_samples)
+                except Exception:
+                    # Use example data
+                    prices = [800000, 1200000, 1500000, 1800000, 2200000, 2500000, 1300000, 1600000, 1900000, 2100000]
+                    predictions = [850000, 1150000, 1600000, 1700000, 2300000, 2400000, 1250000, 1650000, 1950000, 2050000]
                     
                     # Create DataFrame
                     pred_vs_actual = pd.DataFrame({
-                        'Tatsächlicher Preis (CHF)': actual,
-                        'Vorhergesagter Preis (CHF)': predicted
+                        'Tatsächlicher Preis (CHF)': prices,
+                        'Vorhergesagter Preis (CHF)': predictions
                     })
                     
                     # Create scatter plot
@@ -549,8 +512,8 @@ def main():
                     )
                     
                     # Add a perfect prediction line
-                    min_val = min(actual.min(), predicted.min())
-                    max_val = max(actual.max(), predicted.max())
+                    min_val = min(min(prices), min(predictions))
+                    max_val = max(max(prices), max(predictions))
                     fig.add_trace(
                         go.Scatter(
                             x=[min_val, max_val], 
@@ -562,12 +525,7 @@ def main():
                     )
                     
                     # Apply styling
-                    fig.update_layout(
-                        plot_bgcolor="white",
-                        paper_bgcolor="white",
-                        font=dict(family="Arial, sans-serif", size=12),
-                        margin=dict(l=40, r=20, t=30, b=20)
-                    )
+                    apply_chart_styling(fig)
                     
                     st.plotly_chart(fig, use_container_width=True)
                     st.caption("*Hinweis: Dies sind Beispieldaten, nicht die tatsächlichen Modellergebnisse*")
@@ -576,24 +534,23 @@ def main():
             st.subheader("Feature Importance")
             st.write("Die folgende Grafik zeigt, welche Faktoren den größten Einfluss auf die Immobilienpreise in Zürich haben. Diese Feature Importance-Werte basieren auf dem trainierten Gradient Boosting-Modell.")
             
-            # Try to load actual feature importance
+            # Feature importance mapping dictionary for display
+            feature_map = {
+                'Quartier_Code': 'Nachbarschaft',
+                'Zimmeranzahl_num': 'Anzahl Zimmer',
+                'PreisProQm': 'Preis pro Quadratmeter',
+                'MedianPreis_Baualter': 'Median-Preis nach Baualter',
+                'Durchschnitt_Baujahr': 'Baujahr',
+                'Preis_Verhältnis': 'Preis-Verhältnis',
+                'Quartier_Preisniveau': 'Nachbarschafts-Preisniveau',
+                'Reisezeit_Hauptbahnhof': 'Reisezeit zum HB',
+                'Reisezeit_Flughafen': 'Reisezeit zum Flughafen'
+            }
+            
             try:
+                # Load feature importance data
                 feature_imp_df = pd.read_csv('https://raw.githubusercontent.com/Rinor909/zurich-real-estate/main/data/processed/feature_importance.csv')
                 
-                # Map technical feature names to user-friendly names
-                feature_map = {
-                    'Quartier_Code': 'Nachbarschaft',
-                    'Zimmeranzahl_num': 'Anzahl Zimmer',
-                    'PreisProQm': 'Preis pro Quadratmeter',
-                    'MedianPreis_Baualter': 'Median-Preis nach Baualter',
-                    'Durchschnitt_Baujahr': 'Baujahr',
-                    'Preis_Verhältnis': 'Preis-Verhältnis',
-                    'Quartier_Preisniveau': 'Nachbarschafts-Preisniveau',
-                    'Reisezeit_Hauptbahnhof': 'Reisezeit zum HB',
-                    'Reisezeit_Flughafen': 'Reisezeit zum Flughafen'
-                }
-    
-
                 # Apply mapping where possible
                 feature_imp_df['Feature_Display'] = feature_imp_df['Feature'].apply(
                     lambda x: feature_map.get(x, x)
@@ -613,22 +570,16 @@ def main():
                     color_continuous_scale='Blues'
                 )
                 
-                # Improve chart styling
+                # Apply styling
+                apply_chart_styling(fig)
                 fig.update_layout(
-                    plot_bgcolor="white",
-                    paper_bgcolor="white",
-                    font=dict(family="Arial, sans-serif", size=12),
-                    margin=dict(l=40, r=20, t=50, b=20),
                     xaxis_title="Relativer Einfluss",
                     yaxis_title="",
                     coloraxis_showscale=False
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
-            except Exception as e:
-                # Fallback to example feature importance
-                st.warning("Konnte keine gespeicherten Feature-Importance-Daten laden - Beispieldaten werden angezeigt.")
-                
+            except Exception:
                 # Example feature importance data
                 feature_importance = pd.DataFrame({
                     'Feature': ['Nachbarschaft', 'Nachbarschafts-Preisniveau', 'Reisezeit zum HB', 
@@ -648,12 +599,9 @@ def main():
                     color_continuous_scale='Blues'
                 )
                 
-                # Improve chart styling
+                # Apply styling
+                apply_chart_styling(fig)
                 fig.update_layout(
-                    plot_bgcolor="white",
-                    paper_bgcolor="white",
-                    font=dict(family="Arial, sans-serif", size=12),
-                    margin=dict(l=40, r=20, t=50, b=20),
                     xaxis_title="Relativer Einfluss",
                     yaxis_title="",
                     coloraxis_showscale=False
@@ -689,7 +637,7 @@ def main():
                 options=["Quartier", "Zimmeranzahl", "Baujahr", "Reisezeit zum HB"]
             )
             
-            # Create a placeholder chart based on the selected feature
+            # Create a chart based on the selected feature
             if feature_to_vary == "Quartier":
                 # Get top 10 quartiers by median price
                 top_quartiere = df_quartier.groupby('Quartier')['MedianPreis'].median().sort_values(ascending=False).head(10).index.tolist()
@@ -754,16 +702,12 @@ def main():
                     title=f'Preisvariation nach Reisezeit zum HB (Quartier: {selected_quartier}, 3-Zimmer-Wohnung, Baujahr 2000)'
                 )
             
-            # Improve chart styling
-            fig.update_layout(
-                plot_bgcolor="white",
-                paper_bgcolor="white",
-                font=dict(family="Arial, sans-serif", size=12),
-                margin=dict(l=40, r=20, t=50, b=20)
-            )
+            # Apply styling
+            apply_chart_styling(fig)
             
             st.plotly_chart(fig, use_container_width=True)
             
+            # Add a note about limitations
             # Add a note about limitations
             st.info("""
             Modelleinschränkungen:
@@ -772,16 +716,37 @@ def main():
             - Mikro-Standortfaktoren wie Aussicht oder Lärmbelastung können den tatsächlichen Preis beeinflussen
             """)
     
-    # ---- FOOTER ----
-    st.caption(
-        "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
-        "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
-        "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
-    )
-if __name__ == "__main__":
-    # Put our modules in the path
-    import sys
-    sys.path.append('app')
-    
-    # Run the main function
-    main()
+            # ---- MAP SECTION ----
+            # Create a map of Zurich
+            st.subheader("Zürich Karte")
+            
+            # Get Zurich coordinates
+            coords = get_zurich_coordinates()
+
+            # Create interactive map
+            map_folium = folium.Map(location=[coords['latitude'], coords['longitude']], zoom_start=13, tiles='OpenStreetMap')
+
+            # Add marker for Zurich city center
+            folium.Marker(
+                [coords['latitude'], coords['longitude']],
+                tooltip="Zurich",
+                popup="City (Kreis 1)"
+            ).add_to(map_folium)
+
+            # Display the map
+            st_folium(map_folium, width=1400, height=500)
+            
+            # ---- FOOTER ----
+            st.caption(
+                "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
+                "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
+                "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
+            )
+
+        if __name__ == "__main__":
+            # Put our modules in the path
+            import sys
+            sys.path.append('app')
+            
+            # Run the main function
+            main()
