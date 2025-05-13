@@ -45,7 +45,6 @@ else:
 
 # We again use direct GitHub URLs to load our data
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv'
-
 df_quartier = pd.read_csv(url_quartier) # read the CSV file from a URL into a panda DataFrame
 quartiere = df_quartier['Quartier'].unique() # extracts a unique list of neighborhood names from the 'Quartier' column
 
@@ -157,11 +156,8 @@ def get_travel_time(origin, destination, mode='transit'):
     if cache_key in cache:
         return cache[cache_key]
     
-    # URL für Google Maps Directions API
-    url = "https://maps.googleapis.com/maps/api/directions/json"
-    
-    # Parameter für die Anfrage
-    params = {
+    url = "https://maps.googleapis.com/maps/api/directions/json" # URL für Google Maps Directions API
+    params = {     # Parameter für die Anfrage
         'origin': f"{origin['lat']},{origin['lng']}", # Start coordinates
         'destination': destination, # End address
         'mode': mode, # Transportation mode
@@ -187,50 +183,42 @@ def get_travel_time(origin, destination, mode='transit'):
         return duration_minutes
     return None
 
-if __name__ == "__main__":
+if __name__ == "__main__": # initialize list for travel time data
     # DataFrame for travel times
     travel_times = []
-
-    # Quick API test
+    # Quick API test # to verify the API connection is working before starting all the calculations
     if get_travel_time(quartier_koordinaten.get(quartiere[0]), zielorte['Hauptbahnhof'], 'transit') is None:
         sys.exit(1)
-
     # Calculate travel time for each neighborhood to all destinations
-    for quartier in quartiere:
-        origin = quartier_koordinaten.get(quartier)
+    for quartier in quartiere: # process each neighborhood
+        origin = quartier_koordinaten.get(quartier) # get coordinates for the current neighborhood
         if not origin:
-            continue
-            
-        for ziel_name, ziel_adresse in zielorte.items():
-            for mode in ['transit', 'driving']:
-                # Add small delay to avoid rate limiting
+            continue     
+        for ziel_name, ziel_adresse in zielorte.items(): # calculate travel times to all destinations
+            for mode in ['transit', 'driving']: # calculate for different transportation modes
+                # Add small delay to avoid rate limiting of Google Maps API
                 time.sleep(0.1)
-                
                 # Calculate travel time
                 duration = get_travel_time(origin, ziel_adresse, mode)
-                
-                if duration is not None:
+                if duration is not None: # Store successful calculation results
                     travel_times.append({
-                        'Quartier': quartier,
-                        'Zielort': ziel_name,
-                        'Transportmittel': mode,
-                        'Reisezeit_Minuten': round(duration, 1)
+                        'Quartier': quartier, # Starting neighborhood
+                        'Zielort': ziel_name, # Destination name
+                        'Transportmittel': mode, # Transportation method
+                        'Reisezeit_Minuten': round(duration, 1) # Travel time rounded to one decimal
                     })
 
-    # Create DataFrame
+    # Convert collected travel time data to DataFrame for easier analysis
     df_travel_times = pd.DataFrame(travel_times)
-
-    # Save the results
+    # Save complete travel time dataset to CSV for later use (similar to what we previously did, i.e. saving locally and uploading on GitHub)
     travel_times_path = os.path.join(processed_dir, 'travel_times.csv')
     df_travel_times.to_csv(travel_times_path, index=False)
-
-    # Calculate average travel times per neighborhood
+    # Calculate average, minimum, and maximum travel times per neighborhood
     df_avg_times = df_travel_times.groupby(['Quartier', 'Transportmittel']).agg({
-        'Reisezeit_Minuten': ['mean', 'min', 'max']
+        'Reisezeit_Minuten': ['mean', 'min', 'max'] # Key stats for analysis
     }).reset_index()
-
+    # Rename columns for the output
     df_avg_times.columns = ['Quartier', 'Transportmittel', 'Durchschnitt_Minuten', 'Min_Minuten', 'Max_Minuten']
-
-    # Save average travel times
+    # Save summary statistics for quick reference and visualization
     avg_travel_times_path = os.path.join(processed_dir, 'avg_travel_times.csv')
     df_avg_times.to_csv(avg_travel_times_path, index=False)
