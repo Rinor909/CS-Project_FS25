@@ -742,10 +742,11 @@ def main():
                 "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
             )
 
-        if __name__ == "__main__":
-            # Put our modules in the path
-            import sys
-            sys.path.append('app')
-            
-            # Run the main function
-            main()
+# Completely outside main() function
+if __name__ == "__main__":
+    # Put our modules in the path
+    import sys
+    sys.path.append('app')
+    
+    # Run the main function
+    main()
