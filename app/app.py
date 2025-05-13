@@ -10,7 +10,7 @@ import folium
 from streamlit_folium import st_folium
 import pandas as pd
 
-# Main app logic
+# Main app logic #teste 
 def main():
     # Import functions from local modules
     from utils import (
