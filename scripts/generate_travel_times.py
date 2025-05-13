@@ -188,50 +188,30 @@ def get_travel_time(origin, destination, mode='transit'):
     return None
 
 if __name__ == "__main__":
-    # DataFrame für Reisezeiten erstellen
+    # DataFrame for travel times
     travel_times = []
 
-    # Limit the number of neighborhoods to process if too many
-    max_quartiere = 100  # Set a reasonable limit
+    # Limit the number of neighborhoods if too many
+    max_quartiere = 100
     if len(quartiere) > max_quartiere:
-        print(f"Warning: Large number of neighborhoods ({len(quartiere)}). Processing the first {max_quartiere}.")
         quartiere = quartiere[:max_quartiere]
-    
-    print(f"Starting travel time calculations for {len(quartiere)} neighborhoods to {len(zielorte)} destinations...")
-    print(f"Total calculations to perform: {total_calculations}")
 
-    # Verify API key works by testing one calculation
-    test_quartier = quartiere[0]
-    test_origin = quartier_koordinaten.get(test_quartier)
-    test_result = get_travel_time(test_origin, zielorte['Hauptbahnhof'], 'transit')
-    
-    if test_result is None:
-        print("ERROR: Initial API test failed. Please check your API key and connection.")
+    # Quick API test
+    if get_travel_time(quartier_koordinaten.get(quartiere[0]), zielorte['Hauptbahnhof'], 'transit') is None:
         sys.exit(1)
-    else:
-        print(f"API test successful. Travel time from {test_quartier} to Hauptbahnhof: {test_result:.1f} minutes.")
 
-    # Für jedes Quartier die Reisezeiten zu allen Zielorten berechnen
+    # Calculate travel time for each neighborhood to all destinations
     for quartier in quartiere:
         origin = quartier_koordinaten.get(quartier)
         if not origin:
-            print(f"No coordinates found for {quartier}. Skipping.")
             continue
             
-        print(f"Calculating travel times for {quartier}...")
-        
-        # Reisezeiten für verschiedene Transportmittel berechnen
         for ziel_name, ziel_adresse in zielorte.items():
             for mode in ['transit', 'driving']:
-                # Update progress
-                processed += 1
-                if processed % 10 == 0:
-                    print(f"Progress: {processed}/{total_calculations} ({processed/total_calculations*100:.1f}%)")
-                
                 # Add small delay to avoid rate limiting
                 time.sleep(0.1)
                 
-                # Reisezeit berechnen
+                # Calculate travel time
                 duration = get_travel_time(origin, ziel_adresse, mode)
                 
                 if duration is not None:
@@ -241,21 +221,13 @@ if __name__ == "__main__":
                         'Transportmittel': mode,
                         'Reisezeit_Minuten': round(duration, 1)
                     })
-                else:
-                    print(f"Could not calculate travel time from {quartier} to {ziel_name}.")
 
-    # DataFrame erstellen
+    # Create DataFrame
     df_travel_times = pd.DataFrame(travel_times)
-
-    # Check if we got any travel times
-    if df_travel_times.empty:
-        print("ERROR: No travel times were calculated. Check your API key and network connection.")
-        sys.exit(1)
 
     # Save the results
     travel_times_path = os.path.join(processed_dir, 'travel_times.csv')
     df_travel_times.to_csv(travel_times_path, index=False)
-    print(f"Travel times saved to: {travel_times_path}")
 
     # Calculate average travel times per neighborhood
     df_avg_times = df_travel_times.groupby(['Quartier', 'Transportmittel']).agg({
@@ -267,4 +239,3 @@ if __name__ == "__main__":
     # Save average travel times
     avg_travel_times_path = os.path.join(processed_dir, 'avg_travel_times.csv')
     df_avg_times.to_csv(avg_travel_times_path, index=False)
-    print(f"Average travel times saved to: {avg_travel_times_path}")
