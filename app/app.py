@@ -715,18 +715,18 @@ def main():
             - Mikro-Standortfaktoren wie Aussicht oder Lärmbelastung können den tatsächlichen Preis beeinflussen
             """)
             
-# ---- FOOTER ----
-st.caption(
-    "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
-    "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
-    "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
-)
+    # ---- FOOTER ----
+    st.caption(
+        "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
+        "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
+        "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
+    )
 
-# Completely outside main() function
-if __name__ == "__main__":
-    # Put our modules in the path
-    import sys
-    sys.path.append('app')
-
-    # Run the main function
-    main()
+    # Completely outside main() function
+    if __name__ == "__main__":
+        # Put our modules in the path
+        import sys
+        sys.path.append('app')
+        
+        # Run the main function
+        main()
