@@ -780,32 +780,6 @@ def main():
             - Mikro-Standortfaktoren wie Aussicht oder Lärmbelastung können den tatsächlichen Preis beeinflussen
             """)
     
-    # ---- MAP SECTION ----
-    # Create a map of Zurich
-    st.subheader("Zürich Karte")
-    
-    # Get Zurich coordinates
-    # zurich_coords = get_zurich_coordinates()
-    
-    # # Create a simple map using st.map
-    # df_map = pd.DataFrame({
-    #     'lat': [zurich_coords['latitude']],
-    #     'lon': [zurich_coords['longitude']]
-    # })
-    
-    # st.map(df_map, zoom=12, use_container_width=True)
-    coords = get_zurich_coordinates()
-
-    map_folium = folium.Map(location=[coords['latitude'], coords['longitude']], zoom_start=13, tiles='OpenStreetMap')
-
-    folium.Marker(
-        [coords['latitude'], coords['longitude']],
-        tooltip="Zurich",
-        popup="City (Kreis 1)"
-    ).add_to(map_folium)
-
-    st_folium(map_folium, width=1400, height=500)
-    
     # ---- FOOTER ----
     st.caption(
         "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
