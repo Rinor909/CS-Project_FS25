@@ -16,8 +16,8 @@ os.makedirs(os.path.join(output_dir, "models"), exist_ok=True)
 
 # Die CSV-Dateien werden direkt von den Raw-URLs unseres GitHub-Repositories geladen,
 # da der lokale Dateizugriff auf verschiedenen Systemen Probleme verursachte
-url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv' # define first URL pointing to the first CSV file on GitHub
-url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv' # define second URL pointing to the second CSV file on GitHub
+url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv' # Definiert die erste URL, die auf die erste CSV-Datei auf GitHub verweist
+url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv' # Definiert die zweite URL, die auf die zweite CSV-Datei auf GitHub verweist
 df_quartier = pd.read_csv(url_quartier) # Wir verwenden pandas, um diese CSV-Dateien direkt in ein DataFrame zu laden
 df_baualter = pd.read_csv(url_baualter) # Wir verwenden pandas, um diese CSV-Dateien direkt in ein DataFrame zu laden
 
@@ -58,7 +58,7 @@ for df in [df_quartier_clean, df_baualter_clean]: # Wir verarbeiten beide Datens
         # PreisProQm: Fehlende Werte nach Quartier und Zimmeranzahl ersetzen
         df['PreisProQm'] = df.groupby(['Quartier', 'Zimmeranzahl'])['PreisProQm'].transform(
             lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean() if not pd.isna(x.mean()) else 0))
-    else: # for the second dataset it fills missing price values with the most appropriate substitute
+    else: # Für den zweiten Datensatz werden fehlende Preiswerte mit dem am besten geeigneten Ersatzwert aufgefüllt
         # Für Baualter-Datensatz: Gruppierung nach Baualter und Zimmeranzahl
         # MedianPreis: Fehlende Werte nach Baualter und Zimmeranzahl ersetzen
         df['MedianPreis'] = df.groupby(['Baualter', 'Zimmeranzahl'])['MedianPreis'].transform(
@@ -73,7 +73,7 @@ for df in [df_quartier_clean, df_baualter_clean]: # Wir verarbeiten beide Datens
 
     df['MedianPreis'].fillna(0 if pd.isna(median_price) else median_price, inplace=True) # Wir berechnen den Gesamtmedian der Preise im gesamten Datensatz
     median_price_per_sqm = df['PreisProQm'].median() # Wir berechnen den Gesamtmedian des Quadratmeterpreises im gesamten Datensatz
-    df['PreisProQm'].fillna(0 if pd.isna(median_price_per_sqm) else median_price_per_sqm, inplace=True) # same as before, use median to fill gap, otherwise use 0
+    df['PreisProQm'].fillna(0 if pd.isna(median_price_per_sqm) else median_price_per_sqm, inplace=True) # Wie zuvor: Median verwenden, um Lücken zu füllen, andernfalls 0 einsetzen
 
 # Feature-Engineering: Textbasierte Zimmeranzahl in numerischen Wert konvertieren
 # Dies ermöglicht mathematische Operationen und ML-Modellierung
@@ -82,7 +82,7 @@ def zimmer_zu_int(zimmer_str):
     try:
         return int(zimmer_str.split('-')[0]) # Extrahiert '3' aus '3-Zimmer'
     except:
-        return np.nan # otherwise return empty value
+        return np.nan # andernfalls leeren Wert zurückgeben
 
 df_quartier_clean['Zimmeranzahl_num'] = df_quartier_clean['Zimmeranzahl'].apply(zimmer_zu_int) # Wir verwenden die Methode .apply(), um diese Funktion auf jeden Wert der Spalte Zimmeranzahl in unserem bereinigten Datensatz anzuwenden
 df_baualter_clean['Zimmeranzahl_num'] = df_baualter_clean['Zimmeranzahl'].apply(zimmer_zu_int) # Wir verwenden die Methode .apply(), um diese Funktion auf jeden Wert der Spalte Zimmeranzahl in unserem bereinigten Datensatz anzuwenden
@@ -96,15 +96,15 @@ def baualter_zu_jahr(baualter_str):
             jahre = baualter_str.split('-')
             return (int(jahre[0]) + int(jahre[1])) / 2
         # Spezielle Kategorien interpretieren
-        elif 'vor' in baualter_str: # if there are any values before (vor) 1919, just return 1919 for it
+        elif 'vor' in baualter_str: # falls ein Wert „vor 1919“ angegeben ist, gib 1919 zurück
             return 1919 # Standardwert für 'vor 1919'
         # Format "nach 2015" oder "seit 2015"
         elif 'nach' in baualter_str or 'seit' in baualter_str: # Bei neueren Gebäuden mit den Angaben nach oder seit im Wert wird 2015 zurückgegeben
             return 2015 # Standardwert für neuere Gebäude
         else:
-            return np.nan # otherwise return empty value
+            return np.nan # andernfalls leeren Wert zurückgeben
     except:
-        return np.nan # otherwise return empty value
+        return np.nan # andernfalls leeren Wert zurückgeben
 
 if 'Baualter' in df_baualter_clean.columns:
     df_baualter_clean['Baujahr'] = df_baualter_clean['Baualter'].apply(baualter_zu_jahr) # creating a new column 'baujahr' with these estimated values
@@ -140,8 +140,7 @@ df_merged['Preis_Verhältnis'] = df_merged['MedianPreis'] / df_merged['MedianPre
 # Nur die neuesten Daten für das Modelltraining filtern
 # Aktuelle Daten sind relevanter für Preisvorhersagen
 neuestes_jahr = df_merged['Jahr'].max() # finds the most recent year in the dataset
-df_final = df_merged[df_merged['Jahr'] == neuestes_jahr].copy() # create a new dataframe containing only data from that most recent year
-
+df_final = df_merged[df_merged['Jahr'] == neuestes_jahr].copy() # Erstellen eines neuen DataFrames, das nur die Daten des aktuellsten Jahres enthält
 # Feature-Engineering: Relatives Preisniveau pro Quartier berechnen
 # Ermöglicht Vergleich zwischen Quartieren unabhängig von absoluten Preisen
 quartier_avg_preis = df_final.groupby('Quartier')['MedianPreis'].mean() # Wir berechnen den Durchschnittspreis für jedes Quartier
@@ -162,10 +161,10 @@ for column in df_final.columns:
         median_value = df_final[column].median() 
         if pd.isna(median_value):
             # Fallback auf 0 wenn kein Median berechnet werden kann
-            df_final.loc[:, column] = df_final[column].fillna(0) # otherwise we return 0 when no median could be calculated
+            df_final.loc[:, column] = df_final[column].fillna(0) # andernfalls setzen wir den Wert auf 0, wenn kein Median berechnet werden konnte
         else:
             # Standardfall: Mit Median füllen
-            df_final.loc[:, column] = df_final[column].fillna(median_value) # We fill any remaining missing values in numeric columns with their median value
+            df_final.loc[:, column] = df_final[column].fillna(median_value) # Wir füllen alle verbleibenden fehlenden Werte in numerischen Spalten mit dem Medianwert der jeweiligen Spalte auf
 
 # Quartiere für ML-Modelle in numerische Codes konvertieren
 # One-Hot-Encoding-Vorbereitung für kategorische Variablen
