@@ -18,12 +18,12 @@ os.makedirs(os.path.join(output_dir, "models"), exist_ok=True)
 # da der lokale Dateizugriff auf verschiedenen Systemen Probleme verursachte
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5155.csv' # define first URL pointing to the first CSV file on GitHub
 url_baualter = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/raw/bau515od5156.csv' # define second URL pointing to the second CSV file on GitHub
-df_quartier = pd.read_csv(url_quartier) # we use pandas to download and load these CSV files directly into dataframe
-df_baualter = pd.read_csv(url_baualter) # we use pandas to download and load these CSV files directly into dataframe
+df_quartier = pd.read_csv(url_quartier) # Wir verwenden pandas, um diese CSV-Dateien direkt in ein DataFrame zu laden
+df_baualter = pd.read_csv(url_baualter) # Wir verwenden pandas, um diese CSV-Dateien direkt in ein DataFrame zu laden
 
 # Wichtige Spalten aus dem Quartier-Datensatz auswählen und umbenennen
 # Diese Extraktion verbessert die Lesbarkeit und vereinfacht die Weiterverarbeitung
-quartier_spalten = { # we create a dictionary for mapping the original columns to new, easier-to-understand names
+quartier_spalten = { # Wir erstellen ein Wörterbuch, um die ursprünglichen Spaltennamen in neue, besser verständliche Namen zuzuordnen
     'Stichtagdatjahr': 'Jahr',              # Jahr der Datenerhebung
     'RaumLang': 'Quartier',                 # Name des Stadtquartiers 
     'AnzZimmerLevel2Lang_noDM': 'Zimmeranzahl',  # Zimmeranzahl als Text
@@ -31,11 +31,11 @@ quartier_spalten = { # we create a dictionary for mapping the original columns t
     'HAPreisWohnflaeche': 'PreisProQm'      # Preis pro Quadratmeter
 }
 
-df_quartier_clean = df_quartier[quartier_spalten.keys()].copy() # we create a new dataframe with only the selected columns 
-df_quartier_clean.rename(columns=quartier_spalten, inplace=True) # we rename these columns to the german names
+df_quartier_clean = df_quartier[quartier_spalten.keys()].copy() # Wir erstellen ein neues DataFrame, das nur die ausgewählten Spalten enthält
+df_quartier_clean.rename(columns=quartier_spalten, inplace=True) # Wir benennen diese Spalten in deutsche Namen um
 
 # Ähnliche Transformation für den Baualter-Datensatz durchführen
-baualter_spalten = { # create dictionary to map the original columns to new names
+baualter_spalten = { # Erstelle ein Wörterbuch zur Zuordnung der ursprünglichen Spalten zu neuen Namen
     'Stichtagdatjahr': 'Jahr',              # Jahr der Datenerhebung
     'BaualterLang_noDM': 'Baualter',        # Baualtersklasse als Text
     'AnzZimmerLevel2Lang_noDM': 'Zimmeranzahl',  # Zimmeranzahl als Text
@@ -43,14 +43,13 @@ baualter_spalten = { # create dictionary to map the original columns to new name
     'HAPreisWohnflaeche': 'PreisProQm'      # Preis pro Quadratmeter
 }
 
-df_baualter_clean = df_baualter[baualter_spalten.keys()].copy() # we create a new dataframe with only the selected columns
-df_baualter_clean.rename(columns=baualter_spalten, inplace=True) # we rename these columns to the german names
-
+df_baualter_clean = df_baualter[baualter_spalten.keys()].copy() # Wir erstellen ein neues DataFrame, das nur die ausgewählten Spalten enthält
+df_baualter_clean.rename(columns=baualter_spalten, inplace=True) # Wir benennen diese Spalten in deutsche Namen um
 # Fehlende Werte durch kontextabhängige Mediane oder Mittelwerte ersetzen
 # Dies erhöht die Datenqualität und verhindert Verzerrungen durch fehlende Werte
-# For this line 52 to 77, AI tools were used to have a robust error handling due to the nature of the datasets (a lot missing values were present and not that many data points)
-for df in [df_quartier_clean, df_baualter_clean]: # we process both data sets using a loop
-    if 'Quartier' in df.columns: # for the first dataset it fills missing price values with the most appropriate substitute
+# Für den Code zwischen Zeile 52 und 77 wurden KI-Tools verwendet, um eine robuste Fehlerbehandlung zu gewährleisten, da die Datensätze viele fehlende Werte und nur wenige Datenpunkte enthielten
+for df in [df_quartier_clean, df_baualter_clean]: # Wir verarbeiten beide Datensätze in einer Schleife
+    if 'Quartier' in df.columns: # Beim ersten Datensatz werden fehlende Preiswerte mit dem am besten geeigneten Ersatzwert aufgefüllt
         # Für Quartier-Datensatz: Gruppierung nach Quartier und Zimmeranzahl
         # MedianPreis: Fehlende Werte nach Quartier und Zimmeranzahl ersetzen
         df['MedianPreis'] = df.groupby(['Quartier', 'Zimmeranzahl'])['MedianPreis'].transform(
@@ -71,9 +70,8 @@ for df in [df_quartier_clean, df_baualter_clean]: # we process both data sets us
     
     # Globale Mediane für verbleibende fehlende Werte verwenden
     median_price = df['MedianPreis'].median() # we calculate the overall median prices across the entire dataset
-    df['MedianPreis'].fillna(0 if pd.isna(median_price) else median_price, inplace=True) # uses these medians to fill any remaining gaps and use 0 as last resort if overall median can't be calculated
-    
-    median_price_per_sqm = df['PreisProQm'].median() # we calculate the overall median price per sqm across the entire dataset
+    df['MedianPreis'].fillna(0 if pd.isna(median_price) else median_price, inplace=True) # Wir berechnen den Gesamtmedian der Preise im gesamten Datensatz
+    median_price_per_sqm = df['PreisProQm'].median() # Wir berechnen den Gesamtmedian des Quadratmeterpreises im gesamten Datensatz
     df['PreisProQm'].fillna(0 if pd.isna(median_price_per_sqm) else median_price_per_sqm, inplace=True) # same as before, use median to fill gap, otherwise use 0
 
 # Feature-Engineering: Textbasierte Zimmeranzahl in numerischen Wert konvertieren
@@ -85,9 +83,8 @@ def zimmer_zu_int(zimmer_str):
     except:
         return np.nan # otherwise return empty value
 
-df_quartier_clean['Zimmeranzahl_num'] = df_quartier_clean['Zimmeranzahl'].apply(zimmer_zu_int) # we use the .apply() method to run this function on every value in the Zimmeranzahl column of our cleaned dataset
-df_baualter_clean['Zimmeranzahl_num'] = df_baualter_clean['Zimmeranzahl'].apply(zimmer_zu_int) # we use the .apply() method to run this function on every value in the Zimmeranzahl column of our cleaned dataset
-
+df_quartier_clean['Zimmeranzahl_num'] = df_quartier_clean['Zimmeranzahl'].apply(zimmer_zu_int) # Wir verwenden die Methode .apply(), um diese Funktion auf jeden Wert der Spalte Zimmeranzahl in unserem bereinigten Datensatz anzuwenden
+df_baualter_clean['Zimmeranzahl_num'] = df_baualter_clean['Zimmeranzahl'].apply(zimmer_zu_int) # Wir verwenden die Methode .apply(), um diese Funktion auf jeden Wert der Spalte Zimmeranzahl in unserem bereinigten Datensatz anzuwenden
 # Feature-Engineering: Baualter-Kategorien in geschätztes Baujahr umwandeln
 # Wandelt kategorische Variable in kontinuierlichen Wert für ML-Modellierung um
 def baualter_zu_jahr(baualter_str):
@@ -101,7 +98,7 @@ def baualter_zu_jahr(baualter_str):
         elif 'vor' in baualter_str: # if there are any values before (vor) 1919, just return 1919 for it
             return 1919 # Standardwert für 'vor 1919'
         # Format "nach 2015" oder "seit 2015"
-        elif 'nach' in baualter_str or 'seit' in baualter_str: # for newer buildings with nach or seit in the value, return 2015
+        elif 'nach' in baualter_str or 'seit' in baualter_str: # Bei neueren Gebäuden mit den Angaben nach oder seit im Wert wird 2015 zurückgegeben
             return 2015 # Standardwert für neuere Gebäude
         else:
             return np.nan # otherwise return empty value
@@ -122,14 +119,14 @@ df_baualter_agg = df_baualter_clean.groupby(['Jahr', 'Zimmeranzahl_num']).agg({ 
 }).reset_index() # resets the index to turn the grouped result back into a regular dataframe
 
 # Spalten für bessere Lesbarkeit umbenennen
-df_baualter_agg.rename(columns={ # we rename the columns to indicate that they are aggregated values
+df_baualter_agg.rename(columns={ # Wir benennen die Spalten um, um anzuzeigen, dass es sich um aggregierte Werte handelt
     'MedianPreis': 'MedianPreis_Baualter',
     'Baujahr': 'Durchschnitt_Baujahr'
 }, inplace=True)
 
 # Quartier- und Baualter-Daten mittels Jahr und Zimmeranzahl zusammenführen
 # Dadurch werden beide Dimensionen in einem gemeinsamen Datensatz vereint
-df_merged = pd.merge( # we join the neighborhood data with the aggregated building age data
+df_merged = pd.merge( # Wir verbinden die Quartiersdaten mit den aggregierten Baualtersdaten
     df_quartier_clean,
     df_baualter_agg,
     on=['Jahr', 'Zimmeranzahl_num'], # we match rows based on Jahr and Zimmeranzahl_num
