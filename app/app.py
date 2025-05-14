@@ -42,9 +42,9 @@ def main():
    def apply_chart_styling(fig, title=None):
        """Wendet einheitliches Styling auf alle Diagramme an"""
        layout_args = {
-           "plot_bgcolor": "white",                 # Weißer Hintergrund für den Plotbereich
-           "paper_bgcolor": "white",                # Weißer Hintergrund für das gesamte Diagramm
-           "font": dict(family="Arial, sans-serif", size=12),  # Einheitliche Schriftart und -größe
+           "plot_bgcolor": "white",                 # Weisser Hintergrund für den Plotbereich
+           "paper_bgcolor": "white",                # Weisser Hintergrund für das gesamte Diagramm
+           "font": dict(family="Arial, sans-serif", size=12),  # Einheitliche Schriftart und -grösse
            "margin": dict(l=40, r=20, t=40, b=20)  # Angepasste Ränder für optimale Platznutzung
        }
        if title:
@@ -58,7 +58,7 @@ def main():
        page_title="ImmoInsight ZH",           # Titel im Browser-Tab
        page_icon="🦁",                       # Symbol im Browser-Tab (Löwe-Emoji)
        layout="wide",                        # Breites Layout für bessere Visualisierung
-       initial_sidebar_state="expanded"      # Seitenleiste standardmäßig ausgeklappt
+       initial_sidebar_state="auto"      # Seitenleiste standardmässig ausgeklappt
    )
 
    # Funktion zum Laden von Daten und Modell mit Caching
@@ -123,7 +123,7 @@ def main():
            selected_quartier = st.selectbox(
                "Der Immobilienstandort geht hier hin:",
                options=quartier_options,
-               index=0  # Standardmäßig erstes Quartier ausgewählt
+               index=0  # Standardmässig erstes Quartier ausgewählt
            )
            
            # Quartier-Code für das ausgewählte Quartier abrufen
@@ -134,7 +134,7 @@ def main():
        
        # Immobiliendetails in eigenem Container
        with st.container(border=True):
-           # Größenschieberegler - Auswahl der Zimmeranzahl
+           # Grössenschieberegler - Auswahl der Zimmeranzahl
            st.subheader("Zimmeranzahl")
            selected_zimmer = st.slider(
                "",
@@ -321,7 +321,7 @@ def main():
            with col2:
                # Zimmerauswahl für die Karte
                zimmer_options_map = sorted(df_quartier['Zimmeranzahl_num'].unique())
-               # Wählt 3 Zimmer standardmäßig, wenn verfügbar
+               # Wählt 3 Zimmer standardmässig, wenn verfügbar
                map_zimmer = st.selectbox("Zimmeranzahl", options=zimmer_options_map, index=min(2, len(zimmer_options_map)-1))
            
            # Immobilienpreiskarte erstellen
@@ -368,7 +368,7 @@ def main():
            compare_quartiere = st.multiselect(
                "Wählen Sie Nachbarschaften zum Vergleich",
                options=quartier_options,
-               default=[selected_quartier]  # Standardmäßig das aktuell ausgewählte Quartier
+               default=[selected_quartier]  # Standardmässig das aktuell ausgewählte Quartier
            )
            
            # Diagramme nur anzeigen, wenn mindestens ein Quartier ausgewählt ist
@@ -377,7 +377,7 @@ def main():
                compare_zimmer = st.select_slider(
                    "Zimmeranzahl zum Vergleich",
                    options=[1, 2, 3, 4, 5, 6],
-                   value=selected_zimmer  # Standardmäßig die aktuell ausgewählte Zimmeranzahl
+                   value=selected_zimmer  # Standardmässig die aktuell ausgewählte Zimmeranzahl
                )
                
                # Preisvergleichsdiagramm erstellen
@@ -424,7 +424,7 @@ def main():
                # Faktoren, die den Preis beeinflussen - vereinfachte Feature Importance
                st.subheader("Preisbeeinflussende Faktoren")
                
-               # Feature-Importance-Daten - zeigt, welche Faktoren den größten Einfluss haben
+               # Feature-Importance-Daten - zeigt, welche Faktoren den grössten Einfluss haben
                importance_data = {
                    'Feature': ['Nachbarschaft', 'Reisezeit nach HB', 'Zimmeranzahl', 'Baujahr', 'Reisezeit nach Flughafen'],
                    'Importance': [0.45, 0.25, 0.15, 0.10, 0.05]  # Beispielwerte für die Wichtigkeit
@@ -531,7 +531,7 @@ def main():
                        y=min_val + (max_val-min_val)*0.8,  # Y-Position: 80% des Bereichs
                        text="Überschätzte Preise",         # Beschriftungstext
                        showarrow=False,                   # Kein Pfeil
-                       font=dict(size=12)                 # Schriftgröße
+                       font=dict(size=12)                 # Schriftgrösse
                    )
                    
                    # Anmerkung für unterschätzte Preise (unter der Diagonale)
@@ -540,7 +540,7 @@ def main():
                        y=min_val + (max_val-min_val)*0.2,  # Y-Position: 20% des Bereichs
                        text="Unterschätzte Preise",        # Beschriftungstext
                        showarrow=False,                   # Kein Pfeil
-                       font=dict(size=12)                 # Schriftgröße
+                       font=dict(size=12)                 # Schriftgrösse
                    )
                    
                    # Styling anwenden
@@ -605,7 +605,7 @@ def main():
            
            # Feature Importance Abschnitt - zeigt den relativen Einfluss verschiedener Faktoren
            st.subheader("Feature Importance")
-           st.write("Die folgende Grafik zeigt, welche Faktoren den größten Einfluss auf die Immobilienpreise in Zürich haben. Diese Feature Importance-Werte basieren auf dem trainierten Gradient Boosting-Modell.")
+           st.write("Die folgende Grafik zeigt, welche Faktoren den grössten Einfluss auf die Immobilienpreise in Zürich haben. Diese Feature Importance-Werte basieren auf dem trainierten Gradient Boosting-Modell.")
            
            # Feature-Importance-Mapping-Dictionary für bessere Anzeigenamen
            # Wandelt technische Spaltennamen in benutzerfreundliche Beschreibungen um
@@ -811,14 +811,14 @@ def main():
            """)
            
    # ---- FOOTER ----
-   # Fußzeile mit Quellenangaben und Entwicklungskontext
+   # Fusszeile mit Quellenangaben und Entwicklungskontext
    st.caption(
        "Entwickelt im Rahmen des CS-Kurses an der HSG | Datenquellen: "
        "[Immobilienpreise nach Quartier](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-2) | "
        "[Immobilienpreise nach Baualter](https://opendata.swiss/en/dataset/verkaufspreise-median-pro-wohnung-und-pro-quadratmeter-wohnungsflache-im-stockwerkeigentum-2009-3)"
    )
 
-# Ausführungsprüfung - Code außerhalb der main-Funktion
+# Ausführungsprüfung - Code ausserhalb der main-Funktion
 # Dies stellt sicher, dass die Anwendung nur ausgeführt wird, wenn die Datei direkt ausgeführt wird
 if __name__ == "__main__":
    # Module in den Pfad einfügen für korrekten Import
