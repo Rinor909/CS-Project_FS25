@@ -29,14 +29,14 @@ except: # Rückgriff auf lokale Datei, falls Git-Repository fehlschlägt
 X = df.drop(['MedianPreis', 'Quartier', 'Zimmeranzahl'], axis=1) # Enthält alle Merkmale für die Vorhersage; entfernt Zielvariable und redundante Spalten
 y = df['MedianPreis'] # Zielvariable
 
-# Kategoriale und numerische Features identifizieren # necessary separation for proper processing in sklearn pipelines
+# Kategoriale und numerische Features identifizieren # notwendige Trennung für die richtige Verarbeitung in Sklearn-Pipelines
 cat_features = ['Quartier_Code'] # Notwendige Trennung für korrekte Verarbeitung in sklearn-Pipelines
 num_features = [col for col in X.columns if col not in cat_features] # Alle anderen Variablen sind numerisch
 
 # Train-Test-Split (80/20) # Trainingsdaten werden zum Erstellen des Modells verwendet; Testdaten dienen zur Bewertung der Modellleistung
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80 % Trainings- und 20 % Testdaten; random_state = 42 sorgt für reproduzierbare Ergebnisse
 
-# Modell-Pipeline erstellen mit One-Hot-Encoding für kategoriale Features # handles different feature types
+# Modell-Pipeline erstellen mit One-Hot-Encoding für kategoriale Features # behandelt verschiedene Featuretypen
 preprocessor = ColumnTransformer(
     transformers=[
         ('num', 'passthrough', num_features), # Numerische Merkmale bleiben unverändert
@@ -98,7 +98,7 @@ with open(os.path.join(models_dir, 'price_model.pkl'), 'wb') as file: # wb öffn
 # Quartier-Mapping für die Anwendung speichern
 quartier_mapping = {code: quartier for code, quartier in zip(df['Quartier_Code'], df['Quartier'])} # Erstellt ein Wörterbuch, das numerische Codes den Quartiersnamen zuordnet
 with open(os.path.join(models_dir, 'quartier_mapping.pkl'), 'wb') as file: 
-    pickle.dump(quartier_mapping, file) # save this mapping to a pickle file # Speichert dieses Mapping in einer Pickle-Datei; hilft, die Modellausgabe in lesbare Quartiersnamen zurückzuübersetzen
+    pickle.dump(quartier_mapping, file) # Speichert dieses Mapping in einer Pickle-Datei; hilft, die Modellausgabe in lesbare Quartiersnamen zurückzuübersetzen
 
 # Save model metrics
 with open(os.path.join(models_dir, 'model_metrics.txt'), 'w') as file: # Speichert Leistungskennzahlen in einer .txt-Datei
