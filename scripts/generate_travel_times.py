@@ -8,7 +8,7 @@ import sys
 
 # In order to read the API key, I had to use a secrets.toml file on GitHub, as when I tried to do it the normal way
 # GitHub said my API key was exposed and that posed a security threat, I was not familiar with this way of reading the API key
-# So this part from line 13 to 42 was generated with AI (ChatGPT)
+# So this part from line 13 to 43 was generated with AI (ChatGPT)
 # Function to read API key directly from GitHub
 def get_api_key_from_github():
     secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml' # URL to the raw secrets.toml file in the GitHub repository
