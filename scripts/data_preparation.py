@@ -92,7 +92,7 @@ def baualter_zu_jahr(baualter_str):
     """Wandelt Baualter-Text in ungefähres Baujahr um"""
     try:
         # Zeitspannen in einen Mittelwert umwandeln (z.B. '1981-2000' → 1990.5)
-        if '-' in baualter_str: # if there is a - : split that value in two after the - and take the average thereof
+        if '-' in baualter_str: # Wenn ein - vorhanden ist: Teile diesen Wert nach dem - in zwei Hälften und nimm den Durchschnitt davon.
             jahre = baualter_str.split('-')
             return (int(jahre[0]) + int(jahre[1])) / 2
         # Spezielle Kategorien interpretieren
@@ -107,17 +107,17 @@ def baualter_zu_jahr(baualter_str):
         return np.nan # andernfalls leeren Wert zurückgeben
 
 if 'Baualter' in df_baualter_clean.columns:
-    df_baualter_clean['Baujahr'] = df_baualter_clean['Baualter'].apply(baualter_zu_jahr) # creating a new column 'baujahr' with these estimated values
+    df_baualter_clean['Baujahr'] = df_baualter_clean['Baualter'].apply(baualter_zu_jahr) # Erstellen einer neuen Spalte 'Baujahr' mit diesen geschätzten Werten.
 
 # Gebäudealter-Features zum Quartier-Datensatz hinzufügen
 # Für jedes Quartier, Jahr und Zimmeranzahl den Durchschnittspreis pro Baualtersklasse ermitteln
 # und dann mit dem Quartier-Datensatz zusammenführen
 
 # Aggregieren der Baualter-Daten nach Jahr und Zimmeranzahl
-df_baualter_agg = df_baualter_clean.groupby(['Jahr', 'Zimmeranzahl_num']).agg({ # groups the building age data by year and number of rooms
+df_baualter_agg = df_baualter_clean.groupby(['Jahr', 'Zimmeranzahl_num']).agg({ # Gruppiert die Daten zum Gebäudealter nach Jahr und Anzahl der Zimmer.
     'MedianPreis': 'mean', # Durchschnittspreis pro Baualter-Kategorie
     'Baujahr': 'mean'   # Durchschnittliches Baujahr
-}).reset_index() # resets the index to turn the grouped result back into a regular dataframe
+}).reset_index() # Setzt den Index zurück, um das gruppierte Ergebnis wieder in einen regulären DataFrame umzuwandeln.
 
 # Spalten für bessere Lesbarkeit umbenennen
 df_baualter_agg.rename(columns={ # Wir benennen die Spalten um, um anzuzeigen, dass es sich um aggregierte Werte handelt
@@ -139,7 +139,7 @@ df_merged = pd.merge( # Wir verbinden die Quartiersdaten mit den aggregierten Ba
 df_merged['Preis_Verhältnis'] = df_merged['MedianPreis'] / df_merged['MedianPreis_Baualter'] # Wir teilen den Medianpreis jedes Quartiers durch den durchschnittlichen Medianpreis von Objekten ähnlichen Alters und ähnlicher Zimmeranzahl
 # Nur die neuesten Daten für das Modelltraining filtern
 # Aktuelle Daten sind relevanter für Preisvorhersagen
-neuestes_jahr = df_merged['Jahr'].max() # finds the most recent year in the dataset
+neuestes_jahr = df_merged['Jahr'].max() # Findet das aktuellste Jahr im Datensatz.
 df_final = df_merged[df_merged['Jahr'] == neuestes_jahr].copy() # Erstellen eines neuen DataFrames, das nur die Daten des aktuellsten Jahres enthält
 # Feature-Engineering: Relatives Preisniveau pro Quartier berechnen
 # Ermöglicht Vergleich zwischen Quartieren unabhängig von absoluten Preisen
@@ -168,11 +168,11 @@ for column in df_final.columns:
 
 # Quartiere für ML-Modelle in numerische Codes konvertieren
 # One-Hot-Encoding-Vorbereitung für kategorische Variablen
-df_final['Quartier_Code'] = pd.Categorical(df_final['Quartier']).codes # we create a categorical encoding of neighborhood names, a new column with numeric codes representing each neighborhood which prepares the data for machine learning algos which require numeric inputs
+df_final['Quartier_Code'] = pd.Categorical(df_final['Quartier']).codes # Wir erstellen eine kategoriale Kodierung der Quartiernamen, eine neue Spalte mit numerischen Codes, die jedes Quartier repräsentieren, wodurch die Daten für Machine-Learning-Algorithmen vorbereitet werden, die numerische Eingaben erfordern.
 
 # Aufbereitete Datensätze in CSV-Dateien speichern
 # Diese Dateien werden für Modelltraining und App-Visualisierung verwendet
-quartier_path = os.path.join(processed_dir, 'quartier_processed.csv') # we define filepaths for saving the processed datasets
+quartier_path = os.path.join(processed_dir, 'quartier_processed.csv') # Wir definieren Dateipfade zum Speichern der verarbeiteten Datensätze.
 baualter_path = os.path.join(processed_dir, 'baualter_processed.csv')
 final_path = os.path.join(processed_dir, 'modell_input_final.csv')
 
