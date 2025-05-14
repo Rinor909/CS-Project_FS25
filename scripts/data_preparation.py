@@ -47,7 +47,7 @@ df_baualter_clean = df_baualter[baualter_spalten.keys()].copy() # Wir erstellen 
 df_baualter_clean.rename(columns=baualter_spalten, inplace=True) # Wir benennen diese Spalten in deutsche Namen um
 # Fehlende Werte durch kontextabhängige Mediane oder Mittelwerte ersetzen
 # Dies erhöht die Datenqualität und verhindert Verzerrungen durch fehlende Werte
-# Für den Code zwischen Zeile 52 und 77 wurden KI-Tools verwendet, um eine robuste Fehlerbehandlung zu gewährleisten, da die Datensätze viele fehlende Werte und nur wenige Datenpunkte enthielten
+# Für den Code zwischen Zeile 52 und 75 wurden KI-Tools verwendet, um eine robuste Fehlerbehandlung zu gewährleisten, da die Datensätze viele fehlende Werte und nur wenige Datenpunkte enthielten
 for df in [df_quartier_clean, df_baualter_clean]: # Wir verarbeiten beide Datensätze in einer Schleife
     if 'Quartier' in df.columns: # Beim ersten Datensatz werden fehlende Preiswerte mit dem am besten geeigneten Ersatzwert aufgefüllt
         # Für Quartier-Datensatz: Gruppierung nach Quartier und Zimmeranzahl
