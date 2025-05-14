@@ -69,7 +69,8 @@ for df in [df_quartier_clean, df_baualter_clean]: # Wir verarbeiten beide Datens
             lambda x: x.fillna(x.median() if not pd.isna(x.median()) else x.mean() if not pd.isna(x.mean()) else 0))
     
     # Globale Mediane für verbleibende fehlende Werte verwenden
-    median_price = df['MedianPreis'].median() # we calculate the overall median prices across the entire dataset
+    median_price = df['MedianPreis'].median() # Wir berechnen den Gesamtmedian der Preise im gesamten Datensatz
+
     df['MedianPreis'].fillna(0 if pd.isna(median_price) else median_price, inplace=True) # Wir berechnen den Gesamtmedian der Preise im gesamten Datensatz
     median_price_per_sqm = df['PreisProQm'].median() # Wir berechnen den Gesamtmedian des Quadratmeterpreises im gesamten Datensatz
     df['PreisProQm'].fillna(0 if pd.isna(median_price_per_sqm) else median_price_per_sqm, inplace=True) # same as before, use median to fill gap, otherwise use 0
@@ -143,8 +144,8 @@ df_final = df_merged[df_merged['Jahr'] == neuestes_jahr].copy() # create a new d
 
 # Feature-Engineering: Relatives Preisniveau pro Quartier berechnen
 # Ermöglicht Vergleich zwischen Quartieren unabhängig von absoluten Preisen
-quartier_avg_preis = df_final.groupby('Quartier')['MedianPreis'].mean() # we calculate the average price for each neighborhood
-gesamtpreis_avg = quartier_avg_preis.mean() # we calculate the overall average price for each neighborhood
+quartier_avg_preis = df_final.groupby('Quartier')['MedianPreis'].mean() # Wir berechnen den Durchschnittspreis für jedes Quartier
+gesamtpreis_avg = quartier_avg_preis.mean() # Wir berechnen den Durchschnittspreis für jedes Quartier
 quartier_preisniveau = (quartier_avg_preis / gesamtpreis_avg).to_dict() # Wir berechnen den Durchschnittspreis für jedes Quartier
 
 df_final['Quartier_Preisniveau'] = df_final['Quartier'].map(quartier_preisniveau) # Wir wandeln dies in ein Wörterbuch um, das Quartiersnamen den Preisniveaus zuordnet, und fügen diesen relativen Preiswert wieder in jede Zeile des Datensatzes ein
@@ -176,6 +177,6 @@ quartier_path = os.path.join(processed_dir, 'quartier_processed.csv') # we defin
 baualter_path = os.path.join(processed_dir, 'baualter_processed.csv')
 final_path = os.path.join(processed_dir, 'modell_input_final.csv')
 
-df_quartier_clean.to_csv(quartier_path, index=False) # we save all three datasets as CSV files
-df_baualter_clean.to_csv(baualter_path, index=False) # we use index=False to avoid including the dataframe index as an extra column
-df_final.to_csv(final_path, index=False) # we use index=False to avoid including the dataframe index as an extra column
+df_quartier_clean.to_csv(quartier_path, index=False) # Wir speichern alle drei Datensätze als CSV-Dateien
+df_baualter_clean.to_csv(baualter_path, index=False) # Wir verwenden index=False, um zu verhindern, dass der DataFrame-Index als zusätzliche Spalte gespeichert wird
+df_final.to_csv(final_path, index=False) # Wir verwenden index=False, um zu verhindern, dass der DataFrame-Index als zusätzliche Spalte gespeichert wird
