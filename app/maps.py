@@ -60,8 +60,8 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
        lat='lat',                     # Breitengrad-Spalte
        lon='lon',                     # Längengrad-Spalte
        color='MedianPreis',           # Färbt Punkte nach Preis
-       size='MedianPreis',            # Größe der Punkte nach Preis (höhere Preise = größere Punkte)
-       size_max=20,                   # Maximale Punktgröße
+       size='MedianPreis',            # Grösse der Punkte nach Preis (höhere Preise = grössere Punkte)
+       size_max=20,                   # Maximale Punktgrösse
        hover_name='Quartier',         # Zeigt Quartiername beim Überfahren
        hover_data=hover_data,         # Konfiguriert zusätzliche Hover-Daten
        color_continuous_scale='Viridis', # Farbskala (lila bis gelb)
@@ -111,8 +111,8 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
        lat='lat',                     # Breitengrad-Spalte
        lon='lon',                     # Längengrad-Spalte
        color='Reisezeit_Minuten',     # Färbt Punkte nach Reisezeit
-       size='Reisezeit_Minuten',      # Größe der Punkte nach Reisezeit (längere Zeiten = größere Punkte)
-       size_max=20,                   # Maximale Punktgröße
+       size='Reisezeit_Minuten',      # Grösse der Punkte nach Reisezeit (längere Zeiten = grössere Punkte)
+       size_max=20,                   # Maximale Punktgrösse
        hover_name='Quartier',         # Zeigt Quartiername beim Überfahren
        hover_data={                   # Konfiguriert Hover-Daten
            'Reisezeit_Minuten': True, # Zeigt Reisezeit beim Überfahren

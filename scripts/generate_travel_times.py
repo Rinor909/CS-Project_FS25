@@ -47,7 +47,7 @@ url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/re
 df_quartier = pd.read_csv(url_quartier) # read the CSV file from a URL into a panda DataFrame
 quartiere = df_quartier['Quartier'].unique() # extracts a unique list of neighborhood names from the 'Quartier' column
 
-# Lokales Ausgabeverzeichnis zum Speichern definieren; anschließend wird das Ergebnis auf GitHub hochgeladen, um es im weiteren Code zu verwenden
+# Lokales Ausgabeverzeichnis zum Speichern definieren; anschliessend wird das Ergebnis auf GitHub hochgeladen, um es im weiteren Code zu verwenden
 output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data" 
 processed_dir = os.path.join(output_dir, "processed") 
 os.makedirs(processed_dir, exist_ok=True)

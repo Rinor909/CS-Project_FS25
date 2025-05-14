@@ -74,7 +74,7 @@ rf_metrics = evaluate_model(rf_model, X_test, y_test)
 gb_metrics = evaluate_model(gb_model, X_test, y_test)
 
 # Testet das Modell auf mehreren Trainings-/Testaufteilungen, um Robustheit sicherzustellen
-rf_cv_scores = cross_val_score(rf_model, X, y, cv=5, scoring='neg_mean_squared_error') # 5-fache Kreuzvalidierung für beide Modelle; mittlerer quadratischer Fehler als Bewertungsmaß
+rf_cv_scores = cross_val_score(rf_model, X, y, cv=5, scoring='neg_mean_squared_error') # 5-fache Kreuzvalidierung für beide Modelle; mittlerer quadratischer Fehler als Bewertungsmass
 gb_cv_scores = cross_val_score(gb_model, X, y, cv=5, scoring='neg_mean_squared_error') # Gibt negative Werte zurück, die später in positive umgewandelt werden
 
 # Feature Importance für Random Forest Modell
@@ -102,7 +102,7 @@ with open(os.path.join(models_dir, 'quartier_mapping.pkl'), 'wb') as file:
 
 # Save model metrics
 with open(os.path.join(models_dir, 'model_metrics.txt'), 'w') as file: # Speichert Leistungskennzahlen in einer .txt-Datei
-    file.write(f"Model: {best_model_name}\n") # Gibt an, welches Modell ausgewählt wurde und zeigt anschließend dessen Leistungskennzahlen an; formatiert Werte mit entsprechender Genauigkeit
+    file.write(f"Model: {best_model_name}\n") # Gibt an, welches Modell ausgewählt wurde und zeigt anschliessend dessen Leistungskennzahlen an; formatiert Werte mit entsprechender Genauigkeit
     file.write(f"MAE: {rf_metrics[0]:.2f} CHF\n" if best_model_name == "Random Forest" else f"MAE: {gb_metrics[0]:.2f} CHF\n")
     file.write(f"RMSE: {rf_metrics[1]:.2f} CHF\n" if best_model_name == "Random Forest" else f"RMSE: {gb_metrics[1]:.2f} CHF\n")
     file.write(f"R²: {rf_metrics[2]:.4f}\n" if best_model_name == "Random Forest" else f"R²: {gb_metrics[2]:.4f}\n")
