@@ -115,7 +115,7 @@ def main():
        # Platz am Anfang hinzufügen für bessere Optik
        st.write("")
        
-       # Quartierauswahl - Umkehrung des Mappings für Benutzerfreundlichkeit
+       # Quartierauswahl - Umkehrung des Mappings für Benutzerfreundlichkeit # This is done because the app needs to display neighborhood names to users (for readability) but still work with the corresponding codes internally.
        inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}  # Kehrt das Mapping um (Code -> Name zu Name -> Code)
        quartier_options = sorted(inv_quartier_mapping.keys())  # Alphabetisch sortierte Liste aller Quartiere
        
@@ -144,7 +144,7 @@ def main():
                min_value=1,          # Minimum 1 Zimmer
                max_value=6,          # Maximum 6 Zimmer
                value=3,              # Standardwert 3 Zimmer
-               step=1,               # In 1er-Schritten
+               step=1.5,               # In 1er-Schritten
                format="%d Zimmer"    # Angezeigtes Format
            )
            
