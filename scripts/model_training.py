@@ -57,7 +57,7 @@ gb_model = Pipeline([
     ('regressor', GradientBoostingRegressor(n_estimators=100, random_state=42)) # n_estimators bestimmt die Anzahl der Bäume im Ensemble; random_state gewährleistet Reproduzierbarkeit
 ])
 
-# Modelle trainieren # models learn patterns that relate features to property prices # most intensive part of the code
+# Modelle trainieren # Modelle lernen Muster, die Merkmale mit Immobilienpreisen in Beziehung setzen # der intensivste Teil des Codes
 rf_model.fit(X_train, y_train)
 gb_model.fit(X_train, y_train)
 
