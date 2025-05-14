@@ -144,7 +144,7 @@ def main():
                min_value=1,          # Minimum 1 Zimmer
                max_value=6,          # Maximum 6 Zimmer
                value=3,              # Standardwert 3 Zimmer
-               step=1.5,               # In 1er-Schritten
+               step=1,               # In 1er-Schritten
                format="%d Zimmer"    # Angezeigtes Format
            )
            
