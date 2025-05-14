@@ -6,55 +6,54 @@ import time
 import requests
 import sys
 
-# In order to read the API key, I had to use a secrets.toml file on GitHub, as when I tried to do it the normal way
-# GitHub said my API key was exposed and that posed a security threat, I was not familiar with this way of reading the API key
-# So this part from line 13 to 43 was generated with AI (ChatGPT)
-# Function to read API key directly from GitHub
+# Um den API-Schlüssel zu lesen, musste ich eine secrets.toml-Datei auf GitHub verwenden, da dies auf normalem Weg nicht funktionierte
+# GitHub meldete, dass mein API-Schlüssel offengelegt wurde, was ein Sicherheitsrisiko darstellte; ich war mit dieser Methode zum Lesen des API-Schlüssels nicht vertraut
+# Dieser Teil von Zeile 13 bis 43 wurde mithilfe von KI (ChatGPT) erstellt
+# Funktion zum direkten Lesen des API-Schlüssels von GitHub
 def get_api_key_from_github():
-    secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml' # URL to the raw secrets.toml file in the GitHub repository
+    secrets_url = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/.streamlit/secrets.toml' # URL zur Rohdatei secrets.toml im GitHub-Repository
 
     try:
-        response = requests.get(secrets_url) # Attempt to download the secrets file
-        if response.status_code == 200: # Check if the request was successful i.e. 200 Response
-            content = response.text # get the content of the file
-            for line in content.split('\n'): # parse the file line by line to find the key
-                if line.startswith('GOOGLE_MAPS_API_KEY'): # look for the line that defines the Google Maps API Key
-                    api_key = line.split('=')[1].strip().strip('"').strip("'") # extract the value part 
+        response = requests.get(secrets_url) # Versuch, die secrets-Datei herunterzuladen
+        if response.status_code == 200: # Prüfen, ob die Anfrage erfolgreich war (HTTP 200 Antwort)
+            content = response.text # Den Inhalt der Datei abrufen
+            for line in content.split('\n'): # Die Datei Zeile für Zeile durchsuchen, um den Schlüssel zu finden
+                if line.startswith('GOOGLE_MAPS_API_KEY'): # Suche nach der Zeile, die den Google Maps API-Schlüssel definiert
+                    api_key = line.split('=')[1].strip().strip('"').strip("'") # Den Wert extrahieren
                     return api_key 
         else:
-            print(f"Failed to get secrets file: HTTP {response.status_code}") # http request failed
+            print(f"Failed to get secrets file: HTTP {response.status_code}") # HTTP-Anfrage fehlgeschlagen
     except Exception as e:
-        print(f"Error getting API key from GitHub: {e}") # handle any exceptions that may happen during the request
+        print(f"Error getting API key from GitHub: {e}") # HTTP-Anfrage fehlgeschlagen
     return None
-# Try to get API key from GitHub
+# HTTP-Anfrage fehlgeschlagen   
 print("Loading API key from GitHub...")
-GOOGLE_MAPS_API_KEY = get_api_key_from_github() # first attempt in trying to get the API key from GitHub
-# Fallback to environment variable if GitHub fails
-if not GOOGLE_MAPS_API_KEY: # second attempt if getting the api key from github failed
+GOOGLE_MAPS_API_KEY = get_api_key_from_github() # Erster Versuch, den API-Schlüssel von GitHub abzurufen
+# Rückgriff auf Umgebungsvariable, falls GitHub fehlschlägt
+if not GOOGLE_MAPS_API_KEY: # Zweiter Versuch, falls das Abrufen des API-Schlüssels von GitHub fehlschlug
     print("Trying environment variable...")
-    GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY") # look for the API key in environment variables
-# Check if we have a key
-if not GOOGLE_MAPS_API_KEY: # if both methods fail, display an error message
+    GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY") # Suche nach dem API-Schlüssel in Umgebungsvariablen
+# Prüfen, ob ein API-Schlüssel vorhanden ist
+if not GOOGLE_MAPS_API_KEY: # Wenn beide Methoden fehlschlagen, Fehlermeldung anzeigen
     print("ERROR: No Google Maps API key found.")
     print("Please make sure your API key is correctly set in:")
     print("https://github.com/Rinor909/zurich-real-estate/blob/main/.streamlit/secrets.toml")
-    sys.exit(1) # exit the program as the API key is required for core functionality
+    sys.exit(1) # Beende das Programm, da der API-Schlüssel für die Hauptfunktionalität erforderlich ist
 else:
-    print(f"Successfully loaded API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:]}") # success message with masked API key # prevents accidental exposure of the full key in logs
+    print(f"Successfully loaded API key: {GOOGLE_MAPS_API_KEY[:5]}...{GOOGLE_MAPS_API_KEY[-5:]}") # Erfolgsmeldung mit maskiertem API-Schlüssel, um ein unbeabsichtigtes Offenlegen des vollständigen Schlüssels in Logs zu verhindern
 
-
-# We again use direct GitHub URLs to load our data
+# Wir verwenden erneut direkte GitHub-URLs, um unsere Daten zu laden
 url_quartier = 'https://raw.githubusercontent.com/Rinor909/zurich-real-estate/refs/heads/main/data/processed/quartier_processed.csv'
 df_quartier = pd.read_csv(url_quartier) # read the CSV file from a URL into a panda DataFrame
 quartiere = df_quartier['Quartier'].unique() # extracts a unique list of neighborhood names from the 'Quartier' column
 
-# Here again we define a local output directory for saving at the end, we are then going to upload the output on GitHub to use it further in the code
+# Lokales Ausgabeverzeichnis zum Speichern definieren; anschließend wird das Ergebnis auf GitHub hochgeladen, um es im weiteren Code zu verwenden
 output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data" 
 processed_dir = os.path.join(output_dir, "processed") 
 os.makedirs(processed_dir, exist_ok=True)
 
 # Wichtige Zielorte in Zürich
-# Each destination is mapped to its address for API queries
+# Jede Destination wird für API-Abfragen einer Adresse zugeordnet
 zielorte = {
     'Hauptbahnhof': 'Zürich Hauptbahnhof, Zürich, Schweiz',
     'ETH': 'ETH Zürich, Rämistrasse 101, 8092 Zürich, Schweiz',
@@ -63,7 +62,7 @@ zielorte = {
 }
 
 # Tatsächliche zentrale Koordinaten für jedes Quartier
-# These coordinates represent the approximate center point of each area
+# Diese Koordinaten stellen den ungefähren Mittelpunkt jeder Region dar
 quartier_koordinaten = {
     'Hottingen': {'lat': 47.3692, 'lng': 8.5631},
     'Fluntern': {'lat': 47.3809, 'lng': 8.5629},
@@ -114,7 +113,7 @@ quartier_koordinaten = {
 }
 
 # Für fehlende Quartiere Standardwerte hinzufügen
-# for handling neighborhood that might be in our dataset but not in our coodinates dictionary, by assigning a default value (Zentrum)
+# Behandlung von Stadtteilen, die sich im Datensatz befinden, aber nicht im Koordinaten-Dictionary enthalten sind, durch Zuweisung eines Standardwertes (Zentrum)
 missing_quartiers = []
 for quartier in quartiere:
     if quartier not in quartier_koordinaten:
@@ -135,17 +134,17 @@ def get_travel_time(origin, destination, mode='transit'):
     Returns:
         float: Reisezeit in Minuten
     """
-    # Cache file path
-    # I had to do add this functionality with the caching of the API results as I had a limited number of API calls I could make under the free plan
-    # Since I was not familiar with caching, AI was used to code lines 142 through 158
-    cache_file = os.path.join(processed_dir, 'travel_time_cache.json') # we define a cache file path for storing previous API results
+    # Pfad zur Cache-Datei
+    # Ich musste diese Funktionalität zum Caching der API-Ergebnisse hinzufügen, da ich nur eine begrenzte Anzahl an API-Anfragen im kostenlosen Plan durchführen konnte
+    # Da ich mit Caching nicht vertraut war, wurde KI verwendet, um den Code für die Zeilen 142 bis 158 zu erstellen
+    cache_file = os.path.join(processed_dir, 'travel_time_cache.json') # Wir definieren einen Cache-Dateipfad zum Speichern vorheriger API-Ergebnisse
     # Cache laden, falls vorhanden
     if os.path.exists(cache_file):
         try:
             with open(cache_file, 'r') as f:
                 cache = json.load(f)
         except json.JSONDecodeError:
-            # Handle corrupted cache file
+            # Beschädigte Cache-Datei behandeln
             print(f"Warning: Corrupted cache file. Creating new cache.")
             cache = {}
     else:
@@ -157,16 +156,16 @@ def get_travel_time(origin, destination, mode='transit'):
         return cache[cache_key]
     
     url = "https://maps.googleapis.com/maps/api/directions/json" # URL für Google Maps Directions API
-    params = {     # Parameter für die Anfrage
+    params = {     # Startkoordinaten
         'origin': f"{origin['lat']},{origin['lng']}", # Start coordinates
-        'destination': destination, # End address
-        'mode': mode, # Transportation mode
-        'key': GOOGLE_MAPS_API_KEY, # API authentication
-        'departure_time': 'now', # Use current time
+        'destination': destination, # Zieladresse
+        'mode': mode, # Transportmodus
+        'key': GOOGLE_MAPS_API_KEY, # API-Authentifizierung
+        'departure_time': 'now', # Aktuelle Zeit verwenden
     }
     
     # Anfrage senden
-    # Send request to Google Maps API and process the response
+    # Anfrage an die Google Maps API senden und Antwort verarbeiten
     response = requests.get(url, params=params)
     data = response.json()
     # Prüfen, ob die Anfrage erfolgreich war
@@ -183,24 +182,24 @@ def get_travel_time(origin, destination, mode='transit'):
         return duration_minutes
     return None
 
-if __name__ == "__main__": # initialize list for travel time data
-    # DataFrame for travel times
+if __name__ == "__main__": # Liste für Reisedaten initialisieren
+    # DataFrame für Reisezeiten
     travel_times = []
-    # Quick API test # to verify the API connection is working before starting all the calculations
+    # Schneller API-Test, um zu überprüfen, ob die API-Verbindung funktioniert, bevor alle Berechnungen gestartet werden
     if get_travel_time(quartier_koordinaten.get(quartiere[0]), zielorte['Hauptbahnhof'], 'transit') is None:
         sys.exit(1)
-    # Calculate travel time for each neighborhood to all destinations
+    # Reisezeit für jeden Stadtteil zu allen Zielorten berechnen
     for quartier in quartiere: # process each neighborhood
         origin = quartier_koordinaten.get(quartier) # get coordinates for the current neighborhood
         if not origin:
             continue     
         for ziel_name, ziel_adresse in zielorte.items(): # calculate travel times to all destinations
-            for mode in ['transit', 'driving']: # calculate for different transportation modes
-                # Add small delay to avoid rate limiting of Google Maps API
+            for mode in ['transit', 'driving']: # Für verschiedene Transportmodi berechnen
+                # Kleine Verzögerung hinzufügen, um Rate-Limiting der Google Maps API zu vermeiden
                 time.sleep(0.1)
-                # Calculate travel time
+                # Reisezeit berechnen
                 duration = get_travel_time(origin, ziel_adresse, mode)
-                if duration is not None: # Store successful calculation results
+                if duration is not None: # Erfolgreiche Berechnungsergebnisse speichern
                     travel_times.append({
                         'Quartier': quartier, # Starting neighborhood
                         'Zielort': ziel_name, # Destination name
@@ -208,17 +207,17 @@ if __name__ == "__main__": # initialize list for travel time data
                         'Reisezeit_Minuten': round(duration, 1) # Travel time rounded to one decimal
                     })
 
-    # Convert collected travel time data to DataFrame for easier analysis
+    # Gesammelte Reisezeitdaten in ein DataFrame umwandeln, um die Analyse zu erleichtern
     df_travel_times = pd.DataFrame(travel_times)
-    # Save complete travel time dataset to CSV for later use (similar to what we previously did, i.e. saving locally and uploading on GitHub)
+    # Gesamten Datensatz der Reisezeiten in CSV speichern, um ihn später weiterzuverwenden (similar to what we previously did, i.e. saving locally and uploading on GitHub)
     travel_times_path = os.path.join(processed_dir, 'travel_times.csv')
     df_travel_times.to_csv(travel_times_path, index=False)
-    # Calculate average, minimum, and maximum travel times per neighborhood
+    # Durchschnittliche, minimale und maximale Reisezeiten pro Stadtteil berechnen
     df_avg_times = df_travel_times.groupby(['Quartier', 'Transportmittel']).agg({
         'Reisezeit_Minuten': ['mean', 'min', 'max'] # Key stats for analysis
     }).reset_index()
-    # Rename columns for the output
+    # Spalten für die Ausgabe umbenennen
     df_avg_times.columns = ['Quartier', 'Transportmittel', 'Durchschnitt_Minuten', 'Min_Minuten', 'Max_Minuten']
-    # Save summary statistics for quick reference and visualization
+    # Zusammenfassende Statistiken zur schnellen Referenz und Visualisierung speichern
     avg_travel_times_path = os.path.join(processed_dir, 'avg_travel_times.csv')
     df_avg_times.to_csv(avg_travel_times_path, index=False)
