@@ -58,10 +58,10 @@ def main():
        page_title="ImmoInsight ZH",           # Titel im Browser-Tab
        page_icon="🦁",                       # Symbol im Browser-Tab (Löwe-Emoji)
        layout="wide",                        # Breites Layout für bessere Visualisierung
-       initial_sidebar_state="auto",
+       initial_sidebar_state="expanded",    # Seitenleiste standardmässig ausgeklappt
        menu_items={
         'About': "## ImmoInsight ZH\n\n"
-       }     # Seitenleiste standardmässig ausgeklappt
+       }     
    )
 
    # Funktion zum Laden von Daten und Modell mit Caching
