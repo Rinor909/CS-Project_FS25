@@ -8,6 +8,12 @@ from datetime import datetime    # Für Datums- und Zeitoperationen
 import folium                    # Für interaktive Karten
 from streamlit_folium import st_folium  # Für die Integration von Folium-Karten in Streamlit
 
+# Zu Ihrer Information: Ich wollte den Code von app.py in mehrere Komponenten aufteilen (d.h. Kopfzeile, Seitenleiste, Hauptinhalt usw.), aber
+# ich bin auf Probleme gestossen, die anscheinend auf Importprobleme zurückzuführen sind. Daher habe ich mich entschieden,
+# alles in einer Datei zu belassen.
+# Ich habe die Hauptlogik der Anwendung in eine Funktion namens main() gekapselt, um die Struktur zu verbessern.
+
+
 # Hauptlogik der Anwendung 
 def main():
    # Importiere Funktionen aus lokalen Modulen
@@ -21,7 +27,6 @@ def main():
        get_travel_times_for_quartier, # Holt Reisezeiten für ein bestimmtes Quartier
        get_quartier_statistics,      # Berechnet Statistiken für ein Quartier
        get_price_history,            # Gibt die Preisentwicklung zurück
-       get_zurich_coordinates,       # Liefert Koordinaten für Zürich
        get_quartier_coordinates      # Liefert Koordinaten für alle Quartiere
    )
    
