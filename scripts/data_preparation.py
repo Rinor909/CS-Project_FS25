@@ -129,14 +129,13 @@ df_baualter_agg.rename(columns={ # Wir benennen die Spalten um, um anzuzeigen, d
 df_merged = pd.merge( # Wir verbinden die Quartiersdaten mit den aggregierten Baualtersdaten
     df_quartier_clean,
     df_baualter_agg,
-    on=['Jahr', 'Zimmeranzahl_num'], # we match rows based on Jahr and Zimmeranzahl_num
-    how='left' # we use a 'left' join, which keeps all rows from the neighborhood dataset and adds building age data where available
+    on=['Jahr', 'Zimmeranzahl_num'], # Wir ordnen die Zeilen anhand von Jahr und Zimmeranzahl_num zu
+    how='left' # Wir verwenden einen Left Join, der alle Zeilen des Quartiersdatensatzes beibehält und, falls vorhanden, Baualtersdaten hinzufügt
 )
 
 # Feature-Engineering: Preisverhältnis zwischen Quartier und Baualter berechnen
 # Dieses Feature zeigt die relative Preispositionierung eines Quartiers im Vergleich zum Baujahrstandard
-df_merged['Preis_Verhältnis'] = df_merged['MedianPreis'] / df_merged['MedianPreis_Baualter'] # We divide each neighborhood's median price by the average median price for properties of similar age and room count
-
+df_merged['Preis_Verhältnis'] = df_merged['MedianPreis'] / df_merged['MedianPreis_Baualter'] # Wir teilen den Medianpreis jedes Quartiers durch den durchschnittlichen Medianpreis von Objekten ähnlichen Alters und ähnlicher Zimmeranzahl
 # Nur die neuesten Daten für das Modelltraining filtern
 # Aktuelle Daten sind relevanter für Preisvorhersagen
 neuestes_jahr = df_merged['Jahr'].max() # finds the most recent year in the dataset
@@ -146,13 +145,12 @@ df_final = df_merged[df_merged['Jahr'] == neuestes_jahr].copy() # create a new d
 # Ermöglicht Vergleich zwischen Quartieren unabhängig von absoluten Preisen
 quartier_avg_preis = df_final.groupby('Quartier')['MedianPreis'].mean() # we calculate the average price for each neighborhood
 gesamtpreis_avg = quartier_avg_preis.mean() # we calculate the overall average price for each neighborhood
-quartier_preisniveau = (quartier_avg_preis / gesamtpreis_avg).to_dict() # We divide each neighborhood's average by the overall average to get a relative price level
+quartier_preisniveau = (quartier_avg_preis / gesamtpreis_avg).to_dict() # Wir berechnen den Durchschnittspreis für jedes Quartier
 
-df_final['Quartier_Preisniveau'] = df_final['Quartier'].map(quartier_preisniveau) # we convert this to a dictionary mapping neighborhood names to their price levels and adds this relative price level back to each row in the dataset       
-
+df_final['Quartier_Preisniveau'] = df_final['Quartier'].map(quartier_preisniveau) # Wir wandeln dies in ein Wörterbuch um, das Quartiersnamen den Preisniveaus zuordnet, und fügen diesen relativen Preiswert wieder in jede Zeile des Datensatzes ein
 # Zeilen mit fehlenden Werten in Kernvariablen entfernen
 # Sichert die Datenqualität für das ML-Modell
-df_final.dropna(subset=['MedianPreis', 'Quartier', 'Zimmeranzahl_num'], inplace=True) # removes any rows still missing values in critical columns
+df_final.dropna(subset=['MedianPreis', 'Quartier', 'Zimmeranzahl_num'], inplace=True) # Wir berechnen den Gesamtdurchschnittspreis aller Quartiere
 
 # Verbleibende fehlende Werte durch Mediane ersetzen
 # Sicherstellen, dass das Dataset vollständig ist, ohne Informationsverlust
