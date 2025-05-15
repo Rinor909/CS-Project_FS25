@@ -6,6 +6,10 @@ import time
 import requests
 import sys
 
+# Dieses Skript berechnet die Reisezeiten zwischen verschiedenen Stadtteilen in Zürich und wichtigen Zielorten
+# KI-Tools wurden verwendet, um das Skript zu strukturieren, es zu debuggen und einige anspruchsvollere Teile 
+# des Codes zu schreiben (die unten erklärt werden), um die Genauigkeit und Effizienz zu verbessern.
+
 # Um den API-Schlüssel zu lesen, musste ich eine secrets.toml-Datei auf GitHub verwenden, da dies auf normalem Weg nicht funktionierte
 # GitHub meldete, dass mein API-Schlüssel offengelegt wurde, was ein Sicherheitsrisiko darstellte; ich war mit dieser Methode zum Lesen des API-Schlüssels nicht vertraut
 # Dieser Teil von Zeile 13 bis 43 wurde mithilfe von KI (ChatGPT) erstellt
@@ -136,7 +140,7 @@ def get_travel_time(origin, destination, mode='transit'):
     """
     # Pfad zur Cache-Datei
     # Ich musste diese Funktionalität zum Caching der API-Ergebnisse hinzufügen, da ich nur eine begrenzte Anzahl an API-Anfragen im kostenlosen Plan durchführen konnte
-    # Da ich mit Caching nicht vertraut war, wurde KI verwendet, um den Code für die Zeilen 142 bis 158 zu erstellen
+    # Da ich mit Caching nicht vertraut war, wurde KI verwendet, um den Code für die Zeilen 144 bis 160 zu erstellen
     cache_file = os.path.join(processed_dir, 'travel_time_cache.json') # Wir definieren einen Cache-Dateipfad zum Speichern vorheriger API-Ergebnisse
     # Cache laden, falls vorhanden
     if os.path.exists(cache_file):
@@ -185,7 +189,7 @@ def get_travel_time(origin, destination, mode='transit'):
 if __name__ == "__main__": # Liste für Reisedaten initialisieren
     # DataFrame für Reisezeiten
     travel_times = []
-    # Schneller API-Test, um zu überprüfen, ob die API-Verbindung funktioniert, bevor alle Berechnungen gestartet werden
+    # Schneller API-Test, um zu überprüfen, ob die API-Verbindung funktioniert, bevor alle Berechnungen gestartet werden # KI schlug mir vor, diesen kurzen Test durchzuführen, um zu sehen, ob die API funktioniert
     if get_travel_time(quartier_koordinaten.get(quartiere[0]), zielorte['Hauptbahnhof'], 'transit') is None:
         sys.exit(1)
     # Reisezeit für jeden Stadtteil zu allen Zielorten berechnen
@@ -195,7 +199,7 @@ if __name__ == "__main__": # Liste für Reisedaten initialisieren
             continue     
         for ziel_name, ziel_adresse in zielorte.items(): # calculate travel times to all destinations
             for mode in ['transit', 'driving']: # Für verschiedene Transportmodi berechnen
-                # Kleine Verzögerung hinzufügen, um Rate-Limiting der Google Maps API zu vermeiden
+                # Kleine Verzögerung hinzufügen, um Rate-Limiting der Google Maps API zu vermeiden # KI schlug vor, eine kleine Verzögerung hinzuzufügen, um die API nicht zu überlasten
                 time.sleep(0.1)
                 # Reisezeit berechnen
                 duration = get_travel_time(origin, ziel_adresse, mode)

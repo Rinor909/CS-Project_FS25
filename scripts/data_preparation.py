@@ -2,6 +2,10 @@ import pandas as pd
 import numpy as np
 import os
 
+# Dieses Skript bereitet die Daten für die Modellierung vor, indem es sie bereinigt, transformiert und speichert.
+# KI-Tools wurden verwendet, um das Skript zu strukturieren, es zu debuggen und einige anspruchsvollere Teile 
+# des Codes zu schreiben (die unten erklärt werden), um die Genauigkeit und Effizienz zu verbessern.
+
 # Hier gebe ich ein lokales Ausgabeverzeichnis an, da ich nicht in der Lage war, 
 # sie direkt auf GitHub zu speichern (ich habe 2 Tage lang versucht, dies zu beheben, ohne Erfolg).
 # Ich speichere also die Exporte lokal und lade sie dann auf GitHub hoch, um sie später für die anderen Skripte zu verwenden.

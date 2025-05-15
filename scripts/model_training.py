@@ -9,6 +9,10 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
+# Dieses Skript trainiert ein Machine-Learning-Modell zur Vorhersage von Immobilienpreisen in Zürich.
+# KI-Tools wurden verwendet, um das Skript zu strukturieren, es zu debuggen und einige anspruchsvollere Teile 
+# des Codes zu schreiben (die unten erklärt werden), um die Genauigkeit und Effizienz zu verbessern.
+
 # Wie zuvor in data_preparation.py und generate_travel_times.py definieren wir erneut das Ausgabeverzeichnis
 output_dir = r"C:\Users\rinor\OneDrive\Desktop\Computer Science Project\Data"
 processed_dir = os.path.join(output_dir, "processed") # Zum Speichern von Zwischendateien
