@@ -1,86 +1,86 @@
-# 🏡 Zurich Real Estate Price Prediction
+# 🏡 Zürcher Immobilienpreis-Prognose
 
-A web application that shows real estate price estimates in Zurich based on location, number of rooms, and building age.
+Eine Webanwendung, die Immobilienpreisschätzungen in Zürich basierend auf Lage, Zimmeranzahl und Baujahr anzeigt.
 
-## What This Project Does
+## Was dieses Projekt leistet
 
-This app helps you:
-- See estimated property prices in different Zurich neighborhoods
-- View price differences across Zurich on a map
-- Check how travel time affects prices
-- Compare prices between neighborhoods
+Diese App hilft Ihnen:
+- Geschätzte Immobilienpreise in verschiedenen Zürcher Quartieren zu sehen
+- Preisunterschiede in ganz Zürich auf einer Karte zu betrachten
+- Zu überprüfen, wie Reisezeiten die Preise beeinflussen
+- Preise zwischen verschiedenen Quartieren zu vergleichen
 
-## Setup Instructions
+## Einrichtungsanleitung
 
-1. Clone this repository
+1. Klonen Sie dieses Repository
 ```
 git clone https://github.com/yourusername/zurich-real-estate.git
 cd zurich-real-estate
 ```
 
-2. Install required packages
+2. Installieren Sie die erforderlichen Pakete
 ```
 pip install -r requirements.txt
 ```
 
-3. Add your Google Maps API key
-   - Create a `.streamlit/secrets.toml` file
-   - Add this line with your API key: `GOOGLE_MAPS_API_KEY = "your-api-key-here"`
+3. Fügen Sie Ihren Google Maps API-Schlüssel hinzu
+   - Erstellen Sie eine `.streamlit/secrets.toml` Datei
+   - Fügen Sie diese Zeile mit Ihrem API-Schlüssel hinzu: `GOOGLE_MAPS_API_KEY = "your-api-key-here"`
 
-## Preparing the Data
+## Vorbereiten der Daten
 
-Run these scripts in order:
+Führen Sie diese Skripte der Reihe nach aus:
 
 ```
-# 1. Process the property data
+# 1. Immobiliendaten verarbeiten
 python scripts/data_preparation.py
 
-# 2. Generate travel time data
+# 2. Reisezeit-Daten generieren
 python scripts/generate_travel_times.py
 
-# 3. Train the prediction model
+# 3. Vorhersagemodell trainieren
 python scripts/model_training.py
 ```
 
-## Running the App
+## Ausführen der App
 
 ```
 streamlit run app.py
 ```
 
-Open your browser and go to `http://localhost:8501`
+Öffnen Sie Ihren Browser und gehen Sie zu `http://localhost:8501`
 
-## Project Files
+## Projektdateien
 
-- `app.py`: Main application file
-- `app/`: Directory with app components
-- `data/`: Contains raw and processed data
-- `models/`: Stores the trained ML model
-- `scripts/`: Contains data processing scripts
-- `requirements.txt`: Lists all required packages
+- `app.py`: Haupt-Anwendungsdatei
+- `app/`: Verzeichnis mit App-Komponenten
+- `data/`: Enthält Roh- und verarbeitete Daten
+- `models/`: Speichert das trainierte ML-Modell
+- `scripts/`: Enthält Datenverarbeitungsskripte
+- `requirements.txt`: Listet alle erforderlichen Pakete auf
 
-## Features
+## Funktionen
 
-- **Price Prediction**: Estimates property prices using a machine learning model
-- **Interactive Maps**: Shows price distribution across Zurich
-- **Travel Time Analysis**: Displays how travel times affect property values
-- **Price Comparison**: Compares prices between neighborhoods
+- **Preisvorhersage**: Schätzt Immobilienpreise mit einem maschinellen Lernmodell
+- **Interaktive Karten**: Zeigt die Preisverteilung in Zürich
+- **Reisezeit-Analyse**: Zeigt, wie Reisezeiten die Immobilienwerte beeinflussen
+- **Preisvergleich**: Vergleicht Preise zwischen verschiedenen Quartieren
 
-## Data Sources
+## Datenquellen
 
-- Property prices by neighborhood (2009-2024)
-- Property prices by building age (2009-2024)
-- Travel times to key locations (calculated using Google Maps API)
+- Immobilienpreise nach Quartier (2009-2024)
+- Immobilienpreise nach Baujahr (2009-2024)
+- Reisezeiten zu wichtigen Standorten (berechnet mit der Google Maps API)
 
-## Tools Used
+## Verwendete Tools
 
-- **Python**: Programming language
-- **Streamlit**: Web interface
-- **Pandas**: Data processing
-- **Scikit-learn**: Machine learning for predictions
-- **Plotly**: Interactive charts and maps
-- **Google Maps API**: Travel time data
+- **Python**: Programmiersprache
+- **Streamlit**: Weboberfläche
+- **Pandas**: Datenverarbeitung
+- **Scikit-learn**: Maschinelles Lernen für Vorhersagen
+- **Plotly**: Interaktive Diagramme und Karten
+- **Google Maps API**: Reisezeit-Daten
 
-## Note
+## Hinweis
 
-This project was created for a Computer Science course. The predictions are estimates only and should not be used for actual real estate decisions.
+Dieses Projekt wurde für einen Informatikkurs erstellt. Die Vorhersagen sind nur Schätzungen und sollten nicht für tatsächliche Immobilienentscheidungen verwendet werden.
