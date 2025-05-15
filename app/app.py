@@ -12,7 +12,8 @@ from streamlit_folium import st_folium  # Für die Integration von Folium-Karten
 # ich bin auf Probleme gestossen, die anscheinend auf Importprobleme zurückzuführen sind. Daher habe ich mich entschieden,
 # alles in einer Datei zu belassen.
 # Ich habe die Hauptlogik der Anwendung in eine Funktion namens main() gekapselt, um die Struktur zu verbessern.
-
+# Hier wurden KI-Tools zur Strukturierung des Codes und zur Fehlersuche eingesetzt. 
+# Ansonsten habe ich hauptsächlich die Streamlit-Dokumentation und die Cheatsheets verwendet.
 
 # Hauptlogik der Anwendung 
 def main():
@@ -39,6 +40,8 @@ def main():
    
    # Hilfsfunktion für einheitliches Styling von Diagrammen
    # Diese Funktion wird auf alle Diagramme angewendet, um ein konsistentes Erscheinungsbild zu gewährleisten
+   # Ich musste diese Funktion (45-56) mit AI erstellen, da ich Probleme mit der Anzeige der Diagramme hatte, 
+   # wenn ich zwischen dem dunklen und dem hellen Modus von Streamlit auf der Website wechselte
    def apply_chart_styling(fig, title=None):
        """Wendet einheitliches Styling auf alle Diagramme an"""
        layout_args = {
@@ -115,7 +118,7 @@ def main():
        # Platz am Anfang hinzufügen für bessere Optik
        st.write("")
        
-       # Quartierauswahl - Umkehrung des Mappings für Benutzerfreundlichkeit # This is done because the app needs to display neighborhood names to users (for readability) but still work with the corresponding codes internally.
+       # Quartierauswahl - Umkehrung des Mappings für Benutzerfreundlichkeit # Der Grund dafür ist, dass die App den Nutzern die Namen der Stadtteile anzeigen muss (zur besseren Lesbarkeit), aber dennoch intern mit den entsprechenden Codes arbeitet.
        inv_quartier_mapping = {v: k for k, v in quartier_mapping.items()}  # Kehrt das Mapping um (Code -> Name zu Name -> Code)
        quartier_options = sorted(inv_quartier_mapping.keys())  # Alphabetisch sortierte Liste aller Quartiere
        
@@ -517,6 +520,7 @@ def main():
                                pred_actual_df['Vorhergesagter Preis (CHF)'].max())
                    
                    # Diagonale Linie für perfekte Vorhersagen hinzufügen
+                   # AI wurde für die Zeilen 523 bis 551 verwendet, um das Diagramm interaktiv und ästhetischer mit Plotly zu gestalten
                    fig.add_trace(
                        go.Scatter(
                            x=[min_val, max_val],          # X-Koordinaten

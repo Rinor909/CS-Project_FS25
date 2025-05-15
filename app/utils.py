@@ -6,6 +6,10 @@ import os                  # Für Dateisystemoperationen
 import requests            # Für HTTP-Anfragen
 from io import StringIO    # Für String-basierte Datenströme
 
+# Hier wurden KI-Tools zur Strukturierung des Codes und zur Fehlersuche eingesetzt. 
+
+# Für diese Funktion wurde KI-Assistenz eingesetzt, um robuste Fallback-Mechanismen
+# für den Fall zu entwickeln, dass der Code versagt (was anfangs häufig vorkam).
 def load_processed_data():
    """Lädt die verarbeiteten Daten für die Anwendung"""
    # GitHub-URLs für Datenquellen
@@ -56,6 +60,8 @@ def load_processed_data():
        
    return df_quartier, df_baualter, df_travel_times
 
+# Für diese Funktion wurde KI-Assistenz eingesetzt, um robuste Fallback-Mechanismen
+# für den Fall zu entwickeln, dass der Code versagt (was anfangs häufig vorkam).
 def load_model():
    """Lädt das trainierte Preisvorhersagemodell"""
    # URL zum Modell auf GitHub
@@ -82,6 +88,7 @@ def load_model():
    # Wenn das Modell nicht geladen werden kann, gibt None zurück (Fallback-Berechnung wird verwendet)
    return None
 
+
 def load_quartier_mapping():
    """Lädt die Quartier-Mapping-Daten"""
    try:
@@ -96,6 +103,8 @@ def load_quartier_mapping():
    # Leeres Mapping als Standardwert, wenn Laden fehlschlägt
    return {}
 
+# Für diese Funktion wurde KI-Assistenz eingesetzt, um robuste Fallback-Mechanismen
+# für den Fall zu entwickeln, dass der Code versagt (was anfangs häufig vorkam).
 def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
    """Bereitet Eingabedaten für das Modell vor"""
    # Modell-Eingabedaten laden
@@ -150,6 +159,8 @@ def preprocess_input(quartier_code, zimmeranzahl, baujahr, travel_times_dict):
    
    return input_data
 
+# Für diese Funktion wurde KI-Assistenz eingesetzt, um robuste Fallback-Mechanismen
+# für den Fall zu entwickeln, dass der Code versagt (was anfangs häufig vorkam).
 def predict_price(model, input_data):
    """Sagt den Preis basierend auf Eingabedaten voraus"""
    # Schlüsselwerte für Fallback-Berechnungen extrahieren

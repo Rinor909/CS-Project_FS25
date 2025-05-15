@@ -5,6 +5,9 @@ import streamlit as st            # Für die Erstellung der Webapplikationsoberf
 import plotly.express as px       # Für interaktive Visualisierungen mit weniger Code
 import plotly.graph_objects as go # Für spezifischere interaktive Visualisierungen
 
+# Diese Datei enthält Funktionen zur Erstellung von interaktiven Karten und Diagrammen
+# Hier wurden KI-Tools zur Strukturierung des Codes und zur Fehlersuche eingesetzt. 
+# Für die Erstellung der Preis-Wärmekarte wurde auf KI-Unterstützung zurückgegriffen, da die Erstellung ansonsten zu komplex wäre (---> Zeile 11-58).
 def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selected_zimmer=3):
    """Erstellt eine Heatmap der Immobilienpreise in Zürich"""
    # Überprüfung, ob die nötigen Daten vorhanden sind
@@ -55,6 +58,7 @@ def create_price_heatmap(df_quartier, quartier_coords, selected_year=2024, selec
        hover_data['PreisProQm'] = True  # Fügt Preis pro m² hinzu, falls verfügbar
        
    # Erstellt die interaktive Streuungskarte mit Plotly Express
+   # Ich musste dies mit AI anpassen, da dies eine ziemlich komplexe Anwendung von plotly.express war (--> Zeile 62-74)
    fig = px.scatter_mapbox(
        df_map,                        # Datenquelle
        lat='lat',                     # Breitengrad-Spalte
@@ -137,6 +141,7 @@ def create_travel_time_map(df_travel_times, quartier_coords, zielort='Hauptbahnh
    
    return fig  # Gibt die fertige Visualisierung zurück
 
+# Zur Strukturierung dieser Funktion wurden AI-Tools verwendet
 def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimmer=3):
    """Erstellt ein Balkendiagramm zum Vergleich der Preise in verschiedenen Quartieren"""
    # Findet das aktuellste Jahr im Datensatz für aktuelle Preise
@@ -188,6 +193,7 @@ def create_price_comparison_chart(df_quartier, selected_quartiere, selected_zimm
    
    return fig  # Gibt die fertige Visualisierung zurück
 
+# Zur Strukturierung dieser Funktion wurden AI-Tools verwendet
 def create_price_time_series(df_quartier, selected_quartiere, selected_zimmer=3):
    """Erstellt ein Liniendiagramm zur Darstellung der Preisentwicklung im Zeitverlauf"""
    # Filtert den Datensatz nach:
