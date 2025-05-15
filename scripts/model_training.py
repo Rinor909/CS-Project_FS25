@@ -41,6 +41,7 @@ num_features = [col for col in X.columns if col not in cat_features] # Alle ande
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80 % Trainings- und 20 % Testdaten; random_state = 42 sorgt für reproduzierbare Ergebnisse
 
 # Modell-Pipeline erstellen mit One-Hot-Encoding für kategoriale Features # behandelt verschiedene Featuretypen
+# Hier musste ich KI-Hilfe in Anspruch nehmen, um gemischte Datentypen für die Pipelinekonstruktion zu verarbeiten.
 preprocessor = ColumnTransformer(
     transformers=[
         ('num', 'passthrough', num_features), # Numerische Merkmale bleiben unverändert
