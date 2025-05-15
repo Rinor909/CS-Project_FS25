@@ -92,6 +92,7 @@ df_quartier_clean['Zimmeranzahl_num'] = df_quartier_clean['Zimmeranzahl'].apply(
 df_baualter_clean['Zimmeranzahl_num'] = df_baualter_clean['Zimmeranzahl'].apply(zimmer_zu_int) # Wir verwenden die Methode .apply(), um diese Funktion auf jeden Wert der Spalte Zimmeranzahl in unserem bereinigten Datensatz anzuwenden
 # Feature-Engineering: Baualter-Kategorien in geschätztes Baujahr umwandeln
 # Wandelt kategorische Variable in kontinuierlichen Wert für ML-Modellierung um
+# KI-Tools wurden verwendet, um diese Funktion zu erstellen, da sie eine komplexe Logik zur Verarbeitung von Textwerten enthält
 def baualter_zu_jahr(baualter_str):
     """Wandelt Baualter-Text in ungefähres Baujahr um"""
     try:
