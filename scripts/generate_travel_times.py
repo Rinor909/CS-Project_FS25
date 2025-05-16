@@ -179,7 +179,7 @@ def get_travel_time(origin, destination, mode='transit'):
         leg = route['legs'][0]
         duration_seconds = leg['duration']['value']
         duration_minutes = duration_seconds / 60
-        # Im Cache speichern # AI was used to code lines 186 to 188
+        # Im Cache speichern # AI was used to code lines 182 to 188
         cache[cache_key] = duration_minutes
         with open(cache_file, 'w') as f:
             json.dump(cache, f)
